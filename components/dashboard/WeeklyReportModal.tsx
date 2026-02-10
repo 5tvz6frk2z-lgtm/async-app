@@ -62,8 +62,8 @@ export function WeeklyReportModal() {
                                 <div className="flex justify-between items-center mb-2">
                                     <h3 className="font-semibold text-slate-900">{report.user}</h3>
                                     <span className={`text-xs px-2 py-1 rounded-full ${report.sentiment === 'green' ? 'bg-emerald-100 text-emerald-700' :
-                                            report.sentiment === 'yellow' ? 'bg-amber-100 text-amber-700' :
-                                                'bg-rose-100 text-rose-700'
+                                        report.sentiment === 'yellow' ? 'bg-amber-100 text-amber-700' :
+                                            'bg-rose-100 text-rose-700'
                                         }`}>
                                         {report.sentiment.toUpperCase()}
                                     </span>
@@ -83,11 +83,11 @@ export function WeeklyReportModal() {
                                         {report.blockers && (
                                             <p className="text-rose-600 font-medium mb-2">⚠️ {report.blockers}</p>
                                         )}
-                                        {report.carried.length > 0 ? (
+                                        {report.carried.length > 0 && (
                                             <ul className="list-disc list-inside text-slate-700 space-y-1">
                                                 {report.carried.map((item, i) => <li key={i}>{item}</li>)}
                                             </ul>
-                                        ) : !report.blockers && <span className="text-slate-400 italic">None</span>}
+                                        )}
                                     </div>
                                 </div>
                             </div>

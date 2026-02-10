@@ -1,0 +1,60 @@
+# STATUS LOOP - BRAND & UI GUIDELINES (POSITIVE MINIMALIST)
+
+## 1. DESIGN PHILOSOPHY: "Fresh & Frictionless"
+The interface should feel like opening a fresh notebook. It is inviting, not demanding.
+* **Core Vibe:** Airy, Clean, Organized, Optimistic.
+* **Metaphor:** A digital standup card.
+* **Interaction:** Vertical Flow. Users see the full picture (Yesterday, Today, Blockers) at a glance.
+
+## 2. COLOR PALETTE (Light Mode Only)
+
+### Backgrounds
+* **App Canvas:** `bg-slate-50` (Very subtle off-white to let the cards pop).
+* **Card Surface:** `bg-white` (Pure white).
+* **Borders:** `border-slate-200` (Subtle definition).
+
+### Primary Actions (Optimistic Indigo)
+* **Primary Button:** `bg-indigo-600` text `white`.
+    * *Hover:* `bg-indigo-700` with `shadow-md`.
+    * *Style:* Rounded-full (Pill shape) or slightly rounded-lg for a modern, friendly feel.
+
+### Text & Readability
+* **Headings:** `text-slate-900` font-semibold tracking-tight.
+* **Body/Labels:** `text-slate-700` font-medium.
+* **Placeholder/Helper:** `text-slate-400` (Light but legible).
+
+### Functional Status Colors (Soft Pastels)
+Use these for the "Badges" on the dashboard.
+* **Done:** `bg-emerald-50 text-emerald-700 border border-emerald-100`
+* **Focus/Todo:** `bg-indigo-50 text-indigo-700 border border-indigo-100`
+* **Blocker:** `bg-rose-50 text-rose-700 border border-rose-100`
+
+## 3. UI LAYOUT: THE DAILY LOOP FORM
+The core screen is a single vertical form containing 3 distinct sections.
+
+### Structure
+* **Container:** A central card (`max-w-md` or `max-w-lg`) centered on the screen.
+* **Spacing:** `gap-6` between the three input groups.
+* **Labels:** Clear, question-based labels above each box (e.g., "What did you finish yesterday?").
+
+### Input Styling (The Text Boxes)
+* **Visual:** `bg-white` with `border border-slate-200` and `rounded-lg`.
+* **Shadow:** `shadow-sm` (Very subtle lift).
+* **Focus State:** `ring-2 ring-indigo-100 border-indigo-500` (Glow effect).
+* **Size:** Minimum height of `h-24` for text areas to encourage detail, but keep them compact enough to fit on mobile screens without excessive scrolling.
+
+## 4. TYPOGRAPHY
+* **Font Family:** Inter (or System Sans).
+* **Header:** "Your Daily Update" (Text-2xl, centered).
+* **Input Labels:** Text-sm or Text-base, weight-medium (`font-medium`).
+* **Input Text:** Text-base (`text-slate-800`).
+
+## 5. BUTTON HIERARCHY
+* **Submit Action:** Placed at the very bottom of the form card.
+* **Width:** Full width (`w-full`) for easy mobile tapping.
+* **Text:** "Submit Loop" (Bold, Clear).
+
+## 6. TONE OF VOICE
+* **Encouraging:** "Nice work," "Keep it up," "All clear."
+* **Direct:** Use questions to prompt inputs ("What is the priority?").
+* **No Jargon:** Use "Blockers" or "Stuck on," avoiding complex project management terms.

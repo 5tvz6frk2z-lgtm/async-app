@@ -11,7 +11,7 @@ interface EditReportDialogProps {
     report: {
         id: string
         sentiment: "green" | "yellow" | "red"
-        today_plan: string[]
+        today_plan: { id: string; content: string; is_priority: boolean }[]
     }
     open: boolean
     onOpenChange: (open: boolean) => void
@@ -20,7 +20,8 @@ interface EditReportDialogProps {
 
 export function EditReportDialog({ report, open, onOpenChange, onSave }: EditReportDialogProps) {
     const [sentiment, setSentiment] = useState(report.sentiment)
-    const [planText, setPlanText] = useState(report.today_plan.join("\n"))
+    // Extract content from objects for the text area
+    const [planText, setPlanText] = useState(report.today_plan.map(item => item.content).join("\n"))
 
     const handleSave = () => {
         const newPlan = planText.split("\n").filter(line => line.trim() !== "")

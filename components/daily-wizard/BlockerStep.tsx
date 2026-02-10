@@ -1,3 +1,5 @@
+"use client"
+
 import { UseFormReturn } from "react-hook-form"
 import { DailyReportFormValues } from "@/lib/schemas/daily-report"
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form"

@@ -1,3 +1,5 @@
+"use client"
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar" // Need to install avatar or use placeholder
@@ -11,7 +13,7 @@ interface Report {
     sentiment: "green" | "yellow" | "red"
     blockers?: string
     yest_completed: string[]
-    today_plan: string[]
+    today_plan: { id: string; content: string; is_priority: boolean }[]
     timestamp: string
 }
 
@@ -21,12 +23,15 @@ import { EditReportDialog } from "./EditReportDialog"
 
 // ... Report interface
 
+import { Flag } from "lucide-react"
+
 interface ReportCardProps {
     report: Report
     onSave: (id: string, updates: { sentiment: "green" | "yellow" | "red"; today_plan: string[] }) => void
+    onTogglePriority: (itemId: string, currentPriority: boolean) => void
 }
 
-export function ReportCard({ report, onSave }: ReportCardProps) {
+export function ReportCard({ report, onSave, onTogglePriority }: ReportCardProps) {
     const [isEditing, setIsEditing] = useState(false)
 
     const sentimentColor = {
@@ -36,10 +41,10 @@ export function ReportCard({ report, onSave }: ReportCardProps) {
     }[report.sentiment]
 
     return (
-        <Card className="border-slate-200 shadow-sm relative overflow-hidden">
+        <Card className="bg-white rounded-2xl border-slate-100 shadow-xl shadow-slate-200/50 relative overflow-hidden transition-all hover:border-indigo-100">
             {/* ... Sentiment Strip ... */}
-            <div className={`absolute left-0 top-0 bottom-0 w-1 ${report.sentiment === 'green' ? 'bg-emerald-500' :
-                report.sentiment === 'yellow' ? 'bg-yellow-500' : 'bg-rose-500'
+            <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${report.sentiment === 'green' ? 'bg-emerald-400' :
+                report.sentiment === 'yellow' ? 'bg-amber-400' : 'bg-rose-400'
                 }`} />
 
             <CardContent className="pt-6 pl-6">
@@ -89,9 +94,22 @@ export function ReportCard({ report, onSave }: ReportCardProps) {
                         <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Plan for Today</h4>
                         <ul className="space-y-1">
                             {report.today_plan.map((item, i) => (
-                                <li key={i} className="text-sm text-slate-700 flex items-start gap-2">
-                                    <span className="text-indigo-500 mt-1">•</span>
-                                    <span>{item}</span>
+                                <li key={item.id} className="text-sm text-slate-700 flex items-start group justify-between">
+                                    <div className="flex items-start gap-2">
+                                        <span className="text-indigo-500 mt-1">•</span>
+                                        <span>{item.content}</span>
+                                    </div>
+                                    {/* Priority Flag Action */}
+                                    <button
+                                        onClick={() => onTogglePriority(item.id, item.is_priority)}
+                                        className={`p-1 rounded hover:bg-slate-100 transition-colors ${item.is_priority
+                                            ? "text-red-500 hover:text-red-600 opacity-100"
+                                            : "text-slate-300 hover:text-red-400 opacity-0 group-hover:opacity-100"
+                                            }`}
+                                        title={item.is_priority ? "Remove Priority" : "Mark as Priority"}
+                                    >
+                                        <Flag className={`w-3.5 h-3.5 ${item.is_priority ? "fill-current" : ""}`} />
+                                    </button>
                                 </li>
                             ))}
                         </ul>
