@@ -93,7 +93,7 @@ export function InviteMemberDialog() {
     return (
         <Dialog open={open} onOpenChange={(val) => !val && reset()}>
             <DialogTrigger asChild>
-                <Button onClick={() => setOpen(true)} className="bg-indigo-600 hover:bg-indigo-700">
+                <Button onClick={() => setOpen(true)} className="bg-indigo-600 hover:bg-indigo-700 w-full md:w-auto">
                     <UserPlus className="w-4 h-4 mr-2" />
                     Invite Member
                 </Button>

@@ -12,7 +12,7 @@ export default function TeamPage() {
 
     return (
         <div className="max-w-4xl mx-auto p-6 space-y-8">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-slate-900">Team</h1>
                     <p className="text-slate-500">View and manage your team members.</p>
