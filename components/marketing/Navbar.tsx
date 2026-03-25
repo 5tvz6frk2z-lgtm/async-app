@@ -15,7 +15,7 @@ export function Navbar() {
                             </span>
                         </Link>
                         <div className="hidden md:flex ml-10 space-x-8">
-                            <Link href="/#features" className="text-slate-600 hover:text-indigo-600 font-medium transition-colors">Product</Link>
+                            <Link href="/product" className="text-slate-600 hover:text-indigo-600 font-medium transition-colors">Product</Link>
                             <Link href="/pricing" className="text-slate-600 hover:text-indigo-600 font-medium transition-colors">Pricing</Link>
                             <Link href="/resources" className="text-slate-600 hover:text-indigo-600 font-medium transition-colors">Resources</Link>
                         </div>

@@ -18,6 +18,10 @@ export interface TeamSettings {
         enabled: boolean
         time: string // "07:00"
     }
+    customQuestions: {
+        enabled: boolean
+        questions: string[] // pool of rotating question texts
+    }
 }
 
 const DEFAULT_SETTINGS: TeamSettings = {
@@ -34,6 +38,10 @@ const DEFAULT_SETTINGS: TeamSettings = {
     morningBriefing: {
         enabled: true,
         time: "07:00"
+    },
+    customQuestions: {
+        enabled: false,
+        questions: []
     }
 }
 
@@ -66,7 +74,8 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
                             ...prev,
                             ...parsed,
                             weeklyReport: { ...prev.weeklyReport, ...(parsed.weeklyReport || {}) },
-                            morningBriefing: { ...prev.morningBriefing, ...(parsed.morningBriefing || {}) }
+                            morningBriefing: { ...prev.morningBriefing, ...(parsed.morningBriefing || {}) },
+                            customQuestions: { ...prev.customQuestions, ...(parsed.customQuestions || {}) }
                         }))
                     } catch (e) {
                         // ignore invalid json
@@ -101,6 +110,10 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
                                 morningBriefing: {
                                     ...prev.morningBriefing,
                                     ...(remoteSettings.morningBriefing || {})
+                                },
+                                customQuestions: {
+                                    ...prev.customQuestions,
+                                    ...(remoteSettings.customQuestions || {})
                                 }
                             }))
                         }
@@ -127,6 +140,10 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
             morningBriefing: {
                 ...settings.morningBriefing,
                 ...(newSettings.morningBriefing || {})
+            },
+            customQuestions: {
+                ...settings.customQuestions,
+                ...(newSettings.customQuestions || {})
             }
         }
         setSettings(updated)

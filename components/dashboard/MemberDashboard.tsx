@@ -86,8 +86,7 @@ export function MemberDashboard() {
                 console.error("Error fetching reports:", error)
                 toast.error("Failed to load your reports")
             } else {
-                // @ts-ignore
-                setReports(data || [])
+                setReports((data || []) as Report[])
             }
             setLoading(false)
         }

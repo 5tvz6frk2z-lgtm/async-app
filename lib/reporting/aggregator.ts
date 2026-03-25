@@ -1,6 +1,20 @@
 
 import { createClient } from "@/lib/supabase/server";
 
+// F13: Proper type for Supabase join results instead of @ts-ignore
+interface ReportProfile {
+    name: string;
+}
+
+interface ReportWithProfile {
+    id: string;
+    date: string;
+    sentiment: string;
+    blockers: string | null;
+    user_id: string;
+    profiles: ReportProfile | null;
+}
+
 export type WeeklyReportData = {
     teamId: string;
     startDate: string;
@@ -126,10 +140,10 @@ export async function getDailyTeamData(
     const blockers: DailyReportData["blockers"] = [];
     todayReports.forEach((report) => {
         if (report.blockers) {
+            const r = report as unknown as ReportWithProfile;
             blockers.push({
                 content: report.blockers,
-                // @ts-ignore
-                user: report.profiles?.name || "Unknown",
+                user: r.profiles?.name || "Unknown",
             });
         }
     });
@@ -143,8 +157,8 @@ export async function getDailyTeamData(
     planItems.forEach(item => {
         const r = reportMap.get(item.report_id);
         if (!r) return;
-        // @ts-ignore
-        const userName = r.profiles?.name || "Unknown";
+        const rTyped = r as unknown as ReportWithProfile;
+        const userName = rTyped.profiles?.name || "Unknown";
         const isToday = todayReportIds.has(item.report_id);
         const isYesterday = yesterdayReportIds.has(item.report_id);
 
@@ -287,17 +301,17 @@ export async function getWeeklyTeamData(
 
         // Blockers
         if (report.blockers) {
+            const rTyped = report as unknown as ReportWithProfile;
             blockers.push({
                 content: report.blockers,
-                // @ts-ignore
-                user: report.profiles?.name || "Unknown",
+                user: rTyped.profiles?.name || "Unknown",
                 date: report.date,
             });
         }
 
         // Participation
-        // @ts-ignore
-        const userName = report.profiles?.name || "Unknown";
+        const rTyped2 = report as unknown as ReportWithProfile;
+        const userName = rTyped2.profiles?.name || "Unknown";
         participationMap.set(userName, (participationMap.get(userName) || 0) + 1);
     });
 
@@ -306,11 +320,10 @@ export async function getWeeklyTeamData(
     const reportMap = new Map(teamReports.map(r => [r.id, r]));
     const highlights = planItems.map(item => {
         const r = reportMap.get(item.report_id);
+        const rTyped = r as unknown as ReportWithProfile | undefined;
         return {
             content: item.content,
-            // @ts-ignore
-            user: r?.profiles?.name || "Unknown",
-            // @ts-ignore
+            user: rTyped?.profiles?.name || "Unknown",
             date: r?.date || "",
         };
     });

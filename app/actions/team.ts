@@ -12,21 +12,9 @@ export async function leaveTeamAction(teamId: string) {
         throw new Error("Not authenticated")
     }
 
-    // 1. Delete user's reports for this team (Constraint: "Delete all user data")
-    // Note: If you want to keep reports but anonymize, that's different.
-    // User asked to "delete/remove all the users data".
-    const { error: reportsError } = await supabase
-        .from("reports")
-        .delete()
-        .eq("team_id", teamId)
-        .eq("user_id", user.id)
-
-    if (reportsError) {
-        console.error("Error deleting reports:", reportsError)
-        throw new Error("Failed to clean up reports")
-    }
-
-    // 2. Delete membership
+    // F7: Delete membership first (less destructive), then reports
+    // If report cleanup fails, the user is already removed from the team
+    // but their data can be cleaned up later (safer partial state)
     const { error: membershipError } = await supabase
         .from("team_members")
         .delete()
@@ -36,6 +24,18 @@ export async function leaveTeamAction(teamId: string) {
     if (membershipError) {
         console.error("Error leaving team:", membershipError)
         throw new Error("Failed to leave team")
+    }
+
+    // Clean up reports — non-critical if it fails
+    const { error: reportsError } = await supabase
+        .from("reports")
+        .delete()
+        .eq("team_id", teamId)
+        .eq("user_id", user.id)
+
+    if (reportsError) {
+        console.error("Warning: Reports cleanup failed:", reportsError)
+        // Don't throw — the user has left the team, reports can be cleaned up later
     }
 
     revalidatePath("/daily")

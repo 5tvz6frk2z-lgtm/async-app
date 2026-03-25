@@ -123,3 +123,12 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Blog article paragraph spacing — creates visible blank line between paragraphs */
+article .prose p {
+  margin-bottom: 2em;
+}
+
+article .prose p.lead {
+  margin-bottom: 2.25em;
+}

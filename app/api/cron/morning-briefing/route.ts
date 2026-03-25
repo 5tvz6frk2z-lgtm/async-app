@@ -7,9 +7,16 @@ export async function GET(req: NextRequest) {
     const supabase = await createClient();
 
 
-    // Security: Verify Secret if not in dev
+    // F3: Always verify cron secret — no dev bypass
     const authHeader = req.headers.get('authorization');
-    if (process.env.NODE_ENV !== 'development' && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    const cronSecret = process.env.CRON_SECRET;
+
+    if (!cronSecret) {
+        console.error('[CRON] CRON_SECRET environment variable is not set');
+        return new NextResponse('Server configuration error', { status: 500 });
+    }
+
+    if (authHeader !== `Bearer ${cronSecret}`) {
         return new NextResponse('Unauthorized', { status: 401 });
     }
 
@@ -83,6 +90,6 @@ export async function GET(req: NextRequest) {
 
     } catch (e) {
         console.error("Cron failed", e);
-        return NextResponse.json({ error: String(e) }, { status: 500 });
+        return NextResponse.json({ error: "Internal server error" }, { status: 500 });
     }
 }

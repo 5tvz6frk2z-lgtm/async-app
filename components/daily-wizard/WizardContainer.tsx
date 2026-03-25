@@ -25,6 +25,7 @@ export function WizardContainer() {
     const [step, setStep] = useState(1)
     const [yesterdayItems, setYesterdayItems] = useState<YesterdayItem[]>([])
     const [isLoadingItems, setIsLoadingItems] = useState(true)
+    const [customQuestion, setCustomQuestion] = useState<string | null>(null)
     const router = useRouter()
     const supabase = createClient()
 
@@ -37,6 +38,7 @@ export function WizardContainer() {
             today_plan: "",
             blockers: "",
             sentiment: "green",
+            custom_question_answer: "",
         },
     })
 
@@ -60,6 +62,29 @@ export function WizardContainer() {
                 if (!teamId) {
                     setIsLoadingItems(false)
                     return
+                }
+
+                // Fetch team settings for custom questions
+                try {
+                    const { data: team } = await supabase
+                        .from('teams')
+                        .select('settings')
+                        .eq('id', teamId)
+                        .single()
+
+                    if (team?.settings) {
+                        const teamSettings = team.settings as any
+                        if (teamSettings.customQuestions?.enabled && teamSettings.customQuestions?.questions?.length > 0) {
+                            const questions = teamSettings.customQuestions.questions
+                            const now = new Date()
+                            const startOfYear = new Date(now.getFullYear(), 0, 0)
+                            const dayOfYear = Math.floor((now.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24))
+                            const todayQuestion = questions[dayOfYear % questions.length]
+                            setCustomQuestion(todayQuestion)
+                        }
+                    }
+                } catch (e) {
+                    // Non-critical — silently skip
                 }
 
                 const { data: recentReport } = await supabase
@@ -100,19 +125,6 @@ export function WizardContainer() {
 
         try {
             const { data: { user } } = await supabase.auth.getUser()
-            // ... (rest of function logic is fine, but I need to include it or just replacing the start)
-            // I'll replace the whole function in a moment or just use the diff carefully.
-            // Actually, I'll replacements chunks.
-            // First chunk: Add guard.
-            // Second chunk: Button Refactor.
-            // ...
-            // Wait, I can't do multiple chunks easily if I want to just edit the button area and the submit function storage.
-            // I'll do one large replace or multiple small ones.
-            // I'll do multiple small ones.
-
-            // Chunk 1: Add guard to onSubmit start.
-            // Chunk 2: Replace the button logic.
-
 
             if (!user) {
                 toast.error("You must be logged in to submit a report.")
@@ -166,7 +178,17 @@ export function WizardContainer() {
                     status: "done"
                 }))
 
-            const allItems = [...tomorrowItems, ...completedItems]
+            // Custom question answer (if answered)
+            const customQuestionItems = (data.custom_question_answer?.trim() && customQuestion)
+                ? [{
+                    report_id: report.id,
+                    content: `Q: ${customQuestion}\nA: ${data.custom_question_answer.trim()}`,
+                    type: "custom_question",
+                    status: "done"
+                }]
+                : []
+
+            const allItems = [...tomorrowItems, ...completedItems, ...customQuestionItems]
 
             if (allItems.length > 0) {
                 const { error: planError } = await supabase
@@ -251,7 +273,7 @@ export function WizardContainer() {
                                             )
                                         )}
                                         {step === 2 && <PlanningStep form={form} />}
-                                        {step === 3 && <BlockerStep form={form} />}
+                                        {step === 3 && <BlockerStep form={form} customQuestion={customQuestion} />}
                                     </CardContent>
                                 </Card>
                             </motion.div>

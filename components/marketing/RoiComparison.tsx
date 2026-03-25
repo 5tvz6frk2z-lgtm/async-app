@@ -19,7 +19,7 @@ export function RoiComparison() {
                             to save <span className="text-rose-600">60 minutes</span>.
                         </h2>
                         <p className="text-lg text-slate-600 mb-8 leading-relaxed">
-                            Traditional standups are expensive. Between the 15-minute meeting and the 45-minute context switching cost, you're losing over an hour per developer, every single day.
+                            Traditional standups are expensive. Between the 15-minute meeting and the 45-minute context switching cost, you're losing over an hour per team member, every single day.
                         </p>
                         <p className="text-lg text-slate-600 mb-8 font-medium">
                             Status Loop gives you that time back.

@@ -8,6 +8,17 @@ export type BurnoutRiskLevel = 'low' | 'medium' | 'high';
 export interface BurnoutRiskResult {
     riskLevel: BurnoutRiskLevel;
     reasons: string[];
+    label: string; // Human-friendly label: "Support Opportunity", "Check-in Suggested", or ""
+    latestReportDate: string; // ISO date string of the most recent report considered
+}
+
+interface ReportWithItems {
+    user_id: string;
+    date: string;
+    created_at: string;
+    sentiment: string;
+    blockers: string | null;
+    plan_items: { content: string; type: string; status: string }[];
 }
 
 export async function checkBurnoutRisk(userId: string, teamId: string): Promise<BurnoutRiskResult> {
@@ -17,7 +28,6 @@ export async function checkBurnoutRisk(userId: string, teamId: string): Promise<
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error("Unauthorized");
 
-    // Check if user is manager of this team
     const { data: membership, error: memError } = await supabase
         .from('team_members')
         .select('role')
@@ -26,48 +36,48 @@ export async function checkBurnoutRisk(userId: string, teamId: string): Promise<
         .single();
 
     if (memError || !membership || membership.role !== 'manager') {
-        // Allow users to check their OWN burnout risk?
         if (user.id !== userId) {
             throw new Error("Unauthorized: Only managers can view burnout risk for others");
         }
     }
 
-    // 1. Fetch Last 7 Days of Reports for User
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    // 1. Fetch 14 days of reports (need baseline for missed check-in detection)
+    const fourteenDaysAgo = new Date();
+    fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
 
     const { data: reports, error } = await supabase
         .from('reports')
         .select(`
+            user_id,
+            date,
             created_at, 
             sentiment, 
             blockers,
             plan_items (
+                content,
                 type,
                 status
             )
         `)
         .eq('user_id', userId)
         .eq('team_id', teamId)
-        .gte('date', sevenDaysAgo.toISOString().split('T')[0])
-        .order('created_at', { ascending: false });
+        .gte('date', fourteenDaysAgo.toISOString().split('T')[0])
+        .order('date', { ascending: false });
 
     if (error || !reports || reports.length === 0) {
-        return { riskLevel: 'low', reasons: [] };
+        return { riskLevel: 'low', reasons: [], label: '', latestReportDate: '' };
     }
 
-    return calculateBurnoutScore(reports);
+    return calculateBurnoutScore(reports as ReportWithItems[]);
 }
 
 // Batch function to solve N+1 issue
 export async function getTeamBurnoutRisks(teamId: string): Promise<Record<string, BurnoutRiskResult>> {
     const supabase = await createClient();
 
-    // 0. Security Check
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error("Unauthorized");
 
-    // Check if user is manager
     const { data: membership, error: memError } = await supabase
         .from('team_members')
         .select('role')
@@ -79,45 +89,43 @@ export async function getTeamBurnoutRisks(teamId: string): Promise<Record<string
         throw new Error("Unauthorized: Only managers can view team burnout risks");
     }
 
-    // 1. Fetch 7 days of reports for ENTIRE team
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    // Fetch 14 days of reports for the entire team (with plan_item content for stuckedness)
+    const fourteenDaysAgo = new Date();
+    fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
 
     const { data: reports, error } = await supabase
         .from('reports')
         .select(`
             user_id,
+            date,
             created_at, 
             sentiment, 
             blockers,
             plan_items (
+                content,
                 type,
                 status
             )
         `)
         .eq('team_id', teamId)
-        .gte('date', sevenDaysAgo.toISOString().split('T')[0])
-        .order('created_at', { ascending: false });
+        .gte('date', fourteenDaysAgo.toISOString().split('T')[0])
+        .order('date', { ascending: false });
 
     if (error || !reports) return {};
 
-    // 2. Group by User
-    const userReports: Record<string, any[]> = {};
+    // Group by user
+    const userReports: Record<string, ReportWithItems[]> = {};
     reports.forEach(r => {
-        if (!userReports[r.user_id]) userReports[r.user_id] = [];
-        userReports[r.user_id].push(r);
+        const report = r as ReportWithItems;
+        if (!userReports[report.user_id]) userReports[report.user_id] = [];
+        userReports[report.user_id].push(report);
     });
 
-    // 3. Calculate Risk for each user
+    // Calculate risk for each user in parallel batches
     const results: Record<string, BurnoutRiskResult> = {};
-
-    // OPTIMIZATION: Process in parallel with rate limiting
-    // For large teams (50+ members), sequential AI calls would timeout
-    // Use Promise.allSettled to handle failures gracefully
     const userIds = Object.keys(userReports);
-
-    // Process in batches of 10 to avoid overwhelming Gemini API
     const BATCH_SIZE = 10;
+
     for (let i = 0; i < userIds.length; i += BATCH_SIZE) {
         const batch = userIds.slice(i, i + BATCH_SIZE);
         const batchPromises = batch.map(async (userId) => {
@@ -126,8 +134,7 @@ export async function getTeamBurnoutRisks(teamId: string): Promise<Record<string
                 return { userId, result };
             } catch (error) {
                 console.error(`Burnout check failed for user ${userId}:`, error);
-                // Return low risk on error to avoid blocking dashboard
-                return { userId, result: { riskLevel: 'low' as BurnoutRiskLevel, reasons: [] } };
+                return { userId, result: { riskLevel: 'low' as BurnoutRiskLevel, reasons: [], label: '', latestReportDate: '' } };
             }
         });
 
@@ -138,7 +145,6 @@ export async function getTeamBurnoutRisks(teamId: string): Promise<Record<string
             }
         });
 
-        // Small delay between batches to respect rate limits
         if (i + BATCH_SIZE < userIds.length) {
             await new Promise(resolve => setTimeout(resolve, 100));
         }
@@ -147,58 +153,124 @@ export async function getTeamBurnoutRisks(teamId: string): Promise<Record<string
     return results;
 }
 
-// Logic extracted for reuse
-async function calculateBurnoutScore(reports: any[]): Promise<BurnoutRiskResult> {
+// ─── Core Algorithm ─────────────────────────────────────────────────────
+
+async function calculateBurnoutScore(reports: ReportWithItems[]): Promise<BurnoutRiskResult> {
     const reasons: string[] = [];
     let riskScore = 0;
 
-    // 1. Check for Late Submissions
-    let lateCount = 0;
-    reports.forEach(r => {
-        const date = new Date(r.created_at);
-        const hour = date.getUTCHours();
-        if (hour >= 21 || hour < 4) {
-            lateCount++;
+    // The most recent report date — used by the client to know if new data arrived
+    const latestReportDate = reports.length > 0
+        ? reports.reduce((latest, r) => r.date > latest ? r.date : latest, reports[0].date)
+        : '';
+
+    // Sort reports by date descending (most recent first)
+    const sorted = [...reports].sort((a, b) => b.date.localeCompare(a.date));
+
+    // Split into recent 7 days and prior 7 days (for baseline)
+    const today = new Date();
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(today.getDate() - 7);
+    const sevenDaysStr = sevenDaysAgo.toISOString().split('T')[0];
+
+    const recentReports = sorted.filter(r => r.date >= sevenDaysStr);
+    const olderReports = sorted.filter(r => r.date < sevenDaysStr);
+
+    // ── Signal 1: Consecutive Declining Sentiment ──────────────────────
+    // Look at the most recent reports in order — if 3+ in a row are Red or Yellow
+    let consecutiveNegative = 0;
+    let maxConsecutiveNegative = 0;
+
+    for (const report of sorted) {
+        if (report.sentiment === 'red' || report.sentiment === 'yellow') {
+            consecutiveNegative++;
+            maxConsecutiveNegative = Math.max(maxConsecutiveNegative, consecutiveNegative);
+        } else {
+            break; // Only count from the most recent streak
+        }
+    }
+
+    if (maxConsecutiveNegative >= 3) {
+        riskScore += 3;
+        const sentimentTypes = sorted.slice(0, maxConsecutiveNegative).map(r =>
+            r.sentiment === 'red' ? 'Behind' : 'Caution'
+        );
+        reasons.push(
+            `Reported feeling "${sentimentTypes[0]}" for ${maxConsecutiveNegative} consecutive check-ins.`
+        );
+    }
+
+    // ── Signal 2: Compounding Carryovers (Stuckedness) ─────────────────
+    // Find plan_for_tomorrow items that appear as content across 4+ different reports
+    // This means the same task keeps getting re-planned without completion
+    const planContentByDay: Map<string, Set<string>> = new Map();
+
+    for (const report of sorted) {
+        if (!report.plan_items) continue;
+        for (const item of report.plan_items) {
+            if (item.type === 'plan_for_tomorrow') {
+                const normalized = item.content.trim().toLowerCase();
+                if (!planContentByDay.has(normalized)) {
+                    planContentByDay.set(normalized, new Set());
+                }
+                planContentByDay.get(normalized)!.add(report.date);
+            }
+        }
+    }
+
+    const stuckItems: string[] = [];
+    planContentByDay.forEach((dates, content) => {
+        if (dates.size >= 4) {
+            stuckItems.push(content);
         }
     });
 
-    if (lateCount >= 3) {
-        riskScore += 2;
-        reasons.push(`Submitted ${lateCount} reports late at night (>9 PM) this week.`);
+    if (stuckItems.length > 0) {
+        riskScore += 3;
+        const itemPreview = stuckItems[0].length > 60
+            ? stuckItems[0].substring(0, 57) + '...'
+            : stuckItems[0];
+        const extra = stuckItems.length > 1 ? ` and ${stuckItems.length - 1} more` : '';
+        reasons.push(
+            `Task "${itemPreview}"${extra} has been carried over for 4+ days — they may be stuck or need support.`
+        );
     }
 
-    // 2. Lack of "Wins"
-    let totalWins = 0;
-    reports.forEach(r => {
-        // @ts-ignore
-        const wins = r.plan_items?.filter((i: any) => i.type === 'actual_done_today' && i.status === 'done').length || 0;
-        totalWins += wins;
-    });
+    // ── Signal 3: Missed Check-ins ─────────────────────────────────────
+    // Only flag if the user was previously active (≥3 reports in older 7-day window)
+    const wasActiveEarlier = olderReports.length >= 3;
 
-    const avgWins = totalWins / reports.length;
-    if (reports.length >= 3 && avgWins < 1) {
-        riskScore += 2;
-        reasons.push("Few 'wins' recorded: averages less than 1 completed task per day.");
+    if (wasActiveEarlier) {
+        // Count expected workdays in the last 7 days (Mon-Fri)
+        let expectedWorkdays = 0;
+        for (let d = 0; d < 7; d++) {
+            const checkDate = new Date();
+            checkDate.setDate(today.getDate() - d);
+            const dow = checkDate.getDay();
+            if (dow >= 1 && dow <= 5) expectedWorkdays++;
+        }
+
+        const missedDays = expectedWorkdays - recentReports.length;
+
+        if (missedDays >= 3) {
+            riskScore += 2;
+            reasons.push(
+                `Missed ${missedDays} check-ins this week after being consistently active — may be disengaging.`
+            );
+        }
     }
 
-    // 3. Sentiment Analysis
-    let negativeCount = 0;
-    reports.forEach(r => {
-        if (r.sentiment === 'red') negativeCount++;
-    });
+    // ── Optional: AI Blocker Language Analysis ─────────────────────────
+    // Only if blockers exist and other signals are already borderline
+    const recentBlockers = sorted.slice(0, 3)
+        .map(r => r.blockers)
+        .filter(Boolean)
+        .join('\n');
 
-    if (negativeCount >= 2) {
-        riskScore += 2;
-        reasons.push("Multiple 'Red' (struggling) sentiment reports in the last week.");
-    }
-
-    // 4. AI Analysis - ONLY if blockers exist (optimization)
-    const recentBlockers = reports.slice(0, 3).map(r => r.blockers).filter(Boolean).join('\n');
-
-    if (recentBlockers.length > 20) {
+    if (recentBlockers.length > 20 && riskScore >= 2 && model) {
         try {
             const prompt = `
-            Analyze these recent blocker notes from an employee for signs of burnout.
+            Analyze these recent blocker notes from an employee for signs of burnout or overwhelm.
             Notes: "${recentBlockers}"
             
             Look for: hopelessness, exhaustion, repetitive stuckness, or overwhelmed language.
@@ -209,22 +281,25 @@ async function calculateBurnoutScore(reports: any[]): Promise<BurnoutRiskResult>
             const text = result.response.text().trim().toUpperCase();
 
             if (text.includes("YES")) {
-                riskScore += 2;
-                reasons.push("AI detected language indicating exhaustion or being overwhelmed.");
+                riskScore += 1;
+                reasons.push("Language in recent blockers suggests feeling overwhelmed.");
             }
         } catch (e: any) {
-            // Log but don't fail - AI is enhancement, not critical
             console.error("Burnout AI check failed:", e.message);
-            // If rate limited, skip silently to avoid blocking dashboard
-            if (e.message?.includes('429') || e.message?.includes('rate limit')) {
-                console.warn('Gemini API rate limit hit, skipping AI analysis');
-            }
         }
     }
 
+    // ── Determine Level ────────────────────────────────────────────────
     let riskLevel: BurnoutRiskLevel = 'low';
-    if (riskScore >= 4) riskLevel = 'high';
-    else if (riskScore >= 2) riskLevel = 'medium';
+    let label = '';
 
-    return { riskLevel, reasons };
+    if (riskScore >= 4) {
+        riskLevel = 'high';
+        label = 'Support Opportunity';
+    } else if (riskScore >= 2) {
+        riskLevel = 'medium';
+        label = 'Check-in Suggested';
+    }
+
+    return { riskLevel, reasons, label, latestReportDate };
 }

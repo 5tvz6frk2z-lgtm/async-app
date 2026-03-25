@@ -2,6 +2,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { Metadata } from 'next'
+import { RelatedArticles } from '@/components/marketing/RelatedArticles'
 
 export const metadata: Metadata = {
     title: 'Mastering the End of Day (EOD) Report: Why They Matter & How to Write Them | Status Loop',
@@ -19,6 +20,7 @@ export default function Article() {
                     <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 tracking-tight mb-6">
                         Mastering the End of Day (EOD) Report: Why They Matter & How to Write Them
                     </h1>
+                    <p className="text-sm text-slate-500 mb-4">by Jacob Templeton</p>
                     <p className="text-xl text-slate-500 max-w-2xl mx-auto leading-relaxed">
                         It’s the digital equivalent of "punching out." Learn why this simple 3-minute habit decreases anxiety and increases trust.
                     </p>
@@ -26,11 +28,19 @@ export default function Article() {
 
                 {/* Introduction */}
                 <p className="lead text-xl text-slate-700 mb-8">
-                    It is 5:30 p.m. You close your laptop. But as you walk to the kitchen for dinner, your brain is still buzzing. <em>"Did I send that email?" "What was I supposed to finish for the standup tomorrow?" "Is my manager wondering what I did all day?"</em>
+                    It is 5:30 p.m. You close your laptop. But as you walk to the kitchen for dinner, your brain is still buzzing.
+                </p>
+
+                <p className="lead text-xl text-slate-700 mb-8">
+                    <em>"Did I send that email?" "What was I supposed to finish for the standup tomorrow?" "Is my manager wondering what I did all day?"</em>
                 </p>
 
                 <p>
-                    This nagging feeling is the enemy of remote work-life balance. Without a physical commute to signal "work is done," our brains stay in a state of low-level anxiety, constantly scanning for open loops.
+                    This nagging feeling is the enemy of remote work-life balance.
+                </p>
+
+                <p>
+                    Without a physical commute to signal "work is done," our brains stay in a state of low-level anxiety, constantly scanning for open loops.
                 </p>
 
                 <p>
@@ -41,7 +51,11 @@ export default function Article() {
                 <h2 className="text-3xl font-bold text-slate-900 mt-12 mb-6">What is an EOD Report?</h2>
 
                 <p>
-                    An <strong>End of Day (EOD) report</strong> is a concise, written summary sent by an employee at the close of their workday. Unlike a <em className="italic">Daily Activity Report (DAR)</em>, which focuses on granular time-tracking (e.g., "Spent 15 mins on email"), an EOD report focuses on <strong>outcomes and blockers</strong>.
+                    An <strong><Link href="/blog/what-is-an-eod-report" className="text-indigo-600 hover:underline">End of Day (EOD) report</Link></strong> is a concise, written summary sent by an employee at the close of their workday.
+                </p>
+
+                <p>
+                    Unlike a <em className="italic">Daily Activity Report (DAR)</em>, which focuses on granular time-tracking (e.g., "Spent 15 mins on email"), an EOD report focuses on <strong>outcomes and blockers</strong>.
                 </p>
                 <p>
                     It answers three simple questions: <em>What did I ship? What is stuck? What is next?</em>
@@ -63,56 +77,99 @@ export default function Article() {
                 {/* New Benefit Section */}
                 <h2 className="text-3xl font-bold text-slate-900 mt-12 mb-6">7 Strategic Benefits of EOD Reporting</h2>
                 <p>
-                    Why do high-performing teams like GitLab and Automattic swear by this habit? It is not about micromanagement. It is about <strong>Operational Velocity</strong>. Here is how EODs transform your business:
+                    Why do high-performing teams like GitLab and Automattic swear by this habit? It is not about micromanagement.
+                </p>
+
+                <p>
+                    It is about <strong>Operational Velocity</strong>.
+                </p>
+
+                <p>
+                    Here is how EODs transform your business:
                 </p>
                 <ul className="space-y-6 mt-8 mb-12">
                     <li className="flex items-start">
                         <div className="flex-shrink-0 h-6 w-6 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-sm mt-1">1</div>
                         <div className="ml-4">
                             <h4 className="text-lg font-bold text-slate-900">Radical Transparency</h4>
-                            <p className="text-slate-600">When everyone knows what everyone else is doing, politics disappear. You don't need to "guess" if the marketing team is working on the launch; you can read it in the feed. This is the foundation of <Link href="/blog/building-culture-of-trust" className="text-indigo-600 hover:underline">building a culture of trust</Link> in remote-first organizations.</p>
+                            <p className="text-slate-600">
+                                When everyone knows what everyone else is doing, politics disappear. You don't need to "guess" if the marketing team is working on the launch; you can read it in the feed.
+                            </p>
+                            <p className="text-slate-600 mt-2">
+                                This is the foundation of <Link href="/blog/building-culture-of-trust" className="text-indigo-600 hover:underline">building a culture of trust</Link> in remote-first organizations.
+                            </p>
                         </div>
                     </li>
                     <li className="flex items-start">
                         <div className="flex-shrink-0 h-6 w-6 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-sm mt-1">2</div>
                         <div className="ml-4">
                             <h4 className="text-lg font-bold text-slate-900">Total Accountability</h4>
-                            <p className="text-slate-600">Writing down your plan for tomorrow increases the likelihood of achieving it by 42%. It creates a "soft commitment" that drives focus without the need for <Link href="/blog/managing-remote-teams-asynchronously" className="text-indigo-600 hover:underline">micromanagement</Link>.</p>
+                            <p className="text-slate-600">
+                                Writing down your plan for tomorrow increases the likelihood of achieving it by 42%.
+                            </p>
+                            <p className="text-slate-600 mt-2">
+                                It creates a "soft commitment" that drives focus without the need for <Link href="/blog/managing-remote-teams-asynchronously" className="text-indigo-600 hover:underline">micromanagement</Link>.
+                            </p>
                         </div>
                     </li>
                     <li className="flex items-start">
                         <div className="flex-shrink-0 h-6 w-6 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-sm mt-1">3</div>
                         <div className="ml-4">
                             <h4 className="text-lg font-bold text-slate-900">Asynchronous Unblocking</h4>
-                            <p className="text-slate-600">If you post a blocker at 5:00 PM in London, your colleague in New York can solve it while you sleep. EODs turn timezones from a bug into a feature, enabling true <Link href="/blog/ultimate-guide-to-async-reporting" className="text-indigo-600 hover:underline">follow-the-sun workflows</Link>.</p>
+                            <p className="text-slate-600">
+                                If you post a blocker at 5:00 PM in London, your colleague in New York can solve it while you sleep.
+                            </p>
+                            <p className="text-slate-600 mt-2">
+                                EODs turn timezones from a bug into a feature, enabling true <Link href="/blog/ultimate-guide-to-async-reporting" className="text-indigo-600 hover:underline">follow-the-sun workflows</Link>.
+                            </p>
                         </div>
                     </li>
                     <li className="flex items-start">
                         <div className="flex-shrink-0 h-6 w-6 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-sm mt-1">4</div>
                         <div className="ml-4">
                             <h4 className="text-lg font-bold text-slate-900">Eliminating Status Meetings</h4>
-                            <p className="text-slate-600">Teams spend up to 4 hours a week in "status updates." EODs replace this entirely. <strong>Status Loop</strong> automates this collection, helping you <Link href="/blog/cancel-your-status-meetings" className="text-indigo-600 hover:underline">cancel status meetings</Link> and giving you back 200+ hours of engineering time per year.</p>
+                            <p className="text-slate-600">
+                                Teams spend up to 4 hours a week in "status updates." EODs replace this entirely when tooling is right.
+                            </p>
+                            <p className="text-slate-600 mt-2">
+                                <strong>Status Loop</strong> automates this collection process, helping you <Link href="/blog/cancel-your-status-meetings" className="text-indigo-600 hover:underline">cancel status meetings</Link> and giving you back 200+ hours of deep work time per year.
+                            </p>
                         </div>
                     </li>
                     <li className="flex items-start">
                         <div className="flex-shrink-0 h-6 w-6 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-sm mt-1">5</div>
                         <div className="ml-4">
                             <h4 className="text-lg font-bold text-slate-900">Early Burnout Detection</h4>
-                            <p className="text-slate-600">Managers can spot frustration trends early. If an employee logs "Blocked" for 3 days straight, it produces a clear signal to intervene and <Link href="/blog/reducing-zoom-fatigue" className="text-indigo-600 hover:underline">prevent burnout</Link> before it leads to turnover.</p>
+                            <p className="text-slate-600">
+                                Managers can spot frustration trends before they turn into resignation letters.
+                            </p>
+                            <p className="text-slate-600 mt-2">
+                                <strong>Status Loop's AI Burnout Alerts</strong> automatically flag managers when an employee logs "Blocked" for consecutive days or when team sentiment trends downward.
+                            </p>
                         </div>
                     </li>
                     <li className="flex items-start">
                         <div className="flex-shrink-0 h-6 w-6 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-sm mt-1">6</div>
                         <div className="ml-4">
                             <h4 className="text-lg font-bold text-slate-900">Automatic Documentation</h4>
-                            <p className="text-slate-600">With <strong>Status Loop's</strong> searchable history, you build a permanent knowledge base. These reports naturally feed into your <Link href="/blog/mastering-end-of-week-report" className="text-indigo-600 hover:underline">weekly summaries</Link>, making performance reviews and onboarding a breeze.</p>
+                            <p className="text-slate-600">
+                                With <strong>Status Loop's</strong> searchable history, you build a permanent knowledge base.
+                            </p>
+                            <p className="text-slate-600 mt-2">
+                                These reports naturally feed into your <Link href="/blog/mastering-end-of-week-report" className="text-indigo-600 hover:underline">weekly summaries</Link>, making performance reviews and onboarding a breeze.
+                            </p>
                         </div>
                     </li>
                     <li className="flex items-start">
                         <div className="flex-shrink-0 h-6 w-6 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-sm mt-1">7</div>
                         <div className="ml-4">
                             <h4 className="text-lg font-bold text-slate-900">The "Done" Signal</h4>
-                            <p className="text-slate-600">As mentioned before, it provides the psychological closure needed to switch off and enjoy your evening (see Zeigarnik Effect below). It marks a clear temporal boundary, much like the <Link href="/blog/mastering-end-of-week-report" className="text-indigo-600 hover:underline">EOW Report</Link> does for the weekend.</p>
+                            <p className="text-slate-600">
+                                As mentioned before, it provides the psychological closure needed to switch off and enjoy your evening (see Zeigarnik Effect below).
+                            </p>
+                            <p className="text-slate-600 mt-2">
+                                It marks a clear temporal boundary, much like the <Link href="/blog/mastering-end-of-week-report" className="text-indigo-600 hover:underline">EOW Report</Link> does for the weekend.
+                            </p>
                         </div>
                     </li>
                 </ul>
@@ -141,7 +198,11 @@ export default function Article() {
                 <h2 className="text-3xl font-bold text-slate-900 mt-12 mb-6">The Psychology of Closure: Why context switching kills you</h2>
 
                 <p>
-                    In psychology, the <strong>Zeigarnik Effect</strong> states that people remember uncompleted or interrupted tasks better than completed tasks. In other words, uncompleted tasks take up "RAM" in your brain.
+                    In psychology, the <strong>Zeigarnik Effect</strong> states that people remember uncompleted or interrupted tasks better than completed tasks. This is the same psychological principle that makes <Link href="/blog/replace-daily-standups" className="text-indigo-600 hover:underline">replacing standups with async updates</Link> so effective.
+                </p>
+
+                <p>
+                    In other words, uncompleted tasks take up "RAM" in your brain.
                 </p>
 
                 <div className="my-10">
@@ -156,18 +217,34 @@ export default function Article() {
                 </div>
 
                 <p>
-                    When you don't write down exactly where you left off, your brain spends the entire evening subconsciously trying to hold onto that information so you don't forget it by morning. This prevents deep relaxation and restorative sleep.
+                    When you don't write down exactly where you left off, your brain spends the entire evening subconsciously trying to hold onto that information so you don't forget it by morning.
                 </p>
 
                 <p>
-                    Writing an EOD report is an act of <strong>Cognitive Offloading</strong>. By externalizing the state of your work into a document, you give your brain permission to let go. You are telling your subconscious: <em>"It is safe to shut down. The data is saved."</em>
+                    This prevents deep relaxation and restorative sleep.
+                </p>
+
+                <p>
+                    Writing an EOD report is an act of <strong>Cognitive Offloading</strong>.
+                </p>
+
+                <p>
+                    By externalizing the state of your work into a document, you give your brain permission to let go.
+                </p>
+
+                <p>
+                    You are telling your subconscious: <em>"It is safe to shut down. The data is saved."</em>
                 </p>
 
                 {/* H2: EOD Reports vs. Daily Standups */}
                 <h2 className="text-3xl font-bold text-slate-900 mt-12 mb-6">EOD Reports vs. Daily Standups</h2>
 
                 <p>
-                    Many teams treat the morning standup and the EOD report as interchangeable. They are not. They serve two fundamentally different purposes in the <strong>Async Workflow</strong>.
+                    Many teams treat the morning standup and the EOD report as interchangeable. They are not.
+                </p>
+
+                <p>
+                    They serve two fundamentally different purposes in the <strong>Async Workflow</strong>.
                 </p>
 
                 <div className="overflow-x-auto my-8">
@@ -338,7 +415,7 @@ export default function Article() {
                     <div>
                         <h4 className="text-xl font-bold text-slate-900 mb-2">What if I accomplished "nothing" today?</h4>
                         <p className="text-slate-700">
-                            It happens. Maybe you were stuck in meetings or fighting a fire. Be honest. Write: <em>"Today was consumed by the server outage. No feature work completed. Plan to resume tomorrow."</em> Honesty builds trust; covering it up destroys it.
+                            It happens. Maybe you were stuck in meetings or fighting a fire. Be honest. Write: <em>"Today was consumed by the server outage. No feature work completed. Plan to resume tomorrow."</em> Honesty builds trust; covering it up destroys it. This is the core of <Link href="/blog/the-art-of-the-weekly-status-report" className="text-indigo-600 hover:underline">effective reporting</Link>.
                         </p>
                     </div>
                     <div>
@@ -397,7 +474,7 @@ export default function Article() {
                 </p>
                 <h3 className="text-2xl font-semibold text-slate-800 mt-8 mb-4">1. Rotate the Question</h3>
                 <p>
-                    Don't ask "What did you do?" every day. Change the prompt.
+                    Don't ask "What did you do?" every day. Change the prompt. <strong>Status Loop handles this natively</strong> by allowing you to customize questions based on the day of the week.
                     <br /><em>Monday:</em> "What is your main goal for the week?"
                     <br /><em>Wednesday:</em> "What is one thing we could improve?"
                     <br /><em>Friday:</em> "What was your big win?"
@@ -435,20 +512,20 @@ export default function Article() {
                     <div className="relative z-10">
                         <h3 className="text-2xl font-bold text-white mb-4">Why Status Loop is the Missing Link</h3>
                         <p className="text-lg text-slate-300 mb-6 font-medium leading-relaxed">
-                            Status Loop solves the "Visibility Gap" for good. It ensures that <strong>output, not volume</strong>, is the metric that matters.
+                            Status Loop solves the "Visibility Gap" by making sure the loudest voice isn't the only one heard. The entire process takes under 2 minutes.
                         </p>
                         <div className="grid md:grid-cols-2 gap-6 mb-8">
                             <div>
-                                <h4 className="font-bold text-indigo-400 mb-2">For the Individual</h4>
-                                <p className="text-slate-400 text-sm">Status Loop turns your daily work into a permanent brag sheet. You never have to justify your existence again. Your log proves your worth, every single day.</p>
+                                <h4 className="font-bold text-indigo-400 mb-2">For the Individual (&lt; 2 min)</h4>
+                                <p className="text-slate-400 text-sm">In under 2 minutes, Status Loop turns your daily work into a permanent brag sheet. You never have to justify your existence again. Your log proves your worth, every single day.</p>
                             </div>
                             <div>
                                 <h4 className="font-bold text-indigo-400 mb-2">For the Manager</h4>
-                                <p className="text-slate-400 text-sm">Status Loop is your early warning system. It aggregates sentiment and blockers so you can lead with empathy and precision, rather than micromanagement.</p>
+                                <p className="text-slate-400 text-sm">Status Loop is your early warning system. The AI Smart Summary surfaces who is actually shipping (Sarah) and who is just talking (Dave), while sending Burnout Alerts if team sentiment dips.</p>
                             </div>
                         </div>
                         <p className="text-white font-bold border-t border-slate-700 pt-6">
-                            Don't let your best work vanish into the ether. Make it visible, searchable, and actionable with Status Loop.
+                            Don't rely on memory during performance reviews. Make the data visible and undeniable with Status Loop.
                         </p>
                     </div>
                 </div>
@@ -505,6 +582,14 @@ export default function Article() {
                 </div>
 
             </div>
+
+            <RelatedArticles articles={[
+                { href: '/blog/ultimate-guide-to-async-reporting', label: 'Pillar Guide', title: 'The Ultimate Guide to Async Reporting' },
+                { href: '/blog/mastering-end-of-week-report', label: 'Weekly Reporting', title: 'Mastering the EOW Report' },
+                { href: '/blog/replace-daily-standups', label: 'Strategy', title: 'How to Replace Daily Standups with Async Updates' },
+                { href: '/blog/what-is-asynchronous-communication', label: 'Async Fundamentals', title: 'What is Asynchronous Communication?' },
+            ]} />
+
         </article>
     )
 }

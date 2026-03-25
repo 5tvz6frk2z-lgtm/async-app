@@ -32,13 +32,22 @@ function SignupForm() {
         setLoading(true)
 
         try {
+            // F4: Enforce minimum password strength
+            if (password.length < 8) {
+                toast.error("Password must be at least 8 characters")
+                setLoading(false)
+                return
+            }
+
             const { data, error } = await supabase.auth.signUp({
                 email,
                 password,
                 options: {
                     data: {
                         full_name: fullName,
-                        role: inviteRole === 'member' ? 'member' : 'manager'
+                        // F4: Always default to 'member' — manager role is assigned
+                        // when creating a team, not during signup
+                        role: 'member'
                     }
                 }
             })
@@ -75,6 +84,40 @@ function SignupForm() {
         } finally {
             setLoading(false)
         }
+    }
+
+    if (!isInvite) {
+        return (
+            <div className="min-h-[calc(100vh-4rem)] bg-slate-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+                <Card className="w-full max-w-md text-center">
+                    <CardHeader>
+                        <div className="mx-auto w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mb-4">
+                            <span className="text-2xl">🚧</span>
+                        </div>
+                        <CardTitle>Signups Temporarily Paused</CardTitle>
+                        <CardDescription>
+                            We are currently undergoing Beta Testing v3.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-sm text-slate-600 mb-4">
+                            New account creations are temporarily disabled while we prepare for our next major release. Please check back later!
+                        </p>
+                    </CardContent>
+                    <CardFooter className="flex justify-center flex-col gap-4">
+                        <Link href="/">
+                            <Button variant="outline" className="w-full">Back to Home</Button>
+                        </Link>
+                        <div className="text-sm text-center text-slate-500">
+                            Already have an account?{" "}
+                            <Link href="/login" className="text-indigo-600 hover:underline">
+                                Log in
+                            </Link>
+                        </div>
+                    </CardFooter>
+                </Card>
+            </div>
+        )
     }
 
     if (verificationSent) {
@@ -116,7 +159,7 @@ function SignupForm() {
                     <CardDescription className="text-center">
                         {isInvite
                             ? "Create an account to accept the invitation."
-                            : "Start your team for free. No credit card required."}
+                            : "Create a new workspace for your team."}
                     </CardDescription>
                 </CardHeader>
                 <form onSubmit={handleSignup}>

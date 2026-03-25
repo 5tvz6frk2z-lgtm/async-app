@@ -8,6 +8,19 @@ import { toZonedTime, format } from 'date-fns-tz';
 export async function getLatestWeeklyReport(teamId: string, userTimezone?: string) {
     const supabase = await createClient();
 
+    // F2: Auth guard — verify user is a member of this team
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("Unauthorized");
+
+    const { data: membership } = await supabase
+        .from("team_members")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("team_id", teamId)
+        .single();
+
+    if (!membership) throw new Error("Unauthorized: Not a member of this team");
+
     // Default to UTC if no timezone provided
     const timezone = userTimezone || 'UTC';
 
@@ -20,8 +33,8 @@ export async function getLatestWeeklyReport(teamId: string, userTimezone?: strin
 
     if (error || !team) throw new Error("Team not found");
 
-    // @ts-ignore
-    const settings = team.settings || {};
+    // F13: Proper type assertion instead of @ts-ignore
+    const settings = (team.settings || {}) as Record<string, any>;
     const reportConfig = settings.weeklyReport || {};
     const scheduledDay = reportConfig.day || "Fri";
     const scheduledTimeStr = reportConfig.time || "18:00";
@@ -33,50 +46,22 @@ export async function getLatestWeeklyReport(teamId: string, userTimezone?: strin
     const currentDayStr = format(zonedNow, 'EEE', { timeZone: timezone });
     const currentHour = zonedNow.getHours();
 
-    // Helper to get date of day in current week
-    // Sunday is 0, Monday is 1...
     const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    const scheduledDayIdx = days.indexOf(scheduledDay); // e.g. Fri = 5
-    // Current Day Index (use zoned date)
+    const scheduledDayIdx = days.indexOf(scheduledDay);
     const currentDayIdx = zonedNow.getDay();
 
-    // We want to find the "Report Date" (the day the report is generated).
-    // If we are AFTER the scheduled time on scheduled day, OR AFTER the scheduled day:
-    // Then the "Current Week's Report" is valid/generated.
-    // Else, "Last Week's Report" is the latest one.
-
-    // SIMULATION: Always show current week's progress
     let showCurrentWeek = true;
 
-    // if (currentDayIdx > scheduledDayIdx) {
-    //     showCurrentWeek = true;
-    // } else if (currentDayIdx === scheduledDayIdx) {
-    //     if (currentHour >= scheduledHour) {
-    //         showCurrentWeek = true;
-    //     }
-    // }
-
-    // Calculate the End Date of the report
-    // If showCurrentWeek, End Date = This Week's Scheduled Day
-    // If !showCurrentWeek, End Date = Last Week's Scheduled Day
-
     const targetEndDate = new Date(now);
-
-    // Adjust to the scheduled day of *this* week first
     const dayDiff = scheduledDayIdx - currentDayIdx;
     targetEndDate.setDate(now.getDate() + dayDiff);
 
-    // If not showing current week, subtract 7 days
     if (!showCurrentWeek) {
         targetEndDate.setDate(targetEndDate.getDate() - 7);
     }
 
-    // Set time to end of day? Or scheduled time?
-    // Report usually covers the full day or up to generation time.
-    // aggregator uses YYYY-MM-DD string comp, so it covers the whole day inclusive.
-
     const startDate = new Date(targetEndDate);
-    startDate.setDate(targetEndDate.getDate() - 6); // 7 day window including end date (e,g, Sat -> Fri)
+    startDate.setDate(targetEndDate.getDate() - 6);
 
     // 3. Fetch Data
     const data = await getWeeklyTeamData(teamId, startDate, targetEndDate);
@@ -87,6 +72,19 @@ export async function getLatestWeeklyReport(teamId: string, userTimezone?: strin
 export async function getLatestDailyReport(teamId: string) {
     const supabase = await createClient();
 
+    // F2: Auth guard — verify user is a member of this team
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("Unauthorized");
+
+    const { data: membership } = await supabase
+        .from("team_members")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("team_id", teamId)
+        .single();
+
+    if (!membership) throw new Error("Unauthorized: Not a member of this team");
+
     // Fetch Team Settings for team name
     const { data: team, error } = await supabase
         .from("teams")
@@ -96,15 +94,10 @@ export async function getLatestDailyReport(teamId: string) {
 
     if (error || !team) throw new Error("Team not found");
 
-    // @ts-ignore
-    const settings = team.settings || {};
+    const settings = (team.settings || {}) as Record<string, any>;
 
-    // Use today's date
     const today = new Date();
-
-    // Fetch daily data
     const data = await getDailyTeamData(teamId, today);
 
     return { data, teamName: settings.teamName || "Team" };
 }
-

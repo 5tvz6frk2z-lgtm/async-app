@@ -6,14 +6,45 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/comp
 import { Textarea } from "@/components/ui/textarea"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
+import { MessageCircleQuestion } from "lucide-react"
 
 interface BlockerStepProps {
     form: UseFormReturn<DailyReportFormValues>
+    customQuestion?: string | null
 }
 
-export function BlockerStep({ form }: BlockerStepProps) {
+export function BlockerStep({ form, customQuestion }: BlockerStepProps) {
     return (
         <div className="space-y-8">
+            {/* Custom Question Section (optional, from manager) */}
+            {customQuestion && (
+                <div className="space-y-4">
+                    <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                            <MessageCircleQuestion className="w-4 h-4 text-violet-500" />
+                            <h2 className="text-lg font-medium text-slate-900">Quick Question</h2>
+                        </div>
+                        <p className="text-slate-600 text-sm">{customQuestion}</p>
+                    </div>
+                    <FormField
+                        control={form.control}
+                        name="custom_question_answer"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormControl>
+                                    <Textarea
+                                        placeholder="Your answer (optional)..."
+                                        className="min-h-[80px] border-slate-200 focus:ring-violet-100 focus:border-violet-300 resize-none"
+                                        {...field}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+            )}
+
             {/* Blockers Section */}
             <div className="space-y-4">
                 <div className="space-y-2">
@@ -101,3 +132,4 @@ export function BlockerStep({ form }: BlockerStepProps) {
         </div>
     )
 }
+

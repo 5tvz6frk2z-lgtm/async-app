@@ -20,25 +20,23 @@ function LoginForm() {
     const nextUrl = searchParams.get("next")
 
     const handleLogin = async (role: "manager" | "member", formEmail?: string, formPassword?: string) => {
-        setLoading(formEmail ? "form" : role)
-
-        let email = formEmail
-        let password = formPassword
-
-        // Fallback for demo buttons
-        if (!email) {
-            email = role === "manager" ? "manager@test.com" : "member@test.com"
-            password = "password"
+        // F6: Require explicit credentials — no fallback to hardcoded values
+        if (!formEmail || !formPassword) {
+            toast.error("Please enter your email and password")
+            return
         }
+
+        setLoading(formEmail ? "form" : role)
 
         try {
             const { data: authData, error } = await supabase.auth.signInWithPassword({
-                email: email!,
-                password: password!,
+                email: formEmail,
+                password: formPassword,
             })
 
             if (error) {
-                toast.error("Login failed: " + error.message)
+                // F11: Generic error to prevent account enumeration
+                toast.error("Invalid email or password. Please try again.")
                 return
             }
 
@@ -84,7 +82,7 @@ function LoginForm() {
                         Sign in to your account
                     </h2>
                     <p className="mt-2 text-sm text-slate-600">
-                        Or <a href="/signup" className="font-medium text-indigo-600 hover:text-indigo-500">start your 14-day free trial</a>
+                        Or <a href="/signup" className="font-medium text-indigo-600 hover:text-indigo-500">get started</a>
                     </p>
                 </div>
 
@@ -155,10 +153,10 @@ function LoginForm() {
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
-                                    <Button variant="outline" onClick={() => handleLogin("member")} disabled={!!loading} className="text-xs">
+                                    <Button variant="outline" onClick={() => handleLogin("member", "member@test.com", "password")} disabled={!!loading} className="text-xs">
                                         Demo Member
                                     </Button>
-                                    <Button variant="outline" onClick={() => handleLogin("manager")} disabled={!!loading} className="text-xs">
+                                    <Button variant="outline" onClick={() => handleLogin("manager", "manager@test.com", "password")} disabled={!!loading} className="text-xs">
                                         Demo Manager
                                     </Button>
                                 </div>

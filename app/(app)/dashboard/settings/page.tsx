@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { toast } from "sonner"
-import { Users, Clock, Zap, Save, Loader2, Mail, Sparkles } from "lucide-react"
+import { Users, Clock, Zap, Save, Loader2, Mail, Sparkles, MessageCircleQuestion, Plus, Trash2 } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useEffect, useState } from "react"
 import { useAuth } from "@/components/providers/AuthProvider"
@@ -28,6 +28,7 @@ export default function SettingsPage() {
     // Local state for form
     const [teamName, setTeamName] = useState(settings.teamName)
     const [reminderTime, setReminderTime] = useState(settings.reminderTime)
+    const [newQuestion, setNewQuestion] = useState("")
 
     // Sync local state when settings load
     useEffect(() => {
@@ -55,6 +56,34 @@ export default function SettingsPage() {
             return;
         }
         window.open(`/api/cron/weekly-report?test=true&teamId=${teamId}`, '_blank');
+    }
+
+    const addQuestion = () => {
+        const q = newQuestion.trim()
+        if (!q) return
+        if (settings.customQuestions.questions.includes(q)) {
+            toast.error("This question already exists.")
+            return
+        }
+        updateSettings({
+            customQuestions: {
+                ...settings.customQuestions,
+                questions: [...settings.customQuestions.questions, q]
+            }
+        })
+        setNewQuestion("")
+        toast.success("Question added")
+    }
+
+    const removeQuestion = (index: number) => {
+        const updated = settings.customQuestions.questions.filter((_, i) => i !== index)
+        updateSettings({
+            customQuestions: {
+                ...settings.customQuestions,
+                questions: updated
+            }
+        })
+        toast.success("Question removed")
     }
 
     if (role !== "manager") return null
@@ -249,6 +278,90 @@ export default function SettingsPage() {
                     </CardContent>
                 </Card>
 
+                {/* Custom Rotating Questions */}
+                <Card className="bg-white border-slate-100 shadow-xl shadow-slate-200/50 rounded-2xl overflow-hidden">
+                    <CardHeader className="bg-slate-50/50 border-b border-slate-100 pb-4">
+                        <div className="flex items-center gap-2">
+                            <MessageCircleQuestion className="w-5 h-5 text-violet-500" />
+                            <CardTitle className="text-lg font-semibold text-slate-900">Custom Questions</CardTitle>
+                        </div>
+                        <CardDescription>Add rotating questions that appear in your team's daily check-in.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6 pt-6">
+                        <div className="flex items-center justify-between p-4 rounded-xl border border-slate-100 bg-slate-50/50">
+                            <div className="space-y-0.5">
+                                <Label className="text-base font-medium text-slate-900">Enable Custom Questions</Label>
+                                <p className="text-sm text-slate-500">
+                                    Show one rotating question per day in the daily check-in.
+                                </p>
+                            </div>
+                            <Switch
+                                checked={settings.customQuestions.enabled}
+                                onCheckedChange={(checked) => updateSettings({
+                                    customQuestions: { ...settings.customQuestions, enabled: checked }
+                                })}
+                                className="data-[state=checked]:bg-violet-600"
+                            />
+                        </div>
+
+                        {settings.customQuestions.enabled && (
+                            <div className="space-y-4 pt-2">
+                                {/* Add question input */}
+                                <div className="flex gap-2">
+                                    <Input
+                                        value={newQuestion}
+                                        onChange={(e) => setNewQuestion(e.target.value)}
+                                        placeholder="e.g. What's one thing you learned today?"
+                                        className="border-slate-200 focus:border-violet-500 focus:ring-violet-500"
+                                        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addQuestion() } }}
+                                    />
+                                    <Button
+                                        type="button"
+                                        onClick={addQuestion}
+                                        size="icon"
+                                        className="bg-violet-600 hover:bg-violet-700 text-white shrink-0"
+                                    >
+                                        <Plus className="w-4 h-4" />
+                                    </Button>
+                                </div>
+
+                                {/* Question list */}
+                                {settings.customQuestions.questions.length === 0 ? (
+                                    <p className="text-sm text-slate-400 text-center py-4">
+                                        No questions added yet. Add your first question above.
+                                    </p>
+                                ) : (
+                                    <div className="space-y-2">
+                                        {settings.customQuestions.questions.map((q, i) => (
+                                            <div
+                                                key={i}
+                                                className="flex items-start justify-between gap-3 p-3 rounded-lg border border-slate-100 bg-slate-50/50 group hover:border-slate-200 transition-colors"
+                                            >
+                                                <div className="flex items-start gap-2 min-w-0">
+                                                    <span className="text-xs font-medium text-slate-400 mt-0.5 shrink-0">{i + 1}.</span>
+                                                    <p className="text-sm text-slate-700 break-words">{q}</p>
+                                                </div>
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="shrink-0 h-7 w-7 text-slate-300 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    onClick={() => removeQuestion(i)}
+                                                >
+                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                </Button>
+                                            </div>
+                                        ))}
+                                        <p className="text-xs text-slate-400 pt-1">
+                                            Questions rotate daily. Today's question: #{((Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24))) % settings.customQuestions.questions.length) + 1}
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+
                 {/* Feature Toggles */}
                 <Card className="bg-white border-slate-100 shadow-xl shadow-slate-200/50 rounded-2xl overflow-hidden">
                     <CardHeader className="bg-slate-50/50 border-b border-slate-100 pb-4">
@@ -292,3 +405,4 @@ export default function SettingsPage() {
         </div>
     )
 }
+

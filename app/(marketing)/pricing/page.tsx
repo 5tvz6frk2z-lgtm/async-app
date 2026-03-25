@@ -9,7 +9,7 @@ export default function PricingPage() {
         <div className="py-24 bg-slate-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                 <h1 className="text-4xl font-bold text-slate-900 mb-4">Simple pricing for teams of all sizes</h1>
-                <p className="text-xl text-slate-600 mb-16">Start for free, upgrade as you grow.</p>
+                <p className="text-xl text-slate-600 mb-16">Everything your team needs to work asynchronously.</p>
 
                 <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
                     {/* Free Tier */}
@@ -18,7 +18,7 @@ export default function PricingPage() {
                         <div className="text-4xl font-bold text-slate-900 mb-6">$4<span className="text-lg font-normal text-slate-500">/user/mo</span></div>
                         <p className="text-slate-600 mb-6">Perfect for small project teams.</p>
                         <Link href="/signup" className="w-full mb-8">
-                            <Button variant="outline" className="w-full">Start Free Trial</Button>
+                            <Button variant="outline" className="w-full">Get Started</Button>
                         </Link>
                         <ul className="text-left space-y-4">
                             <li className="flex gap-3 text-sm text-slate-700">
@@ -42,7 +42,7 @@ export default function PricingPage() {
                         <div className="text-4xl font-bold text-white mb-6">$12<span className="text-lg font-normal text-slate-400">/user/mo</span></div>
                         <p className="text-slate-300 mb-6">For growing engineering teams.</p>
                         <Link href="/signup" className="w-full mb-8">
-                            <Button className="w-full bg-indigo-600 hover:bg-indigo-700 border-none">Start Free Trial</Button>
+                            <Button className="w-full bg-indigo-600 hover:bg-indigo-700 border-none">Get Started</Button>
                         </Link>
                         <ul className="text-left space-y-4">
                             <li className="flex gap-3 text-sm text-slate-200">

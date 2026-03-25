@@ -15,6 +15,7 @@ export const dailyReportSchema = z.object({
     }),
     blockers: z.string().optional(),
     sentiment: z.enum(["green", "yellow", "red"]),
+    custom_question_answer: z.string().optional(),
 })
 
 export type DailyReportFormValues = z.infer<typeof dailyReportSchema>

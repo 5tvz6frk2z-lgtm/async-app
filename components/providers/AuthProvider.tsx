@@ -4,13 +4,22 @@ import { createContext, useContext, useEffect, useState } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { Team, TeamMember, Role } from "@/lib/types"
+import type { User } from "@supabase/supabase-js"
+
+// F15: Proper types instead of `any`
+interface Profile {
+    id: string
+    name: string
+    email: string
+    avatar_url?: string | null
+}
 
 interface AuthContextType {
-    user: any | null
+    user: User | null
     role: Role | null
     currentTeam: Team | null
     teams: Team[]
-    profile: any | null
+    profile: Profile | null
     isLoading: boolean
     switchTeam: (teamId: string) => void
     refreshUser: () => Promise<void>
@@ -19,11 +28,11 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-    const [user, setUser] = useState<any>(null)
+    const [user, setUser] = useState<User | null>(null)
     const [role, setRole] = useState<Role | null>(null)
     const [currentTeam, setCurrentTeam] = useState<Team | null>(null)
     const [teams, setTeams] = useState<Team[]>([])
-    const [profile, setProfile] = useState<any>(null)
+    const [profile, setProfile] = useState<Profile | null>(null)
     const [isLoading, setIsLoading] = useState(true)
 
     const router = useRouter()
@@ -33,9 +42,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const refreshUser = async () => {
         setIsLoading(true)
         try {
-            const { data: { session } } = await supabase.auth.getSession()
+            // F1: Use getUser() (cryptographically verified) instead of getSession() (reads unverified cookie)
+            const { data: { user: verifiedUser }, error: authError } = await supabase.auth.getUser()
 
-            if (!session) {
+            if (authError || !verifiedUser) {
                 setUser(null)
                 if (isPublicRoute(pathname)) {
                     setIsLoading(false)
@@ -46,27 +56,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 return
             }
 
-            setUser(session.user)
+            setUser(verifiedUser)
+
+            // F8: Fetch profile OUTSIDE the retry loop (it never changes between retries)
+            const { data: profileData } = await supabase
+                .from("profiles")
+                .select("id, name, email, avatar_url")
+                .eq("id", verifiedUser.id)
+                .single()
+
+            if (profileData) setProfile(profileData as Profile)
 
             // Fetch User's Teams with Retry Logic
             let memberships: any[] | null = null
             let attempts = 0
 
             while (attempts < 3) {
-                const { data, error } = await supabase
+                const { data } = await supabase
                     .from("team_members")
                     .select("*, team:teams(*)")
-                    .eq("user_id", session.user.id)
-
-                // Fetch Profile
-                const { data: profileData } = await supabase
-                    .from("profiles")
-                    .select("*")
-                    .eq("id", session.user.id)
-                    .single()
-
-                if (profileData) setProfile(profileData)
-
+                    .eq("user_id", verifiedUser.id)
 
                 if (data && data.length > 0) {
                     memberships = data
@@ -74,7 +83,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 }
 
                 if (pathname === '/daily' || pathname === '/dashboard') {
-                    // console.log(`[AuthProvider] No memberships found on attempt ${attempts + 1}. Retrying...`)
                     await new Promise(r => setTimeout(r, 500))
                 } else {
                     if (attempts > 0) break
@@ -84,10 +92,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
 
             if (!memberships || memberships.length === 0) {
-                // User has no team -> Onboarding
                 setTeams([])
 
-                // If on public route (like home), don't force redirect
                 if (isPublicRoute(pathname)) {
                     setIsLoading(false)
                     return
@@ -130,18 +136,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     }
 
-    // Main Auth Check
+    // F12: Run once on mount — let onAuthStateChange handle subsequent updates
     useEffect(() => {
         refreshUser()
 
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            if (!session && !isPublicRoute(pathname)) {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, _session) => {
+            if (_event === 'SIGNED_OUT' && !isPublicRoute(pathname)) {
                 router.push("/login")
+            } else if (_event === 'SIGNED_IN' || _event === 'TOKEN_REFRESHED') {
+                refreshUser()
             }
         })
 
         return () => subscription.unsubscribe()
-    }, [pathname]) // Simplify dependencies 
+    }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
     // Route Protection Effect
     useEffect(() => {
@@ -154,14 +162,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             return
         }
 
-        // Redirect logic based on role/onboarding
         if (user && teams.length === 0 && pathname !== "/onboarding" && !pathname.startsWith("/invite/") && !isPublicRoute(pathname)) {
             router.push("/onboarding")
             return
         }
 
         if (user && teams.length > 0 && pathname === "/onboarding") {
-            router.push("/dashboard") // Already onboarded
+            router.push("/dashboard")
             return
         }
 
@@ -169,7 +176,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const switchTeam = async (teamId: string) => {
         const nextTeam = teams.find(t => t.id === teamId)
-        if (nextTeam) {
+        if (nextTeam && user) {
             setCurrentTeam(nextTeam)
             localStorage.setItem('status-loop-last-team', teamId)
 
@@ -205,13 +212,15 @@ function isPublicRoute(path: string) {
         "/signup",
         "/features",
         "/enterprise",
+        "/product",
+        "/demo",
         "/blog",
         "/guides",
         "/help",
         "/privacy",
         "/terms"
     ]
-    return publicRoutes.includes(path) || path.startsWith("/auth/") || path.startsWith("/invite/")
+    return publicRoutes.includes(path) || path.startsWith("/auth/") || path.startsWith("/invite/") || path.startsWith("/blog/") || path.startsWith("/case-studies/")
 }
 
 export const useAuth = () => {
