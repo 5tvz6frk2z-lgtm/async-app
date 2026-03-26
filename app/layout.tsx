@@ -10,6 +10,11 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Status Loop | Async Reports & EoD Reporting Tool",
   description: "Streamline your team's communication with asynchronous reports. The best tool for daily EoD reports and weekly EoW reports.",
+  icons: {
+    icon: "/icon.png",
+    shortcut: "/favicon.ico",
+    apple: "/apple-icon.png",
+  },
 };
 
 export default function RootLayout({

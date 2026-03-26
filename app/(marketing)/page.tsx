@@ -8,6 +8,11 @@ import { Metadata } from "next"
 export const metadata: Metadata = {
   title: "Status Loop | Async Standups & Reporting for All Teams",
   description: "Automate daily standups, End of Day (EoD) reports, and weekly roll-ups. Replace meetings with a 3-minute async ritual.",
+  icons: {
+    icon: "/icon.png",
+    shortcut: "/favicon.ico",
+    apple: "/apple-icon.png",
+  },
 }
 
 export default function Home() {
