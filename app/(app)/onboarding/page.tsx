@@ -4,6 +4,8 @@ import { cookies } from "next/headers"
 import { MemberWaitingRoom } from "@/components/onboarding/MemberWaitingRoom"
 import { CreateTeamForm } from "@/components/onboarding/CreateTeamForm"
 
+export const dynamic = 'force-dynamic'
+
 export default async function OnboardingPage(props: { searchParams: Promise<{ ignore_invite?: string }> }) {
     const searchParams = await props.searchParams
     const supabase = await createClient()
