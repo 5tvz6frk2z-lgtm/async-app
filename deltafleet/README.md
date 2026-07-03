@@ -1,10 +1,10 @@
 # DELTA FLEET · deltafleet.ai
 
-A futuristic, highly interactive single-file marketing site for **Delta Fleet** — an agency that designs, deploys and manages custom multi-agent AI ecosystems ("fleets") for high-growth companies.
+A futuristic, highly interactive single-file site for **Delta Fleet** — an AI **marketing** agency that deploys specialist agent fleets: answer engine optimization, answer-first content, sub-minute lifecycle response and async reporting.
 
 **One file. Zero build step. Zero JS dependencies.** The only external request is Google Fonts.
 
-> This is v2 of the site: rebranded from the original niche vertical to a corporate **revenue-operations** example (quote-to-cash across Salesforce · NetSuite · Stripe), with every page filled out, a blog category filter, and small UX upgrades. It is intended to live in its own repository.
+> v3 positioning: the company **specialized in marketing services** (2026). New service pages (AEO · Content Engine · Lifecycle · Analytics · White-Label); the earlier general-ops pages and two off-niche posts are **archived, not deleted** — their URLs stay live with archive banners to preserve any citations and link equity. Intended to live in its own repository.
 
 ## Quick start
 

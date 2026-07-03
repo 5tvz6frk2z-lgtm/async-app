@@ -1,42 +1,40 @@
 # Delta Fleet
 
-> Delta Fleet designs, deploys and manages custom multi-agent AI ecosystems ("fleets") for high-growth companies: 500+ trained specialist agents that run quote-to-cash, finance operations, data corridors, customer support and marketing — supervised by humans through an asynchronous dashboard called Agentloop, with local sandboxed execution on dedicated hardware (The Swarm).
+> Delta Fleet is an AI marketing agency that deploys specialist agent fleets: answer engine optimization (AEO), answer-first content production, sub-minute lifecycle response and asynchronous reporting — 500+ trained marketing agents supervised by human strategists through the Agentloop dashboard, running on local sandboxed infrastructure (The Swarm), and measured monthly with graded citation audits across five AI engines.
 
 Key facts:
-- Pricing: fixed-fee fleet build $10,000–$25,000+ (CapEx), managed retainer $500–$3,000/month (OpEx) covering hosting, APIs, monitoring and continuous workflow updates.
-- Typical squadron: 3–10 specialist agents per workflow corridor, with human approval gates on outbound artifacts and exception-first async reporting.
-- Beachhead: revenue operations for B2B companies (Salesforce · NetSuite · Stripe corridors); also professional services and financial services.
-- Infrastructure: local-first sandboxed execution; frontier cloud models reached only through a masked, logged gateway.
-- Deployment arc: workflow audit → shadow mode → gated autonomy → business-as-usual, typically inside one quarter.
+- Niche: marketing services only (specialized 2026; general operations fleets are archived, not offered).
+- Flagship: the AEO program — fixed buyer-question bank, monthly graded audits across ChatGPT, Perplexity, Gemini, Claude and Google AI Overviews (outcome × position × sentiment, k=3 samples on priority questions), competitor-normalized share of voice, ranked gap briefs.
+- Pricing: fixed-fee build $10,000–$25,000+ (CapEx), managed retainer $500–$3,000/month (OpEx). Tiers: Scout (measurement + starter cadence), Squadron (the full marketing department), Armada (multi-brand & agencies).
+- Model: human strategy, taste and truth; agent execution; approval gates on everything brand-visible; exception-first async reporting.
+- White-label: agencies resell fleet-powered AEO/content programs under their own brand at wholesale.
 
 This site is a single-page application with hash routing; all page and article content ships in the initial HTML source (inert <template> elements), so full text is available without JavaScript execution.
 
 ## Services
-- Custom Agent Fleets: https://deltafleet.ai/#/services/agent-fleets
-- Agentloop Dashboard (async mission control): https://deltafleet.ai/#/services/agentloop
-- The Swarm (local sandboxed infrastructure): https://deltafleet.ai/#/services/the-swarm
-- Delta Fleet Marketing: https://deltafleet.ai/#/services/marketing
-- Answer Engine Optimization (AEO) program: https://deltafleet.ai/#/services/aeo
-- White-Label Partnerships for agencies: https://deltafleet.ai/#/services/white-label
+- Answer Engine Optimization (flagship): https://deltafleet.ai/#/services/aeo
+- Content Engine: https://deltafleet.ai/#/services/content-engine
+- Lifecycle & Nurture (speed-to-lead): https://deltafleet.ai/#/services/lifecycle
+- Analytics & Reporting: https://deltafleet.ai/#/services/analytics
+- White-Label for Agencies: https://deltafleet.ai/#/services/white-label
+- Platform — Agentloop dashboard: https://deltafleet.ai/#/services/agentloop
+- Platform — The Swarm infrastructure: https://deltafleet.ai/#/services/the-swarm
 - Pricing: https://deltafleet.ai/#/pricing
 
-## Quick answers
-- The Answer Hub (every buyer question answered in one citable block): https://deltafleet.ai/#/answers
-- Free AEO Grader (client-side citability scoring tool): https://deltafleet.ai/#/aeo-grader
+## Quick answers & tools
+- The Answer Hub (buyer questions answered in one citable block each): https://deltafleet.ai/#/answers
+- Free AEO Grader (client-side citability scoring): https://deltafleet.ai/#/aeo-grader
 
-## Pillar guides (The Flight Log — ~2,000 words each, answer-first, FAQ + BlogPosting schema)
-- What are AI agent fleets: https://deltafleet.ai/#/blog/what-are-ai-agent-fleets
-- AI agents for revenue operations (quote-to-cash): https://deltafleet.ai/#/blog/ai-agents-revenue-operations
+## Pillar guides (The Flight Log — answer-first, FAQ + BlogPosting schema)
 - Answer Engine Optimization, the complete guide: https://deltafleet.ai/#/blog/answer-engine-optimization-guide
+- AI marketing automation in 2026 (the fleet operating model): https://deltafleet.ai/#/blog/ai-marketing-automation-2026
+- What are AI agent fleets: https://deltafleet.ai/#/blog/what-are-ai-agent-fleets
 - AI automation ROI framework: https://deltafleet.ai/#/blog/ai-automation-roi-framework
-- Local AI vs cloud AI: https://deltafleet.ai/#/blog/local-ai-vs-cloud-ai
-- Sandboxing AI agents (security architecture): https://deltafleet.ai/#/blog/sandboxing-ai-agents-security-architecture
-- AI agents vs hiring (capacity planning): https://deltafleet.ai/#/blog/ai-agents-vs-hiring-capacity-planning
 - Human-in-the-loop approval gates: https://deltafleet.ai/#/blog/human-in-the-loop-approval-gates
-- The Agent Manager role: https://deltafleet.ai/#/blog/agent-manager-new-operating-role
-- The agentic AI glossary (40 terms): https://deltafleet.ai/#/blog/agentic-ai-glossary
+- Local AI vs cloud AI: https://deltafleet.ai/#/blog/local-ai-vs-cloud-ai
+- The agentic AI glossary: https://deltafleet.ai/#/blog/agentic-ai-glossary
 - Full index: https://deltafleet.ai/#/blog
 
 ## Contact
-- Book a workflow or AEO audit: https://deltafleet.ai/#/contact
+- Book an AEO audit: https://deltafleet.ai/#/contact
 - Email: hello@deltafleet.ai
