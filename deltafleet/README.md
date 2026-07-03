@@ -14,10 +14,12 @@ A futuristic, highly interactive single-file marketing site for **Delta Fleet** 
 ## What's inside
 
 - **17 pages:** Home · Services hub · Custom Agent Fleets · Agentloop · The Swarm · Delta Fleet Marketing · White-Label Partnerships · Industries hub · SaaS & Technology · Professional Services · Financial Services · The Agents (searchable 504-agent directory) · Pricing (tiers + retainer calculator) · About · Contact · Blog hub · 404.
-- **10 pillar blog posts** ("The Flight Log"), each with a Direct Answer block, key takeaways, an animated SVG chart, tables, FAQs, and auto-generated FAQPage JSON-LD.
-- **Hero:** canvas starfield, animated delta ship, rotating Earth, and suited robot agents flying deployment arcs on a bezier flight system.
+- **20 pillar blog posts** ("The Flight Log"), each ~2,000 words with a Direct Answer block, key takeaways, an animated SVG chart, tables, FAQs, and auto-generated FAQPage + BlogPosting JSON-LD. Category filter chips on the hub.
+- **The fleet roster:** 504 procedurally generated agents with callsigns from the Norse and Greek pantheons (ODIN, ATHENA, PROMETHEUS… repeat tours get generation suffixes like "ODIN II"), per-agent stats (missions, uptime, precision/autonomy/throughput), procedurally varied robot SVGs (visor styles, blinking eyes, lapel beacons, lead epaulettes), and a click-to-open **dossier modal** with stat bars and a mission log.
+- **Hero:** canvas starfield, HUD grid overlay, animated delta ship, rotating Earth, suited robot agents flying deployment arcs on a bezier flight system, plus a telemetry ticker strip.
 - **Agentloop demo:** a live-updating dashboard mockup with a simulated task feed.
-- **Accessibility:** semantic landmarks, `aria-live` routing, focus styles, and full `prefers-reduced-motion` support.
+- **AI-SEO / AEO:** answer-first Direct Answer blocks, entity-rich copy, question-shaped headings, Organization + WebSite JSON-LD in head, FAQPage + BlogPosting JSON-LD per article, per-route titles and meta descriptions.
+- **Accessibility:** semantic landmarks, `aria-live` routing, keyboard-operable agent cards and modal (Enter/Space/Escape, `/` to search), focus styles, and full `prefers-reduced-motion` support.
 
 ## Architecture (single file, four zones)
 
