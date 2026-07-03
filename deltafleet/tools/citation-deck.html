@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Citation Deck — Delta Fleet Internal</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 3 29 27H3Z' fill='none' stroke='%23ff4d6b' stroke-width='2.5'/%3E%3C/svg%3E">
+<style>
+:root{
+  --void:#05070f; --deep:#080d1c; --raised:#0b1226;
+  --line:rgba(122,162,255,.14); --line-strong:rgba(122,162,255,.28);
+  --ion:#4fd8ff; --crimson:#ff4d6b; --gold:#ffc24b; --emerald:#34e3a4; --nebula:#8b7bff; --coral:#ff6a3d;
+  --text:#eaf0ff; --muted:#94a3c7; --faint:#5d6b8f;
+  --sans:'Instrument Sans','Segoe UI',system-ui,-apple-system,sans-serif;
+  --disp:'Space Grotesk','Avenir Next','Segoe UI',system-ui,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,'SFMono-Regular','Cascadia Mono',Consolas,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--void);color:var(--text);font-family:var(--sans);font-size:15.5px;line-height:1.55;-webkit-font-smoothing:antialiased}
+::selection{background:rgba(255,77,107,.28)}
+button{font-family:inherit;cursor:pointer}
+h1,h2,h3,h4{font-family:var(--disp);font-weight:600;letter-spacing:-.01em}
+::-webkit-scrollbar{width:9px;height:9px}::-webkit-scrollbar-track{background:var(--void)}::-webkit-scrollbar-thumb{background:#1b2647;border-radius:6px}
+.klabel{font-family:var(--mono);font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--faint)}
+.mono{font-family:var(--mono)}
+
+.bar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:14px;padding:0 20px;height:58px;background:rgba(5,8,17,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.bar .logo{display:flex;align-items:center;gap:10px;font-family:var(--disp);font-weight:700;font-size:.98rem;letter-spacing:.04em}
+.bar .logo svg{width:24px;height:24px;filter:drop-shadow(0 0 6px rgba(255,77,107,.5))}
+.bar .logo small{font-family:var(--mono);font-weight:400;font-size:.56rem;letter-spacing:.26em;color:var(--crimson);display:block}
+.bar .spacer{flex:1}
+.chip{font-family:var(--mono);font-size:.6rem;letter-spacing:.14em;padding:4px 10px;border:1px solid var(--line-strong);border-radius:100px;color:var(--muted)}
+
+.btn{display:inline-flex;align-items:center;gap:8px;font-family:var(--disp);font-weight:600;font-size:.82rem;padding:9px 16px;border-radius:8px;border:1px solid var(--line-strong);background:rgba(79,216,255,.06);color:var(--text);transition:.2s}
+.btn:hover{background:rgba(79,216,255,.13);transform:translateY(-1px)}
+.btn.primary{background:linear-gradient(135deg,#ff7d95,#ff3d60);color:#2a020b;border-color:transparent}
+.btn.primary:hover{box-shadow:0 0 18px rgba(255,77,107,.4)}
+.btn.danger:hover{border-color:var(--crimson);color:var(--crimson);background:rgba(255,77,107,.08)}
+.btn.sm{padding:6px 11px;font-size:.74rem}
+.btn:focus-visible,input:focus-visible,select:focus-visible,.cell:focus-visible{outline:2px solid var(--ion);outline-offset:1px}
+
+.tabs{display:flex;gap:6px;padding:14px 20px 0;border-bottom:1px solid var(--line);background:var(--deep)}
+.tab{background:none;border:1px solid transparent;border-bottom:none;color:var(--muted);font-family:var(--disp);font-weight:600;font-size:.86rem;padding:10px 18px;border-radius:10px 10px 0 0}
+.tab:hover{color:var(--text)}
+.tab.on{background:var(--void);border-color:var(--line);color:var(--crimson)}
+.main{padding:22px 24px 60px;max-width:1280px;margin:0 auto}
+
+.panel{background:var(--raised);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:16px}
+.panel h3{font-size:1.02rem}
+.phead{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.phead .spacer{flex:1}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.kpi{background:var(--deep);border:1px solid var(--line);border-radius:11px;padding:13px 14px}
+.kpi b{display:block;font-family:var(--disp);font-size:1.5rem;font-weight:700;color:var(--emerald);font-variant-numeric:tabular-nums}
+.kpi.red b{color:var(--crimson)}.kpi.gold b{color:var(--gold)}.kpi.blue b{color:var(--ion)}
+.kpi span{font-size:.72rem;color:var(--faint)}
+.kpi .delta{font-family:var(--mono);font-size:.62rem;margin-left:6px}
+.up{color:var(--emerald)}.down{color:var(--crimson)}
+
+table{width:100%;border-collapse:collapse;font-size:.86rem}
+th{font-family:var(--mono);font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;color:var(--crimson);text-align:left;padding:8px 9px;border-bottom:1px solid var(--line-strong)}
+td{padding:8px 9px;border-bottom:1px solid var(--line);color:var(--muted);vertical-align:middle}
+td:first-child{color:var(--text)}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
+input,select{background:var(--deep);border:1px solid var(--line-strong);border-radius:8px;padding:9px 11px;color:var(--text);font-family:var(--sans);font-size:.9rem;width:100%}
+input:focus,select:focus{border-color:var(--ion)}
+td input,td select{padding:6px 8px;font-size:.84rem}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-family:var(--mono);font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+
+.chart{background:var(--deep);border:1px solid var(--line);border-radius:11px;padding:14px}
+.chart h5{font-family:var(--mono);font-size:.58rem;letter-spacing:.18em;color:var(--faint);text-transform:uppercase;margin-bottom:10px}
+
+/* grading grid */
+.gwrap{overflow-x:auto}
+.ggrid th{position:sticky;top:0;background:var(--raised)}
+.ggrid td.q{min-width:300px;max-width:420px;font-size:.84rem;line-height:1.35}
+.ggrid .topic{font-family:var(--mono);font-size:.56rem;letter-spacing:.14em;color:var(--faint);display:block;margin-top:2px;text-transform:uppercase}
+.cell{width:76px;height:34px;border-radius:8px;border:1px solid var(--line);background:var(--deep);font-family:var(--mono);font-size:.6rem;letter-spacing:.08em;color:var(--faint);transition:.15s}
+.cell:hover{border-color:var(--line-strong);transform:translateY(-1px)}
+.cell.s1{background:rgba(52,227,164,.14);border-color:rgba(52,227,164,.5);color:var(--emerald)}
+.cell.s2{background:rgba(255,77,107,.12);border-color:rgba(255,77,107,.5);color:var(--crimson)}
+.cell.s3{background:rgba(255,194,75,.12);border-color:rgba(255,194,75,.5);color:var(--gold)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;color:var(--faint);margin:10px 0 2px}
+.legend b{font-weight:500}
+.legend .e{color:var(--emerald)}.legend .c{color:var(--crimson)}.legend .i{color:var(--gold)}
+
+/* runs list */
+.run-item{display:flex;align-items:center;gap:14px;padding:12px 14px;border:1px solid var(--line);border-radius:11px;margin-bottom:8px;background:var(--deep)}
+.run-item:hover{border-color:var(--line-strong)}
+.run-item .sov{font-family:var(--mono);font-size:.85rem;color:var(--emerald);margin-left:auto;font-variant-numeric:tabular-nums}
+.run-item button.open{background:none;border:none;color:var(--text);font-family:var(--disp);font-weight:600;font-size:.92rem;text-align:left;flex:1}
+.run-item button.open:hover{color:var(--crimson)}
+
+/* briefs */
+.brief{background:var(--deep);border:1px solid var(--line);border-left:3px solid var(--crimson);border-radius:11px;padding:16px 18px;margin-bottom:12px}
+.brief h4{font-size:.98rem;margin-bottom:6px}
+.brief .st{font-family:var(--mono);font-size:.62rem;letter-spacing:.08em;color:var(--muted);margin-bottom:8px}
+.brief ul{margin:8px 0 0 18px;font-size:.84rem;color:var(--muted)}
+.brief li{margin-bottom:4px}
+.empty{border:1px dashed var(--line-strong);border-radius:14px;padding:50px 30px;text-align:center;color:var(--faint)}
+.hint{font-size:.76rem;color:var(--faint);margin-top:6px}
+.pri{font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;padding:2px 8px;border-radius:100px;border:1px solid var(--line)}
+.pri.p1{color:var(--crimson);border-color:rgba(255,77,107,.4)}
+.pri.p2{color:var(--gold);border-color:rgba(255,194,75,.4)}
+.pri.p3{color:var(--faint)}
+@media(max-width:900px){.grid2,.kpis{grid-template-columns:1fr}}
+@media print{
+ .bar,.tabs,.btn,.legend{display:none!important}
+ body{background:#fff;color:#111}
+ .main{padding:0}
+ .brief{border:1px solid #99a;border-left:3px solid #c33;color:#223;page-break-inside:avoid}
+ .brief h4{color:#111}.brief .st,.brief ul{color:#334}
+ .panel{background:none;border:none;padding:0}
+}
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <span class="logo">
+    <svg viewBox="0 0 32 32" fill="none"><path d="M16 3 29 27H3Z" stroke="#ff4d6b" stroke-width="2.4"/><path d="M16 11 22.5 23h-13Z" fill="#ff4d6b" opacity=".85"/></svg>
+    <span>CITATION DECK<small>DELTA FLEET · INTERNAL · AEO</small></span>
+  </span>
+  <span class="chip" id="save-state">LOCAL · SAVED</span>
+  <span class="spacer"></span>
+  <button class="btn sm" id="btn-seed">Load Demo Data</button>
+  <button class="btn sm" id="btn-export">Export JSON</button>
+  <label class="btn sm" style="position:relative;overflow:hidden">Import JSON<input type="file" id="btn-import" accept=".json" style="position:absolute;inset:0;opacity:0;cursor:pointer"></label>
+  <button class="btn primary sm" id="btn-new-run">+ New Audit Run</button>
+</header>
+
+<nav class="tabs" id="tabs">
+  <button class="tab on" data-v="dash">Dashboard</button>
+  <button class="tab" data-v="bank">Question Bank</button>
+  <button class="tab" data-v="runs">Audit Runs</button>
+  <button class="tab" data-v="gaps">Gap Briefs</button>
+</nav>
+
+<main class="main" id="main"></main>
+
+<script>
+'use strict';
+/* ============ CITATION DECK ============
+   AEO measurement console. Workflow (from the published AEO guide):
+   keep a bank of real buyer questions → each month, prompt every answer
+   engine with each question and grade the outcome → track share of voice
+   → turn losses into content briefs. States per question×engine cell:
+   0 ABSENT · 1 CITED (us) · 2 COMPETITOR cited · 3 INFLUENCED (our framing,
+   no citation). Click a cell to cycle. */
+const $=(s,c=document)=>c.querySelector(s), $$=(s,c=document)=>[...c.querySelectorAll(s)];
+const KEY='df-citation-v1';
+const ENGINES=['ChatGPT','Perplexity','Gemini','Claude','AI Overviews'];
+const STATES=['—','CITED','COMP','INFL'];
+const pct=n=>(n*100).toFixed(0)+'%';
+const esc=s=>String(s??'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+
+let DB={questions:[],runs:[]}, view='dash', openRun=null, memOnly=false;
+function load(){try{const r=localStorage.getItem(KEY);if(r)DB=JSON.parse(r)}catch(e){memOnly=true}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(DB));flash('LOCAL · SAVED')}catch(e){memOnly=true;flash('MEMORY ONLY')}}
+function flash(t){const el=$('#save-state');el.textContent=t;el.style.color='var(--emerald)';setTimeout(()=>el.style.color='',900)}
+const uid=()=>Math.random().toString(36).slice(2,9);
+
+/* ---- scoring ---- */
+function runStats(run){
+ const qs=DB.questions;let cited=0,comp=0,infl=0,total=qs.length*ENGINES.length||1;
+ qs.forEach(q=>ENGINES.forEach((e,i)=>{const s=(run.grades[q.id]||{})[i]||0;
+  if(s===1)cited++;else if(s===2)comp++;else if(s===3)infl++}));
+ return{cited,comp,infl,total,sov:cited/total,compRate:comp/total,inflRate:infl/total};
+}
+function latestRun(){return DB.runs.length?DB.runs[DB.runs.length-1]:null}
+function prevRun(){return DB.runs.length>1?DB.runs[DB.runs.length-2]:null}
+function qStates(run,q){return ENGINES.map((e,i)=>(run.grades[q.id]||{})[i]||0)}
+function isGap(run,q){const st=qStates(run,q);return !st.includes(1)&&(st.includes(2)||st.every(s=>s===0||s===3))}
+
+/* ---- views ---- */
+function render(){
+ $$('#tabs .tab').forEach(t=>t.classList.toggle('on',t.dataset.v===view));
+ const m=$('#main');
+ if(view==='dash')m.innerHTML=dashHTML();
+ else if(view==='bank'){m.innerHTML=bankHTML();wireBank()}
+ else if(view==='runs'){m.innerHTML=runsHTML();wireRuns()}
+ else if(view==='gaps')m.innerHTML=gapsHTML();
+}
+
+function dashHTML(){
+ const run=latestRun();
+ if(!run||!DB.questions.length)return `<div class="empty"><h3>No data yet</h3><p>Add questions to the bank and log your first audit run — or load the demo data.</p><div style="margin-top:16px"><button class="btn primary" onclick="seed()">Load Demo Data</button></div></div>`;
+ const s=runStats(run), p=prevRun(), ps=p?runStats(p):null;
+ const d=(a,b)=>{if(b==null)return'';const v=(a-b)*100;return `<span class="delta ${v>=0?'up':'down'}">${v>=0?'▲':'▼'} ${Math.abs(v).toFixed(0)}pt</span>`};
+ /* trend chart */
+ const runs=DB.runs;
+ const bw=Math.min(46,Math.max(20,360/runs.length-10));
+ const trend=runs.map((r,i)=>{const st=runStats(r);
+  const hC=st.sov*120, hI=st.inflRate*120;
+  const x=20+i*(bw+14);
+  return `<rect x="${x}" y="${140-hC}" width="${bw}" height="${Math.max(1,hC)}" rx="3" fill="#34e3a4" opacity=".92"/>
+   <rect x="${x}" y="${140-hC-hI}" width="${bw}" height="${Math.max(0,hI)}" rx="3" fill="#ffc24b" opacity=".55"/>
+   <text x="${x+bw/2}" y="${132-hC-hI}" font-size="8.5" fill="#7ee9c0" text-anchor="middle" font-family="monospace">${pct(st.sov)}</text>
+   <text x="${x+bw/2}" y="154" font-size="7.5" fill="#5d6b8f" text-anchor="middle" font-family="monospace">${esc(r.label.toUpperCase().slice(0,8))}</text>`}).join('');
+ /* per-engine latest */
+ const eng=ENGINES.map((e,i)=>{let c=0;DB.questions.forEach(q=>{if(((run.grades[q.id]||{})[i]||0)===1)c++});
+  const w=DB.questions.length?c/DB.questions.length:0;
+  return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+   <span class="mono" style="font-size:.62rem;letter-spacing:.1em;color:var(--muted);width:96px">${e.toUpperCase()}</span>
+   <div style="flex:1;height:8px;border-radius:100px;background:#131d3d;overflow:hidden"><i style="display:block;height:100%;width:${w*100}%;background:linear-gradient(90deg,#34e3a4,#45e0ff);border-radius:100px"></i></div>
+   <span class="mono" style="font-size:.66rem;color:var(--emerald);width:38px;text-align:right">${pct(w)}</span></div>`}).join('');
+ /* topics */
+ const topics=[...new Set(DB.questions.map(q=>q.topic))];
+ const trows=topics.map(t=>{const qs=DB.questions.filter(q=>q.topic===t);
+  let c=0,tot=qs.length*ENGINES.length;
+  qs.forEach(q=>ENGINES.forEach((e,i)=>{if(((run.grades[q.id]||{})[i]||0)===1)c++}));
+  const gaps=qs.filter(q=>isGap(run,q)).length;
+  return `<tr><td>${esc(t)}</td><td class="r">${qs.length}</td><td class="r" style="color:var(--emerald)">${pct(c/tot)}</td><td class="r" style="color:${gaps?'var(--crimson)':'var(--faint)'}">${gaps}</td></tr>`}).join('');
+ return `
+ <div class="kpis">
+  <div class="kpi"><b>${pct(s.sov)}${ps?d(s.sov,ps.sov):''}</b><span>share of voice · ${esc(run.label)}</span></div>
+  <div class="kpi gold"><b>${pct(s.inflRate)}${ps?d(s.inflRate,ps.inflRate):''}</b><span>influenced (our framing, uncited)</span></div>
+  <div class="kpi red"><b>${pct(s.compRate)}${ps?d(s.compRate,ps.compRate):''}</b><span>competitor cited</span></div>
+  <div class="kpi blue"><b>${DB.questions.length}<span class="mono" style="font-size:.8rem;color:var(--faint)"> × ${ENGINES.length}</span></b><span>questions × engines tracked</span></div>
+ </div>
+ <div class="grid2">
+  <div class="panel"><h3>Share of voice · by run</h3>
+   <div class="chart" style="margin-top:12px"><h5>CITED (GREEN) + INFLUENCED (GOLD) · % OF ALL CELLS</h5>
+   <svg viewBox="0 0 420 160" style="width:100%"><line x1="14" y1="140" x2="410" y2="140" stroke="#22314f"/>${trend}</svg></div>
+  </div>
+  <div class="panel"><h3>Citation rate by engine · ${esc(run.label)}</h3><div style="margin-top:14px">${eng}</div>
+   <p class="hint">% of bank questions where we were cited in that engine's answer.</p>
+  </div>
+ </div>
+ <div class="panel"><h3>Topics · ${esc(run.label)}</h3>
+  <table style="margin-top:10px"><thead><tr><th>Topic</th><th class="r">Questions</th><th class="r">SoV</th><th class="r">Open gaps</th></tr></thead><tbody>${trows}</tbody></table>
+ </div>`;
+}
+
+function bankHTML(){
+ const rows=DB.questions.map((q,i)=>`<tr>
+  <td style="max-width:480px"><input data-q="${q.id}" data-f="text" value="${esc(q.text)}"></td>
+  <td style="width:170px"><input data-q="${q.id}" data-f="topic" value="${esc(q.topic)}" list="topics"></td>
+  <td style="width:104px"><select data-q="${q.id}" data-f="pri">
+    <option value="1" ${q.pri==1?'selected':''}>P1 · core</option><option value="2" ${q.pri==2?'selected':''}>P2</option><option value="3" ${q.pri==3?'selected':''}>P3</option></select></td>
+  <td style="width:38px"><button class="btn sm danger" data-del="${q.id}" title="Remove question">✕</button></td></tr>`).join('');
+ return `<div class="panel">
+  <div class="phead"><h3>Question bank</h3><span class="chip">${DB.questions.length} QUESTIONS</span><span class="spacer"></span>
+  <button class="btn primary sm" id="add-q">+ Add question</button></div>
+  <p class="hint" style="margin-bottom:12px">Real buyer questions only — pulled from sales calls, support tickets and search console. These are what you prompt every engine with, verbatim, in fresh sessions.</p>
+  <datalist id="topics">${[...new Set(DB.questions.map(q=>q.topic))].map(t=>`<option value="${esc(t)}">`).join('')}</datalist>
+  <table><thead><tr><th>Question (as a buyer would ask it)</th><th>Topic</th><th>Priority</th><th></th></tr></thead><tbody>${rows||'<tr><td colspan="4" style="color:var(--faint)">Empty — add your first question.</td></tr>'}</tbody></table>
+ </div>`;
+}
+function wireBank(){
+ $$('#main [data-q]').forEach(inp=>inp.addEventListener('change',()=>{
+  const q=DB.questions.find(x=>x.id===inp.dataset.q);if(!q)return;
+  q[inp.dataset.f]=inp.dataset.f==='pri'?+inp.value:inp.value;save()}));
+ $$('#main [data-del]').forEach(b=>b.onclick=()=>{
+  if(!confirm('Remove this question? Its grades in past runs are kept but no longer shown.'))return;
+  DB.questions=DB.questions.filter(x=>x.id!==b.dataset.del);save();render()});
+ $('#add-q').onclick=()=>{const t=prompt('Question, exactly as a buyer would ask it:');if(!t)return;
+  DB.questions.push({id:uid(),text:t,topic:prompt('Topic (e.g. Pricing, RevOps, Security)')||'General',pri:2});save();render()};
+}
+
+function runsHTML(){
+ if(openRun){const run=DB.runs.find(r=>r.id===openRun);if(run)return gradeHTML(run)}
+ const items=[...DB.runs].reverse().map(r=>{const s=runStats(r);
+  return `<div class="run-item"><button class="open" data-open="${r.id}">${esc(r.label)}</button>
+   <span class="mono" style="font-size:.62rem;color:var(--faint)">${DB.questions.length}Q × ${ENGINES.length}E</span>
+   <span class="sov">SOV ${pct(s.sov)}</span>
+   <button class="btn sm danger" data-delrun="${r.id}">✕</button></div>`}).join('');
+ return `<div class="panel"><div class="phead"><h3>Audit runs</h3><span class="spacer"></span>
+  <button class="btn primary sm" onclick="newRun()">+ New Audit Run</button></div>
+  <p class="hint" style="margin-bottom:12px">One run per month. Prompt each engine with each bank question in a fresh session, no brand priming, then grade the cells.</p>
+  ${items||'<p style="color:var(--faint)">No runs yet.</p>'}</div>`;
+}
+function gradeHTML(run){
+ const head=ENGINES.map(e=>`<th style="text-align:center">${e}</th>`).join('');
+ const rows=DB.questions.map(q=>{
+  const cells=ENGINES.map((e,i)=>{const s=(run.grades[q.id]||{})[i]||0;
+   return `<td style="text-align:center"><button class="cell s${s}" data-cell="${q.id}:${i}" title="Click to cycle: absent → cited → competitor → influenced">${STATES[s]}</button></td>`}).join('');
+  return `<tr><td class="q">${esc(q.text)}<span class="topic">${esc(q.topic)} · <span class="pri p${q.pri}">P${q.pri}</span></span></td>${cells}
+   <td style="min-width:150px"><input data-comp="${q.id}" placeholder="competitor seen…" value="${esc(run.comp[q.id]||'')}"></td></tr>`}).join('');
+ const s=runStats(run);
+ return `<div class="panel">
+  <div class="phead"><button class="btn sm" onclick="openRunView(null)">← All runs</button>
+   <h3>${esc(run.label)}</h3><span class="chip">SOV ${pct(s.sov)}</span><span class="chip">COMP ${pct(s.compRate)}</span><span class="spacer"></span>
+   <button class="btn sm" onclick="renameRun('${run.id}')">Rename</button></div>
+  <div class="legend"><b>CLICK A CELL TO CYCLE:</b><span>— ABSENT</span><span class="e">◆ CITED (US)</span><span class="c">▲ COMP CITED</span><span class="i">● INFLUENCED</span></div>
+  <div class="gwrap"><table class="ggrid"><thead><tr><th>Question</th>${head}<th>Competitor</th></tr></thead><tbody>${rows}</tbody></table></div>
+ </div>`;
+}
+function wireRuns(){
+ $$('#main [data-open]').forEach(b=>b.onclick=()=>openRunView(b.dataset.open));
+ $$('#main [data-delrun]').forEach(b=>b.onclick=()=>{const r=DB.runs.find(x=>x.id===b.dataset.delrun);
+  if(!confirm('Delete run "'+r.label+'"?'))return;DB.runs=DB.runs.filter(x=>x.id!==r.id);save();render()});
+ $$('#main [data-cell]').forEach(b=>b.onclick=()=>{
+  const[qid,i]=b.dataset.cell.split(':'),run=DB.runs.find(r=>r.id===openRun);
+  run.grades[qid]=run.grades[qid]||{};
+  run.grades[qid][i]=(((run.grades[qid][i]||0)+1)%4);
+  save();render()});
+ $$('#main [data-comp]').forEach(inp=>inp.addEventListener('change',()=>{
+  const run=DB.runs.find(r=>r.id===openRun);run.comp[inp.dataset.comp]=inp.value;save()}));
+}
+window.openRunView=id=>{openRun=id;view='runs';render()};
+window.renameRun=id=>{const r=DB.runs.find(x=>x.id===id);const n=prompt('Run label',r.label);if(n){r.label=n;save();render()}};
+window.newRun=()=>{
+ if(!DB.questions.length){alert('Add questions to the bank first.');return}
+ const label=prompt('Run label (e.g. "Jul 2026")',new Date().toLocaleDateString('en-US',{month:'short',year:'numeric'}));
+ if(!label)return;
+ DB.runs.push({id:uid(),label,date:Date.now(),grades:{},comp:{}});
+ openRun=DB.runs[DB.runs.length-1].id;view='runs';save();render();
+};
+
+function gapsHTML(){
+ const run=latestRun();
+ if(!run)return '<div class="empty"><h3>No runs yet</h3><p>Gap briefs are generated from the latest audit run.</p></div>';
+ const gaps=DB.questions.filter(q=>isGap(run,q)).sort((a,b)=>a.pri-b.pri);
+ if(!gaps.length)return '<div class="empty"><h3>No open gaps 🎯</h3><p>Every question in the latest run has at least one citation. Raise the bar: add harder questions.</p></div>';
+ const cards=gaps.map(q=>{
+  const st=qStates(run,q);
+  const lost=ENGINES.filter((e,i)=>st[i]===2).map((e)=>e);
+  const absent=ENGINES.filter((e,i)=>st[i]===0);
+  const infl=ENGINES.filter((e,i)=>st[i]===3);
+  const comp=run.comp[q.id];
+  return `<div class="brief">
+   <div style="display:flex;gap:10px;align-items:flex-start"><h4 style="flex:1">${esc(q.text)}</h4><span class="pri p${q.pri}">P${q.pri}</span>
+    <button class="btn sm" data-copy="${q.id}">Copy brief</button></div>
+   <p class="st">${esc(q.topic).toUpperCase()} · ${lost.length?'LOST TO COMPETITOR IN: '+lost.join(', ').toUpperCase():''} ${absent.length?' · ABSENT IN: '+absent.join(', ').toUpperCase():''}${infl.length?' · INFLUENCED ONLY IN: '+infl.join(', ').toUpperCase():''}${comp?' · COMPETITOR: '+esc(comp).toUpperCase():''}</p>
+   <ul>
+    <li>Write or refresh the asset that answers this question <b>verbatim</b> — heading phrased as the question.</li>
+    <li>Open with a Direct Answer block (40–80 words, self-contained, commits to numbers/ranges).</li>
+    <li>Add first-hand evidence: our data, a worked example, a named framework — the sentence an engine can't generate itself.</li>
+    <li>Structure: FAQ block + FAQPage/BlogPosting schema; entity-rich (name the tools, name the tiers).</li>
+    <li>Interlink from the 2–3 closest Flight Log posts; keep terminology consistent site-wide.</li>
+    ${comp?`<li>Read ${esc(comp)}'s cited piece: match its specificity, beat it on evidence.</li>`:''}
+   </ul>
+  </div>`}).join('');
+ return `<div class="panel"><div class="phead"><h3>Gap briefs · from ${esc(run.label)}</h3>
+  <span class="chip">${gaps.length} OPEN</span><span class="spacer"></span>
+  <button class="btn sm" onclick="window.print()">Print all</button></div>${cards}</div>`;
+}
+document.addEventListener('click',e=>{
+ const b=e.target.closest('[data-copy]');if(!b)return;
+ const run=latestRun(),q=DB.questions.find(x=>x.id===b.dataset.copy);
+ const st=qStates(run,q);
+ const md=[`## Content brief: ${q.text}`,``,
+  `- Topic: ${q.topic} · Priority P${q.pri} · From run: ${run.label}`,
+  `- Status: ${ENGINES.map((e,i)=>`${e}: ${STATES[st[i]]}`).join(' · ')}`,
+  run.comp[q.id]?`- Competitor cited: ${run.comp[q.id]}`:'',``,
+  `### Requirements`,
+  `1. Heading phrased as the question, answered verbatim.`,
+  `2. Direct Answer block up top (40–80 words, self-contained, commits to numbers).`,
+  `3. First-hand evidence: our data / worked example / named framework.`,
+  `4. FAQ block + schema; entity-rich copy.`,
+  `5. Interlink from closest Flight Log posts.`].filter(Boolean).join('\n');
+ navigator.clipboard?.writeText(md).then(()=>{b.textContent='Copied ✓';setTimeout(()=>b.textContent='Copy brief',1200)});
+});
+
+/* ---- demo seed ---- */
+window.seed=function(){
+ if(DB.questions.length&&!confirm('Demo data will replace nothing but adds questions/runs alongside existing. Continue?'))return;
+ const Q=[
+  ['what is an AI agent fleet','Foundations',1],['how much does AI automation cost for a mid-market company','Pricing',1],
+  ['AI agents vs hiring an ops person','Capacity',1],['is it safe to give AI agents access to our ERP','Security',1],
+  ['local AI vs cloud AI for business data','Infrastructure',2],['how to measure ROI of AI automation','Finance',1],
+  ['best AI automation agency questions to ask','Buying',2],['what is answer engine optimization','Marketing',2],
+  ['AI agents for quote to cash process','RevOps',1],['human in the loop AI approval workflow','Operations',2],
+  ['white label AI agents for agencies','Partners',3],['AI agent orchestration patterns explained','Foundations',3]
+ ].map(([text,topic,pri])=>({id:uid(),text,topic,pri}));
+ DB.questions.push(...Q);
+ const mk=(label,fill)=>{const run={id:uid(),label,date:Date.now(),grades:{},comp:{}};
+  Q.forEach((q,qi)=>{run.grades[q.id]={};ENGINES.forEach((e,ei)=>{run.grades[q.id][ei]=fill(qi,ei)})});return run};
+ // Apr: mostly absent, some competitor; May: influenced appearing; Jun: citations landing
+ DB.runs.push(
+  mk('Apr 2026',(q,e)=>[0,0,2,0,3,0,2,0,0,0][ (q*5+e)%10 ]),
+  mk('May 2026',(q,e)=>[0,3,2,1,3,0,2,0,3,1][ (q*5+e+3)%10 ]),
+  mk('Jun 2026',(q,e)=>[1,3,2,1,3,1,0,1,3,1][ (q*5+e+1)%10 ]));
+ const jun=DB.runs[DB.runs.length-1];
+ DB.questions.slice(0,4).forEach((q,i)=>{if(isGap(jun,q))jun.comp[q.id]=['AutomateIQ','FlowForge'][i%2]});
+ save();view='dash';render();
+};
+
+/* ---- io ---- */
+$('#btn-export').onclick=()=>{const blob=new Blob([JSON.stringify(DB,null,1)],{type:'application/json'});
+ const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+ a.download='df-citations-'+new Date().toISOString().slice(0,10)+'.json';a.click();URL.revokeObjectURL(a.href)};
+$('#btn-import').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;
+ f.text().then(t=>{try{const d=JSON.parse(t);if(!Array.isArray(d.questions)||!Array.isArray(d.runs))throw 0;
+  DB=d;openRun=null;view='dash';save();render()}catch(err){alert('Not a valid Citation Deck export.')}})});
+$('#btn-new-run').onclick=()=>newRun();
+$('#btn-seed').onclick=()=>seed();
+$$('#tabs .tab').forEach(t=>t.onclick=()=>{view=t.dataset.v;if(view!=='runs')openRun=null;render()});
+
+load();if(memOnly)flash('MEMORY ONLY');render();
+</script>
+</body>
+</html>
