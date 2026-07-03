@@ -119,9 +119,15 @@ td input,td select{padding:6px 8px;font-size:.84rem}
 .pri{font-family:var(--mono);font-size:.58rem;letter-spacing:.08em;padding:2px 8px;border-radius:100px;border:1px solid var(--line)}
 .pri.p1{color:var(--crimson);border-color:rgba(255,77,107,.4)}.pri.p2{color:var(--gold);border-color:rgba(255,194,75,.4)}.pri.p3{color:var(--faint)}
 @media(max-width:900px){.grid2,.grid3,.kpis{grid-template-columns:1fr}}
-@media print{.bar,.tabs,.btn,.legend{display:none!important}body{background:#fff;color:#111}.main{padding:0}
+@media print{.bar,.tabs,.btn,.legend,.print-hide{display:none!important}body{background:#fff;color:#111}.main{padding:0}
  .brief{border:1px solid #99a;border-left:3px solid #c33;color:#223;page-break-inside:avoid}.brief h4{color:#111}.brief .st,.brief ul{color:#334}
- .panel{background:none;border:none;padding:0}}
+ .panel{background:none;border:1px solid #bbc;padding:10px 12px;page-break-inside:avoid}
+ .panel h3,.phead h3{color:#111}
+ .kpi,.chart{background:#fff;border:1px solid #99a}
+ .kpi b{color:#111}.kpi span,.kpi .sub,.chart h5,.hint{color:#445}
+ th{color:#334;border-color:#99a}td{color:#223;border-color:#ccd}td:first-child{color:#111}
+ .chip{color:#334;border-color:#99a}
+ .up{color:#0a7a4a}.down{color:#b3223f}.flat{color:#667}}
 </style>
 </head>
 <body>
@@ -171,7 +177,7 @@ const PRIW=[0,3,2,1];
 const pctf=n=>(n*100).toFixed(0)+'%';
 const esc=s=>String(s??'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
 
-let DB={competitors:['AutomateIQ','FlowForge','OpsPilot'],questions:[],runs:[],briefs:{}};
+let DB={brand:'Delta Fleet',competitors:['AutomateIQ','FlowForge','OpsPilot'],questions:[],runs:[],briefs:{}};
 let view='dash', openRun=null, memOnly=false;
 const uid=()=>Math.random().toString(36).slice(2,9);
 function flash(t){const el=$('#save-state');el.textContent=t;el.style.color='var(--emerald)';setTimeout(()=>el.style.color='',900)}
@@ -179,7 +185,7 @@ function save(){try{localStorage.setItem(KEY,JSON.stringify(DB));flash('LOCAL ·
 function load(){
  try{
   const r=localStorage.getItem(KEY);
-  if(r){DB=JSON.parse(r);if(!DB.briefs)DB.briefs={};return}
+  if(r){DB=JSON.parse(r);if(!DB.briefs)DB.briefs={};if(!DB.brand)DB.brand='Delta Fleet';return}
   const old=localStorage.getItem(OLDKEY);
   if(old){ // migrate v1 → v2
    const o=JSON.parse(old);
@@ -204,10 +210,8 @@ function peekCell(run,qid,e){return (run.cells[qid]||{})[e]||cel({})}
 function modalO(c){
  const all=[c.o,...(c.samples||[])];
  const cnt={};all.forEach(o=>cnt[o]=(cnt[o]||0)+1);
- let best=-1,bo=0;
- [0,1,2,3].forEach(o=>{if((cnt[o]||0)>best||((cnt[o]||0)===best&&o<bo)){if((cnt[o]||0)>=best){best=cnt[o]||0;bo=(cnt[o]||0)>best?o:Math.min(bo,o)}}});
- // simpler: pick outcome with max count; tie → lowest o
- best=0;bo=0;[0,1,2,3].forEach(o=>{const n=cnt[o]||0;if(n>best){best=n;bo=o}else if(n===best&&n>0&&o<bo){bo=o}});
+ let best=0,bo=0; // ascending scan + strict '>' breaks ties pessimistically (lowest outcome wins)
+ [0,1,2,3].forEach(o=>{const n=cnt[o]||0;if(n>best){best=n;bo=o}});
  return bo;
 }
 function cellScore(c){const mo=modalO(c);let s=OSCORE[mo]+(c.rec?.2:0);if(mo>=2)s*=POSW[c.pos||2];return Math.min(1.2,s)}
@@ -292,13 +296,17 @@ function dashHTML(){
   <td class="r" style="color:var(--emerald)">${pctf(s.engCit[i])}</td></tr>`).join('');
  const stageRows=Object.entries(STAGES).map(([k,[label,w]])=>{const a=s.stageAgg[k];
   return `<tr><td>${label} <span class="mono" style="font-size:.58rem;color:var(--faint)">×${w}</span></td><td class="r">${a.n/ENGINES.length}</td><td class="r" style="color:${a.n&&a.p/a.n<.3?'var(--crimson)':'var(--emerald)'}">${a.n?pctf(a.p/a.n):'—'}</td></tr>`}).join('');
- const compRows=[{name:'DELTA FLEET (US)',app:null,sov:s.sov,rec:null,us:true},...s.compSoV].sort((a,b)=>b.sov-a.sov)
+ const compRows=[{name:(DB.brand||'Delta Fleet').toUpperCase()+' (US)',app:null,sov:s.sov,rec:null,us:true},...s.compSoV].sort((a,b)=>b.sov-a.sov)
   .map(c=>`<tr><td style="color:${c.us?'var(--emerald)':'var(--text)'}">${esc(c.name)}</td>
    <td class="r" style="color:${c.us?'var(--emerald)':'var(--muted)'};font-weight:${c.us?700:400}">${pctf(c.sov)}</td>
    <td class="r">${c.rec==null?'—':c.rec}</td></tr>`).join('');
  const doms=Object.entries(s.domains).sort((a,b)=>b[1]-a[1]).slice(0,8)
   .map(([d,n])=>`<tr><td class="mono" style="font-size:.76rem">${esc(d)}</td><td class="r">${n}</td></tr>`).join('');
  return `
+ <div class="phead"><h3 style="font-size:1.12rem">${esc(DB.brand||'Delta Fleet')} · AI visibility · ${esc(run.label)}</h3>
+  <span class="chip">${DB.questions.length}Q × ${ENGINES.length}E</span><span class="spacer"></span>
+  <span class="hint print-hide" style="margin:0">Tracked brand is set in Question Bank — run decks per client.</span>
+  <button class="btn sm print-hide" onclick="window.print()">Print client report</button></div>
  <div class="kpis">
   <div class="kpi red"><b>${(s.vis*100).toFixed(0)}${ps?delta(s.vis,ps.vis):''}</b><span>weighted visibility /100</span><span class="sub">OUTCOME × POSITION × REC</span></div>
   <div class="kpi"><b>${pctf(s.sov)}${ps?delta(s.sov,ps.sov):''}</b><span>true share of voice</span><span class="sub">US ÷ (US + COMP APPEARANCES)${s.leaderGap&&s.leaderGap>1.05?' · LEADER GAP '+s.leaderGap.toFixed(1)+'×':' · WE LEAD'}</span></div>
@@ -340,7 +348,8 @@ function bankHTML(){
   <td style="width:36px"><button class="btn sm danger" data-del="${q.id}">✕</button></td></tr>`).join('');
  return `
  <div class="panel">
-  <div class="phead"><h3>Competitor set</h3><span class="hint">3–6 brands, fixed for the year — SoV is normalized against these.</span><span class="spacer"></span><button class="btn sm" id="add-comp">+ Add</button></div>
+  <div class="phead"><h3>Tracked brand &amp; competitor set</h3><span class="hint">3–6 competitors, fixed for the year — SoV is normalized against these.</span><span class="spacer"></span><button class="btn sm" id="add-comp">+ Add competitor</button></div>
+  <div style="max-width:320px;margin-bottom:12px"><span class="klabel" style="display:block;margin-bottom:5px">Brand being tracked ("us")</span><input id="set-brand" value="${esc(DB.brand||'Delta Fleet')}"></div>
   <div class="checkrow">${DB.competitors.map((c,i)=>`<label>${esc(c)} <button class="btn sm danger" data-delcomp="${i}" style="padding:1px 7px">✕</button></label>`).join('')}</div>
  </div>
  <div class="panel">
@@ -357,10 +366,16 @@ function wireBank(){
  $$('#main [data-del]').forEach(b=>b.onclick=()=>{if(!confirm('Remove this question?'))return;
   DB.questions=DB.questions.filter(x=>x.id!==b.dataset.del);save();render()});
  $$('#main [data-delcomp]').forEach(b=>b.onclick=e=>{e.preventDefault();
-  if(!confirm('Remove competitor? Past checkboxes referencing it are kept by index.'))return;
-  DB.competitors.splice(+b.dataset.delcomp,1);save();render()});
+  const k=+b.dataset.delcomp;
+  if(!confirm('Remove "'+DB.competitors[k]+'"? Its check-marks are removed from all past runs and remaining brands keep their history.'))return;
+  DB.runs.forEach(r=>Object.values(r.cells||{}).forEach(row=>Object.values(row).forEach(c=>{
+   c.comps=(c.comps||[]).filter(x=>x!==k).map(x=>x>k?x-1:x);
+   if(c.compRec===k)c.compRec=-1;else if(c.compRec>k)c.compRec--;
+  })));
+  DB.competitors.splice(k,1);save();render()});
  $('#add-comp').onclick=()=>{if(DB.competitors.length>=6){alert('Keep the set to 6 or fewer.');return}
   const n=prompt('Competitor brand');if(n){DB.competitors.push(n);save();render()}};
+ $('#set-brand').addEventListener('change',e=>{DB.brand=e.target.value.trim()||'Delta Fleet';save()});
  $('#add-q').onclick=()=>{const t=prompt('Question, as a buyer would ask it:');if(!t)return;
   DB.questions.push({id:uid(),text:t,topic:prompt('Topic')||'General',stage:'co',pri:2});save();render()};
 }
@@ -530,13 +545,15 @@ window.seed=function(){
  ].map(([text,topic,stage,pri])=>({id:uid(),text,topic,stage,pri}));
  DB.questions.push(...Q);
  /* deterministic-ish plausible progression */
+ /* Each cell keeps a stable hash across runs so month-over-month movement is
+    realistic: most cells persist, a plausible minority upgrade each month. */
  const mk=(label,lvl)=>{const run={id:uid(),label,date:Date.now(),cells:{}};
   Q.forEach((q,qi)=>{run.cells[q.id]={};ENGINES.forEach((e,ei)=>{
-   const h=(qi*7+ei*3+lvl*5)%10;
+   const h=(qi*7+ei*3)%10;
    let c;
-   if(lvl===0)c=h<2?cel({o:2,pos:3}):h<4?cel({o:1}):h<6?cel({o:0,comps:[h%3]}):cel({});
-   else if(lvl===1)c=h<2?cel({o:3,pos:2,url:'deltafleet.ai/blog/'+q.topic.toLowerCase()}):h<4?cel({o:2,pos:2}):h<6?cel({o:1,comps:[h%3]}):h<7?cel({o:0,comps:[h%3,(h+1)%3]}):cel({});
-   else c=h<3?cel({o:3,pos:h===0?1:2,sent:h===0?'+':'0',rec:h===0,url:h%2?'deltafleet.ai/blog/'+q.topic.toLowerCase():'g2.com'}):h<5?cel({o:2,pos:2,comps:[h%3]}):h<6?cel({o:1}):h<7?cel({o:2,pos:3,sent:'-',inacc:h===6,comps:[h%3],compRec:h%3}):h<8?cel({o:0,comps:[h%3]}):cel({});
+   if(lvl===0)c=h<1?cel({o:2,pos:3}):h<3?cel({o:1}):h<5?cel({o:0,comps:[h%3]}):cel({});
+   else if(lvl===1)c=h<1?cel({o:3,pos:2,url:'deltafleet.ai/blog/'+q.topic.toLowerCase()}):h<2?cel({o:2,pos:2}):h<4?cel({o:1,comps:[h%3]}):h<5?cel({o:0,comps:[h%3,(h+1)%3]}):h<6?cel({o:1}):cel({});
+   else c=h<3?cel({o:3,pos:h===0?1:2,sent:h===0?'+':'0',rec:h===0,url:h%2?'deltafleet.ai/blog/'+q.topic.toLowerCase():'g2.com'}):h<4?cel({o:2,pos:2,comps:[h%3]}):h<5?cel({o:2,pos:3,sent:'-',inacc:h===4,comps:[h%3],compRec:h%3}):h<6?cel({o:1}):h<7?cel({o:0,comps:[h%3]}):cel({});
    if(q.pri===1&&lvl===2)c.samples=[c.o,Math.max(0,c.o-(h%4===0?1:0))];
    run.cells[q.id][ei]=c;
   })});return run};
@@ -552,7 +569,7 @@ $('#btn-export').onclick=()=>{const blob=new Blob([JSON.stringify(DB,null,1)],{t
  a.download='df-citations-'+new Date().toISOString().slice(0,10)+'.json';a.click();URL.revokeObjectURL(a.href)};
 $('#btn-import').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;
  f.text().then(t=>{try{const d=JSON.parse(t);if(!Array.isArray(d.questions)||!Array.isArray(d.runs))throw 0;
-  if(!d.briefs)d.briefs={};if(!Array.isArray(d.competitors))d.competitors=['Competitor A'];
+  if(!d.briefs)d.briefs={};if(!Array.isArray(d.competitors))d.competitors=['Competitor A'];if(!d.brand)d.brand='Delta Fleet';
   DB=d;openRun=null;view='dash';save();render()}catch(err){alert('Not a valid Citation Deck export.')}})});
 $('#btn-new-run').onclick=()=>newRun();
 $('#btn-seed').onclick=()=>seed();

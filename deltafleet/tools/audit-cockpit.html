@@ -189,7 +189,25 @@ const SUIT_FACTORS=[
  ['stability','System & process stability',15,false],['exceptions','Exception rate (5 = rare)',15,false],['compliance','Compliance sensitivity (5 = low)',10,false]];
 
 let DB={settings:{hurdle:DEF.hurdle},clients:[]}, sel={client:null,corr:null}, view='clients', memOnly=false;
-function load(){try{const r=localStorage.getItem(KEY);if(r)DB=JSON.parse(r)}catch(e){memOnly=true}}
+function load(){try{
+ const r=localStorage.getItem(KEY);
+ if(r){DB=JSON.parse(r);return}
+ /* migrate v1 audits: v1 stored error incidents/yr × per-incident cost;
+    convert to an equivalent incident *rate* so the annual base is identical
+    (errInc × errCost), instead of misreading per-incident cost as per-error. */
+ const old=localStorage.getItem('df-audit-v1');
+ if(old){const o=JSON.parse(old);
+  DB.clients=(o.clients||[]).map(cl=>({id:cl.id,name:cl.name,industry:cl.industry,
+   corridors:(cl.corridors||[]).map(k=>{
+    const c=migrate(Object.assign(blankCorr(k.name),k));
+    if(k.errInc!==undefined&&k.volumeWk>0){
+     c.errRate=Math.max(.01,Math.min(5,+((k.errInc/(k.volumeWk*52))*100).toFixed(2)));
+     c.errResid=0;
+    }
+    delete c.errInc;return c})}));
+  save();
+ }
+}catch(e){memOnly=true}}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(DB));flash('LOCAL · SAVED')}catch(e){memOnly=true;flash('MEMORY ONLY')}}
 function flash(t){const el=$('#save-state');el.textContent=t;el.style.color='var(--emerald)';setTimeout(()=>el.style.color='',900)}
 const uid=()=>Math.random().toString(36).slice(2,9);
@@ -413,7 +431,7 @@ function corrHTML(c){
      <div class="kpi good"><b>${r.mc.pb50<=36?('M'+r.mc.pb50):'—'}</b><span>payback P50</span><span class="sub">P90: ${r.mc.pb90<=36?('M'+r.mc.pb90):'>36'}</span></div>
      <div class="kpi"><b>${fmt$(r.npv)}</b><span>NPV · 3yr @ ${(r.hurdle*100).toFixed(0)}%</span><span class="sub">HARD-ONLY: ${fmt$(r.npvHard)}</span></div>
      <div class="kpi vio"><b>${r.irr!==null?pct(r.irr):'—'}</b><span>IRR (annual)</span><span class="sub">HURDLE: ${(r.hurdle*100).toFixed(0)}%</span></div>
-     <div class="kpi gold"><b>${r.be?pct(r.be):'>100%'}</b><span>survives at… of est. benefits</span><span class="sub">STILL PAYS BACK ≤ 12 MO</span></div>
+     <div class="kpi gold"><b>${r.be?pct(r.be):'—'}</b><span>survives at… of est. benefits</span><span class="sub">${r.be?'STILL PAYS BACK ≤ 12 MO':'NO 12-MO PAYBACK EVEN AT 160% OF EST.'}</span></div>
      <div class="kpi ${r.mc.pPos>=.8?'good':'warm'}"><b>${pct(r.mc.pPos)}</b><span>P(NPV &gt; 0)</span><span class="sub">P(PB ≤ 12MO): ${pct(r.mc.p12)}</span></div>
     </div>
     <table>
@@ -510,7 +528,12 @@ function wireCorr(c){
   c.roles[+inp.dataset.role][inp.dataset.rf]=inp.type==='number'?+inp.value:inp.value;save();render()}));
  $$('#main [data-delrole]').forEach(b=>b.onclick=()=>{c.roles.splice(+b.dataset.delrole,1);if(!c.roles.length)c.roles.push({title:'Role',rate:38,hrs:8});save();render()});
  const ar=$('#add-role');if(ar)ar.onclick=()=>{c.roles.push({title:'New role',rate:38,hrs:8});save();render()};
- $$('#main [data-suit]').forEach(sl=>sl.addEventListener('input',()=>{c.suit[sl.dataset.suit]=+sl.value;save();render()}));
+ $$('#main [data-suit]').forEach(sl=>{
+  sl.addEventListener('input',()=>{c.suit[sl.dataset.suit]=+sl.value;
+   sl.style.setProperty('--fill',((+sl.value-1)/4*100)+'%');
+   const out=sl.parentElement.querySelector('output');if(out)out.textContent=sl.value});
+  sl.addEventListener('change',()=>{save();render()});
+ });
  $$('#main [data-conf]').forEach(g=>$$('button',g).forEach(b=>b.onclick=()=>{c.conf[g.dataset.conf]=b.dataset.t;save();render()}));
 }
 
