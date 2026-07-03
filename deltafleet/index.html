@@ -430,6 +430,34 @@ body::before{content:"";position:fixed;inset:0;z-index:998;pointer-events:none;o
 @keyframes ringSpin{from{transform:translate(-50%,-50%) rotateX(74deg) rotate(0deg)}to{transform:translate(-50%,-50%) rotateX(74deg) rotate(360deg)}}
 @keyframes ringPulse{0%,100%{transform:translate(-50%,-50%) rotateX(74deg) scale(1);opacity:1}50%{transform:translate(-50%,-50%) rotateX(74deg) scale(1.12);opacity:.55}}
 
+/* ---- AEO: x-ray, grader, answer hub ---- */
+.xray-btn{background:rgba(255,77,107,.08);border:1px solid rgba(255,77,107,.4);color:var(--tie-crimson);border-radius:100px;padding:4px 12px;font-family:var(--font-mono);font-size:.6rem;letter-spacing:.14em;cursor:pointer;transition:.2s}
+.xray-btn:hover,.xray-btn.on{background:rgba(255,77,107,.16)}
+.article{position:relative}
+.article.xray .prose>p,.article.xray .lede,.article.xray .prose ul,.article.xray .prose ol{opacity:.22;transition:opacity .3s}
+.article.xray .callout,.article.xray .key-box,.article.xray .stat-strip,.article.xray .prose h2,.article.xray details.faq,.article.xray .prose figure,.article.xray .tbl{position:relative;outline:1.5px dashed rgba(79,216,255,.55);outline-offset:5px}
+.article.xray .callout,.article.xray .prose>p.lede{opacity:1}
+.article.xray .callout::after,.article.xray .key-box::after,.article.xray .stat-strip::after,.article.xray .prose h2::after,.article.xray details.faq::after,.article.xray .prose figure::after{position:absolute;top:-9px;right:6px;font-family:var(--font-mono);font-size:.52rem;letter-spacing:.16em;color:var(--ion);background:var(--deep);border:1px solid var(--line-strong);border-radius:100px;padding:2px 8px;z-index:2}
+.article.xray .callout::after{content:"◉ DIRECT ANSWER — PRIME CITATION"}
+.article.xray .key-box::after{content:"◉ KEY FACTS"}
+.article.xray .stat-strip::after{content:"◉ QUOTABLE STATS"}
+.article.xray .prose h2::after{content:"◉ EXTRACTABLE HEADING"}
+.article.xray details.faq::after{content:"◉ FAQPAGE SCHEMA"}
+.article.xray .prose figure::after{content:"◉ STRUCTURED DATA"}
+.xray-note{display:none}
+.article.xray .xray-note{display:block;position:sticky;top:80px;z-index:5;background:rgba(8,13,28,.94);border:1px solid rgba(255,77,107,.4);border-radius:10px;padding:9px 14px;font-family:var(--font-mono);font-size:.6rem;letter-spacing:.12em;color:var(--tie-crimson);margin:14px 0}
+.gr-text{width:100%;background:var(--deep);border:1px solid var(--line-strong);border-radius:12px;padding:16px;color:var(--text);font-family:var(--font-body);font-size:.92rem;resize:vertical;outline:none}
+.gr-text:focus{border-color:var(--tie-crimson);box-shadow:0 0 0 3px rgba(255,77,107,.12)}
+.hint-sm{font-size:.76rem;color:var(--faint);margin-top:12px}
+.gcheck{margin-bottom:13px}
+.gcheck .gc-head{display:flex;justify-content:space-between;font-size:.86rem;color:var(--text)}
+.gcheck .gc-head b{font-family:var(--font-mono);font-size:.74rem;color:var(--ion)}
+.gcheck p{font-size:.76rem;color:var(--faint)}
+.ans-item{padding:26px 0;border-bottom:1px solid var(--line)}
+.ans-item h3{font-size:1.2rem;margin-bottom:10px}
+.ans-item h3::before{content:"Q · ";color:var(--tie-crimson);font-family:var(--font-mono);font-size:.9rem}
+.ans-item p{color:#b9c4e0;max-width:74ch;margin-bottom:12px}
+
 /* ---- responsive ---- */
 @media(max-width:1060px){
   .g4{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(2,1fr)}
@@ -478,6 +506,7 @@ body::before{content:"";position:fixed;inset:0;z-index:998;pointer-events:none;o
           <a href="#/services/agentloop"><i class="dot" style="color:var(--tie-violet);background:var(--tie-violet)"></i><span>Agentloop Dashboard<small>Async mission control</small></span></a>
           <a href="#/services/the-swarm"><i class="dot" style="color:var(--tie-emerald);background:var(--tie-emerald)"></i><span>The Swarm Infrastructure<small>Local, sandboxed execution</small></span></a>
           <a href="#/services/marketing"><i class="dot" style="color:var(--tie-crimson);background:var(--tie-crimson)"></i><span>Delta Fleet Marketing<small>Always-on AI marketing</small></span></a>
+          <a href="#/services/aeo"><i class="dot" style="color:var(--tie-crimson);background:var(--tie-crimson)"></i><span>Answer Engine Optimization<small>Be the answer AI gives</small></span></a>
           <a href="#/services/white-label"><i class="dot" style="color:var(--tie-gold);background:var(--tie-gold)"></i><span>White-Label Partnerships<small>Agent infrastructure for agencies</small></span></a>
         </div>
       </li>
@@ -507,6 +536,7 @@ body::before{content:"";position:fixed;inset:0;z-index:998;pointer-events:none;o
   <a class="sub" href="#/services/agentloop">Agentloop Dashboard</a>
   <a class="sub" href="#/services/the-swarm">The Swarm Infrastructure</a>
   <a class="sub" href="#/services/marketing">Delta Fleet Marketing</a>
+  <a class="sub" href="#/services/aeo">Answer Engine Optimization</a>
   <a class="sub" href="#/services/white-label">White-Label Partnerships</a>
   <a href="#/industries">Industries</a>
   <a class="sub" href="#/industries/saas-technology">SaaS &amp; Technology</a>
@@ -515,6 +545,7 @@ body::before{content:"";position:fixed;inset:0;z-index:998;pointer-events:none;o
   <a href="#/agents">The Agents</a>
   <a href="#/pricing">Pricing</a>
   <a href="#/blog">Blog</a>
+  <a href="#/answers">Answer Hub</a>
   <a href="#/about">About</a>
   <a href="#/contact" style="color:var(--ion)">Launch a Fleet →</a>
 </div>
@@ -535,6 +566,7 @@ body::before{content:"";position:fixed;inset:0;z-index:998;pointer-events:none;o
         <a href="#/services/agentloop">Agentloop Dashboard</a>
         <a href="#/services/the-swarm">The Swarm Infrastructure</a>
         <a href="#/services/marketing">Delta Fleet Marketing</a>
+        <a href="#/services/aeo">Answer Engine Optimization</a>
         <a href="#/services/white-label">White-Label Partnerships</a>
       </div>
       <div>
@@ -548,6 +580,8 @@ body::before{content:"";position:fixed;inset:0;z-index:998;pointer-events:none;o
       <div>
         <h5>Resources</h5>
         <a href="#/blog">The Flight Log (Blog)</a>
+        <a href="#/answers">The Answer Hub</a>
+        <a href="#/aeo-grader">AEO Grader (free tool)</a>
         <a href="#/blog/what-are-ai-agent-fleets">What Are Agent Fleets?</a>
         <a href="#/blog/ai-agents-revenue-operations">AI for Revenue Ops</a>
         <a href="#/blog/ai-automation-roi-framework">Automation ROI Guide</a>
@@ -804,6 +838,27 @@ body::before{content:"";position:fixed;inset:0;z-index:998;pointer-events:none;o
   </div>
 </section>
 
+<section class="section" style="padding-top:0">
+  <div class="container">
+    <div class="grid g2" style="gap:48px;align-items:center">
+      <div>
+        <div class="eyebrow rv" style="color:var(--tie-crimson)">Answer Engine Optimization</div>
+        <h2 class="sec-title rv">Findable by humans. Citable by AI.</h2>
+        <p class="sec-lead rv rv-d1">Your buyers ask ChatGPT and Perplexity before they ask you. Every page on this ship is engineered to be quoted by answer engines — direct-answer blocks, entity-rich copy, schema under every article — and we run the same program for clients, measured monthly across five engines.</p>
+        <div style="display:flex;gap:14px;margin-top:28px;flex-wrap:wrap" class="rv rv-d2">
+          <a href="#/services/aeo" class="btn btn-coral">The AEO Program <span class="arr">→</span></a>
+          <a href="#/aeo-grader" class="btn btn-ghost">Grade Your Content — Free</a>
+        </div>
+      </div>
+      <div class="stat-band rv rv-d1" style="grid-template-columns:1fr;gap:1px">
+        <div class="stat-cell"><div class="num" data-count="20">0</div><div class="lbl">Answer-first pillar guides on board</div><div class="sub">DIRECT ANSWER ✓ · FAQ + BLOGPOSTING SCHEMA ✓</div></div>
+        <div class="stat-cell"><div class="num" data-count="5" data-suffix=" engines">0</div><div class="lbl">Tracked monthly: ChatGPT, Perplexity, Gemini, Claude, AI Overviews</div><div class="sub">GRADED CITATION AUDITS · k=3 ON PRIORITY QUESTIONS</div></div>
+        <div class="stat-cell"><div class="num" data-count="1" data-suffix=" toggle">0</div><div class="lbl">See any article the way an engine sees it</div><div class="sub">HIT “AEO X-RAY” ON ANY FLIGHT LOG POST</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section class="section">
   <div class="container">
     <div class="eyebrow rv">Transmission Log</div>
@@ -841,6 +896,7 @@ body::before{content:"";position:fixed;inset:0;z-index:998;pointer-events:none;o
     <a class="card rv rv-d1" href="#/services/agentloop"><span class="tag" style="color:var(--tie-violet)">MANAGEMENT</span><h3>Agentloop Dashboard</h3><p>The proprietary command deck for your fleet. Asynchronous progress tracking, output metrics and exception flags — control without meetings.</p><span class="go">Explore →</span></a>
     <a class="card rv" href="#/services/the-swarm"><span class="tag" style="color:var(--tie-emerald)">INFRASTRUCTURE</span><h3>The Swarm</h3><p>Sandboxed, highly isolated local execution environments running on dedicated hardware. Your data stays inside your perimeter, always.</p><span class="go">Explore →</span></a>
     <a class="card rv rv-d1" href="#/services/marketing"><span class="tag" style="color:var(--tie-crimson)">GROWTH</span><h3>Delta Fleet Marketing</h3><p>A managed AI marketing department: SEO and AI-search content, campaigns, nurture sequences and reporting — run by crimson-tie specialists.</p><span class="go">Explore →</span></a>
+    <a class="card rv" href="#/services/aeo"><span class="tag" style="color:var(--tie-crimson)">AI SEARCH</span><h3>Answer Engine Optimization</h3><p>Be the source AI assistants cite: citability engineering, monthly 5-engine citation audits, gap briefs and a public methodology. Measured, not vibes.</p><span class="go">Explore →</span></a>
     <a class="card rv" href="#/services/white-label"><span class="tag" style="color:var(--tie-gold)">PARTNERS</span><h3>White-Label Partnerships</h3><p>For marketing and dev agencies: sell multi-agent builds under your brand while our crew handles architecture, hosting and ops.</p><span class="go">Explore →</span></a>
     <a class="card rv rv-d1" href="#/contact"><span class="tag" style="color:var(--ion)">START HERE</span><h3>Workflow Audit</h3><p>Not sure where agents fit? Book an audit. We map your operations, find the leaks and design the fleet — before you spend a dollar on the build.</p><span class="go">Book an audit →</span></a>
   </div>
@@ -987,7 +1043,7 @@ body::before{content:"";position:fixed;inset:0;z-index:998;pointer-events:none;o
 </div></section>
 <section class="section" style="padding-top:10px"><div class="container">
   <div class="grid g3">
-    <div class="card rv"><h3>SEO &amp; AI-Search Content</h3><p>Pillar content engineered for both Google and AI answer engines: entity-rich, source-cited, structured for extraction. Your expertise, everywhere buyers ask.</p></div>
+    <div class="card rv"><h3>SEO &amp; AI-Search Content</h3><p>Pillar content engineered for both Google and AI answer engines: entity-rich, source-cited, structured for extraction. Your expertise, everywhere buyers ask.</p><span class="go" style="margin-top:14px;display:inline-block"><a href="#/services/aeo" class="mono" style="font-size:.72rem;letter-spacing:.16em">FULL AEO PROGRAM →</a></span></div>
     <div class="card rv rv-d1"><h3>Campaign Execution</h3><p>Email sequences, retargeting, landing pages and social distribution built, launched and iterated by agents — against a strategy set with a human lead.</p></div>
     <div class="card rv rv-d2"><h3>Lead Nurture &amp; Follow-Up</h3><p>Every enquiry answered in minutes, every quote followed up on schedule, every dormant lead re-warmed. The revenue you're currently leaving in the inbox.</p></div>
     <div class="card rv"><h3>ABM &amp; Outbound Support</h3><p>Account research briefs, personalised sequence drafts and intent-signal watching for your named-account list — prepared by agents, sent by humans.</p></div>
@@ -1303,6 +1359,153 @@ body::before{content:"";position:fixed;inset:0;z-index:998;pointer-events:none;o
   <div class="grid g3" id="blog-grid"></div>
 </div></section>
 </template>
+<template id="page-service-aeo">
+<section class="page-hero"><div class="container">
+  <div class="breadcrumb"><a href="#/">Home</a> / <a href="#/services">Services</a> / <b>Answer Engine Optimization</b></div>
+  <div class="eyebrow" style="color:var(--tie-crimson)">Growth Division · AEO Program</div>
+  <h1>Be the answer AI gives about your market.</h1>
+  <p class="sec-lead">A growing share of your buyers never see a search results page — they ask ChatGPT, Perplexity, Gemini, Claude or AI Overviews and read a synthesized answer with a handful of cited sources. Either you're one of those citations or you don't exist for that buyer. We engineer the citations, and we prove it monthly.</p>
+  <div style="display:flex;gap:14px;margin-top:30px;flex-wrap:wrap"><a href="#/contact" class="btn btn-coral">Book an AEO Audit <span class="arr">→</span></a><a href="#/aeo-grader" class="btn btn-ghost">Grade Your Content — Free Tool</a></div>
+</div></section>
+
+<section class="section" style="padding-top:10px"><div class="container">
+  <div class="callout rv"><div class="cl-label">Direct Answer — and yes, this block is the method</div>
+  <p style="color:#c4cfe8"><strong>Answer Engine Optimization (AEO) is the practice of structuring genuinely expert content so AI assistants select it as a cited source when they synthesize answers.</strong> It rests on five pillars: direct answers stated early and quotably, entity-rich specificity, machine-parseable structure, demonstrated first-hand experience, and consistent identity across the web — measured monthly against a fixed question bank across five engines.</p></div>
+
+  <div class="eyebrow rv" style="margin-top:44px">How Engines Choose</div>
+  <h2 class="sec-title rv">Three stages decide who gets quoted.</h2>
+  <div class="steps rv" style="grid-template-columns:repeat(3,1fr);margin-top:40px">
+    <div class="step"><h3>Retrieve</h3><p>The engine pulls a candidate set of pages from its index or live search. Classic SEO gets you into this set — crawlability, relevance, authority.</p></div>
+    <div class="step rv-d1"><h3>Synthesize</h3><p>A model reads the candidates and composes the answer. Here the <em>passage</em> is the unit: can the model find, inside your page, a clean block that answers the question completely?</p></div>
+    <div class="step rv-d2"><h3>Cite</h3><p>Models attribute the claims they couldn't have generated themselves: your numbers, your definitions, your first-hand data. Generic advice gets synthesized without credit. Specific evidence gets cited.</p></div>
+  </div>
+
+  <div class="eyebrow rv" style="margin-top:56px">The Citability Stack</div>
+  <h2 class="sec-title rv">Five layers, engineered into every asset.</h2>
+  <div class="grid g3" style="margin-top:36px">
+    <div class="card rv"><h3>01 · Direct answers</h3><p>Every page answers its core question in one self-contained, quotable 40–80-word block near the top — before the narrative. Committed numbers, no hedging.</p></div>
+    <div class="card rv rv-d1"><h3>02 · Entity density</h3><p>Named tools, real figures, defined terms. "Pushes deals through Salesforce, NetSuite and Stripe" is retrievable; "integrates with your software" is invisible.</p></div>
+    <div class="card rv rv-d2"><h3>03 · Machine structure</h3><p>Headings phrased as buyer questions, tables for anything enumerable, FAQ blocks — with FAQPage, BlogPosting and Organization schema underneath.</p></div>
+    <div class="card rv"><h3>04 · First-hand evidence</h3><p>Proprietary baselines, worked examples, named frameworks — the sentences a model wants but cannot write itself. This is what converts retrieval into citation.</p></div>
+    <div class="card rv rv-d1"><h3>05 · Identity consistency</h3><p>Site, profiles and mentions agreeing on what you are, so the knowledge graph resolves you as one confident entity — plus llms.txt and deliberate AI-crawler policy.</p></div>
+    <div class="card rv rv-d2"><h3>◉ See it live</h3><p>Open any <a href="#/blog">Flight Log</a> article and hit the <b>AEO X-RAY</b> toggle — it dims the prose and highlights exactly what an answer engine extracts from the page.</p></div>
+  </div>
+
+  <div class="eyebrow rv" style="margin-top:56px">The Measurement Loop</div>
+  <h2 class="sec-title rv">Measured monthly. Not vibes — a graded audit.</h2>
+  <p class="sec-lead rv rv-d1">Every program runs on our measurement console: a fixed bank of real buyer questions, prompted in fresh sessions across five engines each month, graded cell by cell.</p>
+  <table class="tbl rv" style="margin-top:26px">
+    <thead><tr><th>Step</th><th>What happens</th><th>Cadence</th></tr></thead>
+    <tbody>
+      <tr><td>Question bank</td><td>30–50 questions your buyers actually ask, funnel-tagged (decision-stage weighs 3×)</td><td>Build phase</td></tr>
+      <tr><td>Graded audit</td><td>Each question × ChatGPT, Perplexity, Gemini, Claude, AI Overviews — outcome (absent / influenced / mentioned / cited) × position × sentiment, with k=3 samples on priority questions to separate signal from LLM noise</td><td>Monthly</td></tr>
+      <tr><td>Visibility report</td><td>True competitor-normalized share of voice, mention-vs-citation link gap, movement vs last month with confidence intervals</td><td>Monthly</td></tr>
+      <tr><td>Gap briefs</td><td>Losses ranked by priority × funnel stage × competitor pressure → content briefs the crimson squadron executes</td><td>Monthly</td></tr>
+      <tr><td>Corrections runs</td><td>When an engine represents you inaccurately, the fix is docs/PR/profiles — not another blog post. We catch it and run it.</td><td>As triggered</td></tr>
+    </tbody>
+  </table>
+
+  <div class="panel rv" style="margin-top:44px">
+    <div class="eyebrow" style="color:var(--tie-crimson)">The Scoreboard</div>
+    <h2 class="sec-title" style="font-size:1.7rem">We run this program on ourselves.</h2>
+    <p class="sec-lead" style="margin-top:10px">Our own monthly citation audit, published. Illustrative until the first public run — because a measurement agency that won't show its own scoreboard isn't one.</p>
+    <div class="grid g2" style="gap:22px;margin-top:24px">
+      <div class="chart-wrap">
+        <h5 class="mono" style="font-size:.62rem;letter-spacing:.18em;color:var(--faint);text-transform:uppercase;margin-bottom:14px">True share of voice · vs tracked competitor set</h5>
+        <svg viewBox="0 0 420 180" style="width:100%">
+          <line x1="20" y1="152" x2="400" y2="152" stroke="#22314f"/>
+          <rect class="bar" x="60" y="122" width="56" height="30" rx="4" fill="#22314f"/>
+          <rect class="bar" x="180" y="90" width="56" height="62" rx="4" fill="url(#aeog1)" style="transition-delay:.12s"/>
+          <rect class="bar" x="300" y="46" width="56" height="106" rx="4" fill="url(#aeog1)" style="transition-delay:.24s"/>
+          <defs><linearGradient id="aeog1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff7d95"/><stop offset="1" stop-color="#ff3d60"/></linearGradient></defs>
+          <g font-family="monospace" font-size="10"><text x="70" y="112" fill="#94a3c7">14%</text><text x="190" y="80" fill="#ff8fa5">29%</text><text x="310" y="36" fill="#ff8fa5">49%</text></g>
+          <g font-family="monospace" font-size="9" fill="#5d6b8f"><text x="62" y="168">APR 2026</text><text x="182" y="168">MAY 2026</text><text x="302" y="168">JUN 2026</text></g>
+        </svg>
+        <p class="mono" style="font-size:.6rem;letter-spacing:.12em;color:var(--faint);margin-top:12px">ILLUSTRATIVE · 12 QUESTIONS × 5 ENGINES · k=3 ON P1</p>
+      </div>
+      <div class="chart-wrap">
+        <h5 class="mono" style="font-size:.62rem;letter-spacing:.18em;color:var(--faint);text-transform:uppercase;margin-bottom:14px">Citation rate by engine · latest run</h5>
+        <div style="display:grid;gap:12px;margin-top:8px">
+          <div class="dmetric"><span>Perplexity</span></div><div class="dbar"><i data-w="58%"></i></div>
+          <div class="dmetric"><span>AI Overviews</span></div><div class="dbar"><i data-w="50%"></i></div>
+          <div class="dmetric"><span>ChatGPT</span></div><div class="dbar"><i data-w="42%"></i></div>
+          <div class="dmetric"><span>Gemini</span></div><div class="dbar"><i data-w="33%"></i></div>
+          <div class="dmetric"><span>Claude</span></div><div class="dbar"><i data-w="33%"></i></div>
+        </div>
+        <p class="mono" style="font-size:.6rem;letter-spacing:.12em;color:var(--faint);margin-top:14px">LIVE-RETRIEVAL ENGINES MOVE FIRST — 4–12 WEEKS TYPICAL</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid g2" style="margin-top:44px;gap:40px;align-items:start">
+    <div class="key-box rv" style="margin:0"><h4>Program Includes</h4>
+      <ul style="color:var(--muted)">
+        <li>Question bank build + baseline audit (build phase)</li>
+        <li>Monthly graded 5-engine audit + client visibility report</li>
+        <li>Ranked gap briefs, executed by the <a href="#/services/marketing">crimson squadron</a></li>
+        <li>Technical layer: schema, llms.txt, entity consistency, freshness passes</li>
+        <li>Corrections runs on inaccurate representation</li>
+      </ul>
+      <p style="color:var(--muted);font-size:.9rem;margin-top:16px">AEO runs inside the standard <a href="#/pricing">retainer tiers</a> — most programs land Squadron ($1,000–$1,800/mo) with the question bank and baseline folded into the build phase. Measurement-only starts at Scout.</p>
+    </div>
+    <div class="rv rv-d1">
+      <div class="eyebrow" style="color:var(--tie-crimson)">AEO FAQ</div>
+      <details class="faq" open><summary>How is AEO different from SEO?</summary><div class="a">SEO gets you retrieved; AEO gets you quoted. The unit shifts from the page to the passage, and the winning content is specific, quotable and evidence-bearing rather than merely comprehensive. Everything AEO rewards was white-hat SEO advice for a decade — answer engines just enforce it. Full comparison: <a href="#/blog/answer-engine-optimization-guide">the complete AEO guide</a>.</div></details>
+      <details class="faq"><summary>How fast do citations move?</summary><div class="a">Faster than classic SEO: live-retrieval engines (Perplexity, AI Overviews) can cite a well-structured page within days of indexing; model-knowledge answers build over weeks. We set expectations at 4–12 weeks per gap and measure gap-close velocity so you see it happening.</div></details>
+      <details class="faq"><summary>Can you guarantee citations?</summary><div class="a">No — engines are non-deterministic, which is exactly why we grade k=3 samples on priority questions and report with confidence intervals. What we guarantee: the citability layer is engineered, the measurement is honest, and every loss becomes a ranked brief. A vendor guaranteeing specific citations is guessing on your invoice.</div></details>
+      <details class="faq"><summary>Which engines do you track?</summary><div class="a">ChatGPT, Perplexity, Gemini, Claude and Google AI Overviews — fresh sessions, no personalization, consistent protocol. The set evolves as the market does; the question bank and grading method carry over.</div></details>
+    </div>
+  </div>
+
+  <div class="post-cta rv" style="margin-top:50px">
+    <h3>Ask an AI about your market. Did you come up?</h3>
+    <p style="max-width:54ch;margin-left:auto;margin-right:auto">Start with the free grader, or book the audit and get your baseline across all five engines in the first fortnight.</p>
+    <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap"><a href="#/aeo-grader" class="btn btn-coral">Grade Your Content <span class="arr">→</span></a><a href="#/contact" class="btn btn-ghost">Book the AEO Audit</a></div>
+  </div>
+</div></section>
+</template>
+
+<template id="page-answers">
+<section class="page-hero"><div class="container">
+  <div class="breadcrumb"><a href="#/">Home</a> / <b>Answer Hub</b></div>
+  <div class="eyebrow">The Answer Hub</div>
+  <h1>Straight answers to the questions buyers ask.</h1>
+  <p class="sec-lead">Every question below is answered in one self-contained, citable block — the same Direct Answers that open our pillar guides, gathered in one place. For humans in a hurry and engines that quote. Each links to the full transmission.</p>
+</div></section>
+<section class="section" style="padding-top:6px"><div class="container">
+  <div id="answers-list" style="max-width:880px"></div>
+</div></section>
+</template>
+
+<template id="page-aeo-grader">
+<section class="page-hero"><div class="container">
+  <div class="breadcrumb"><a href="#/">Home</a> / <b>AEO Grader</b></div>
+  <div class="eyebrow" style="color:var(--tie-crimson)">Free Tool · Runs Entirely In Your Browser</div>
+  <h1>Is your content citable? Grade it.</h1>
+  <p class="sec-lead">Paste the copy from any page — yours or a competitor's — and get a citability score against the five-layer stack answer engines actually select for. Nothing is uploaded; the analysis runs locally in your browser.</p>
+</div></section>
+<section class="section" style="padding-top:6px"><div class="container">
+  <div class="grid" style="grid-template-columns:1.1fr .9fr;gap:30px;align-items:start">
+    <div class="panel">
+      <div class="eyebrow" style="color:var(--tie-crimson)">Input</div>
+      <textarea id="gr-text" class="gr-text" rows="14" placeholder="Paste the page copy here — headings, body, FAQ, everything. Minimum ~120 words for a meaningful grade.&#10;&#10;Tip: paste a competitor's page next and compare."></textarea>
+      <div style="display:flex;gap:12px;align-items:center;margin-top:16px;flex-wrap:wrap">
+        <button class="btn btn-coral" id="gr-run">Run the Grade <span class="arr">→</span></button>
+        <button class="btn btn-ghost btn-sm" id="gr-sample">Try a sample</button>
+        <span class="mono" style="font-size:.62rem;letter-spacing:.12em;color:var(--faint)" id="gr-count"></span>
+      </div>
+      <p class="hint-sm">Heuristic, honest about its limits: pasted text can't reveal schema markup, internal links or site-wide identity — those need the <a href="#/services/aeo">full audit</a>.</p>
+    </div>
+    <div id="gr-results">
+      <div class="panel center" style="border-style:dashed">
+        <p class="mono" style="font-size:.68rem;letter-spacing:.18em;color:var(--faint)">AWAITING TRANSMISSION</p>
+        <p style="color:var(--muted);font-size:.9rem;margin-top:10px">Your score, the seven checks, and the top fixes will render here.</p>
+      </div>
+    </div>
+  </div>
+</div></section>
+</template>
+
 <!-- ============ TEMPLATES: BLOG POSTS ============ -->
 <template id="post-what-are-ai-agent-fleets">
 <p class="lede">Every operator has now met a chatbot. Far fewer have met a fleet: a coordinated team of specialised AI agents that plans, executes and checks real operational work across your actual software — quoting, data entry, reporting, follow-ups — while you supervise output from a dashboard. This guide explains what agent fleets are, how they differ from assistants and Zapier-style automation, what they cost, and how to deploy one without betting the business.</p>
@@ -1403,6 +1606,8 @@ body::before{content:"";position:fixed;inset:0;z-index:998;pointer-events:none;o
 
 <template id="post-ai-agents-revenue-operations">
 <p class="lede">In a growth-stage B2B company, the quote-to-cash corridor is the business: win rate, revenue recognition and cashflow all trace back to how fast and how accurately deals move from proposal to paid invoice. Yet in every company we audit, the revenue operations team — often the most commercially valuable people on staff — spends most of the week re-keying data between the CRM, the CPQ spreadsheet, the ERP and the billing platform. This is the definitive guide to deploying AI agent squadrons on that problem, based on our live proof-of-concept fleets inside operating companies.</p>
+
+<div class="callout"><div class="cl-label">Direct Answer</div><p><strong>AI agents automate quote-to-cash by decomposing the corridor into a squadron of specialists — intake agents parse orders and RFPs into structured line items, a pricing agent applies live price books and discount rules, a quote agent assembles versioned proposals, and sync agents push closed deals through Salesforce, NetSuite and Stripe — with human approval gates on every outbound artifact.</strong> Typical result: quote turnaround compresses from 3–5 days to hours, with a 10-agent build landing at $10k–$25k+ plus a $1,000–$1,800/mo retainer.</p></div>
 
 <div class="key-box"><h4>Key Takeaways</h4><ul>
 <li>Quote-to-cash is the ideal first AI mission: high volume, rule-guided, multi-system, and directly tied to revenue.</li>
@@ -3031,8 +3236,8 @@ function wireAgentCards(c){if(!c)return;
 }
 
 /* ---- router ---- */
-const ROUTES={'':'page-home','services':'page-services','services/agent-fleets':'page-service-agent-fleets','services/agentloop':'page-service-agentloop','services/the-swarm':'page-service-the-swarm','services/marketing':'page-service-marketing','services/white-label':'page-service-white-label','industries':'page-industries','industries/saas-technology':'page-industry-saas-technology','industries/professional-services':'page-industry-professional-services','industries/financial-services':'page-industry-financial-services','agents':'page-agents','pricing':'page-pricing','about':'page-about','contact':'page-contact','blog':'page-blog'};
-const TITLES={'':'Delta Fleet — Deploy Your AI Agent Fleet | Custom Multi-Agent Systems for Business','services':'Services | Delta Fleet','services/agent-fleets':'Custom Agent Fleets | Delta Fleet','services/agentloop':'Agentloop Dashboard | Delta Fleet','services/the-swarm':'The Swarm — Local Sandboxed AI Infrastructure | Delta Fleet','services/marketing':'Delta Fleet Marketing — AI Marketing Automation','services/white-label':'White-Label AI Agent Partnerships | Delta Fleet','industries':'Industries | Delta Fleet','industries/saas-technology':'AI Agents for SaaS & Technology | Delta Fleet','industries/professional-services':'AI Agents for Professional Services | Delta Fleet','industries/financial-services':'AI Agents for Financial Services | Delta Fleet','agents':'The Agents — 500+ Fleet Roster | Delta Fleet','pricing':'Pricing — Build Fee + Retainer | Delta Fleet','about':'About | Delta Fleet','contact':'Launch a Fleet — Contact | Delta Fleet','blog':'The Flight Log — AI Automation Blog | Delta Fleet'};
+const ROUTES={'':'page-home','services':'page-services','services/agent-fleets':'page-service-agent-fleets','services/agentloop':'page-service-agentloop','services/the-swarm':'page-service-the-swarm','services/marketing':'page-service-marketing','services/white-label':'page-service-white-label','industries':'page-industries','industries/saas-technology':'page-industry-saas-technology','industries/professional-services':'page-industry-professional-services','industries/financial-services':'page-industry-financial-services','services/aeo':'page-service-aeo','answers':'page-answers','aeo-grader':'page-aeo-grader','agents':'page-agents','pricing':'page-pricing','about':'page-about','contact':'page-contact','blog':'page-blog'};
+const TITLES={'':'Delta Fleet — Deploy Your AI Agent Fleet | Custom Multi-Agent Systems for Business','services':'Services | Delta Fleet','services/agent-fleets':'Custom Agent Fleets | Delta Fleet','services/agentloop':'Agentloop Dashboard | Delta Fleet','services/the-swarm':'The Swarm — Local Sandboxed AI Infrastructure | Delta Fleet','services/marketing':'Delta Fleet Marketing — AI Marketing Automation','services/white-label':'White-Label AI Agent Partnerships | Delta Fleet','industries':'Industries | Delta Fleet','industries/saas-technology':'AI Agents for SaaS & Technology | Delta Fleet','industries/professional-services':'AI Agents for Professional Services | Delta Fleet','industries/financial-services':'AI Agents for Financial Services | Delta Fleet','services/aeo':'Answer Engine Optimization (AEO) Services | Delta Fleet','answers':'Answer Hub — Straight Answers on AI Automation | Delta Fleet','aeo-grader':'Free AEO Grader — Is Your Content Citable? | Delta Fleet','agents':'The Agents — 500+ Fleet Roster | Delta Fleet','pricing':'Pricing — Build Fee + Retainer | Delta Fleet','about':'About | Delta Fleet','contact':'Launch a Fleet — Contact | Delta Fleet','blog':'The Flight Log — AI Automation Blog | Delta Fleet'};
 let CLEANUP=[];
 function clean(){CLEANUP.forEach(f=>{try{f()}catch(e){}});CLEANUP=[];}
 
@@ -3047,7 +3252,8 @@ function articleHTML(post,tpl){
  const rel3=[...rel,...POSTS.filter(p=>p.slug!==post.slug&&!rel.includes(p))].slice(0,3);
  const faqLD=$$('details.faq',wrap).map(d=>({'@type':'Question','name':$('summary',d).textContent,'acceptedAnswer':{'@type':'Answer','text':$('.a',d).textContent}}));
  return `<article class="article page"><div class="cat">${post.cat} · The Flight Log</div><h1>${post.title}</h1>
- <div class="ameta"><span>${post.date}</span><span>${post.mins} min read</span><span>Delta Fleet Research</span><span style="color:${TIES[post.tie]}">◆ ${post.cat} squadron</span></div>
+ <div class="ameta"><span>${post.date}</span><span>${post.mins} min read</span><span>Delta Fleet Research</span><span style="color:${TIES[post.tie]}">◆ ${post.cat} squadron</span><span style="color:var(--tie-emerald)">DIRECT ANSWER ✓ · FAQ SCHEMA ✓ · VERIFIED JUL 2026</span><button class="xray-btn" id="xray-toggle" title="See this page as an answer engine sees it">◉ AEO X-RAY</button></div>
+ <div class="xray-note">◉ ENGINE VIEW — HIGHLIGHTED BLOCKS ARE WHAT GETS RETRIEVED AND QUOTED. DIMMED PROSE IS CONNECTIVE TISSUE.</div>
  <div class="prose">${wrap.innerHTML}</div>
  <div class="post-cta"><h3>Ready to fly this in your business?</h3><p>Book a workflow audit — we’ll baseline the corridor, blueprint the fleet and hand you a fixed quote.</p><a href="#/contact" class="btn btn-primary">Launch a Fleet <span class="arr">→</span></a></div>
  <div class="related"><h4>Related transmissions</h4>${rel3.map(p=>`<a href="#/blog/${p.slug}">${p.title}</a>`).join('')}</div>
@@ -3123,6 +3329,9 @@ function initPage(h){
  else if(h==='contact')initContact();
  else if(h==='services/agentloop')initAgentloop();
  else if(h==='blog')initBlog();
+ else if(h==='answers')initAnswers();
+ else if(h==='aeo-grader')initGrader();
+ else if(h.indexOf('blog/')===0)initArticle();
 }
 
 /* ---- home: WebGL shader Earth ---- */
@@ -3317,6 +3526,173 @@ function initAgents(){
  addEventListener('keydown',key);
  CLEANUP.push(()=>removeEventListener('keydown',key));
  draw();
+}
+
+/* ---- answer hub: one source of truth ---- */
+/* Questions map to posts; answers are extracted at runtime from each post's
+   Direct Answer callout — no duplicated copy to drift out of sync. */
+const ANSQ=[
+ ['what-are-ai-agent-fleets','What is an AI agent fleet?'],
+ ['ai-agents-revenue-operations','How do AI agents automate the quote-to-cash process?'],
+ ['agent-manager-new-operating-role','What does an Agent Manager do?'],
+ ['answer-engine-optimization-guide','What is answer engine optimization (AEO)?'],
+ ['sandboxing-ai-agents-security-architecture','How do you secure AI agents?'],
+ ['ai-agents-vs-hiring-capacity-planning','Should we hire another person or deploy AI agents?'],
+ ['human-in-the-loop-approval-gates','What is a human-in-the-loop approval gate?'],
+ ['real-cost-manual-data-entry','What does manual data entry really cost a business?'],
+ ['local-ai-vs-cloud-ai','Should business AI run locally or in the cloud?'],
+ ['ai-automation-roi-framework','How do you measure the ROI of AI automation?'],
+ ['ai-marketing-automation-2026','What is AI marketing automation in 2026?'],
+ ['end-of-status-meetings','Can asynchronous AI reporting replace status meetings?'],
+ ['how-to-choose-ai-automation-agency','How do you choose an AI automation agency?'],
+ ['white-label-ai-agents-agency-playbook','What are white-label AI agents?'],
+ ['zapier-to-autonomous-automation-maturity','What are the levels of business automation maturity?'],
+ ['multi-agent-orchestration-patterns','What are multi-agent orchestration patterns?'],
+ ['ai-data-readiness-checklist','Is our business data ready for AI agents?'],
+ ['ai-agents-customer-support-operations','How do AI agents improve customer support operations?'],
+ ['ai-change-management-team-adoption','How do you get a team to adopt AI automation?'],
+ ['agentic-ai-glossary','What do agentic AI terms actually mean?']
+];
+function extractAnswer(slug){
+ const tpl=document.getElementById('post-'+slug);if(!tpl)return null;
+ const w=document.createElement('div');w.innerHTML=tpl.innerHTML;
+ const p=w.querySelector('.callout p');
+ return p?p.textContent.trim():null;
+}
+function initAnswers(){
+ const el=$('#answers-list');if(!el)return;
+ const items=ANSQ.map(([slug,q])=>{const a=extractAnswer(slug);return a?{slug,q,a}:null}).filter(Boolean);
+ el.innerHTML=items.map(({slug,q,a},i)=>`<div class="ans-item rv ${i%2?'rv-d1':''}" id="a-${slug}">
+  <h3>${q}</h3><p>${a}</p>
+  <a href="#/blog/${slug}" class="mono" style="font-size:.68rem;letter-spacing:.16em">FULL TRANSMISSION →</a></div>`).join('');
+ const ld=document.createElement('script');ld.type='application/ld+json';
+ ld.textContent=JSON.stringify({'@context':'https://schema.org','@type':'FAQPage',
+  mainEntity:items.map(({q,a})=>({'@type':'Question',name:q,acceptedAnswer:{'@type':'Answer',text:a}}))});
+ el.appendChild(ld);
+ wireObservers();
+}
+
+/* ---- AEO grader: pure scoring, zero network ---- */
+function gradeAEO(text){
+ const words=text.trim().split(/\s+/).filter(Boolean),n=words.length;
+ if(n<120)return{err:'Paste at least ~120 words — a meaningful grade needs a real page, not a teaser.'};
+ const sents=text.split(/(?<=[.!?])\s+/).filter(s=>s.trim().length>10);
+ const lines=text.split(/\n+/).map(l=>l.trim()).filter(Boolean);
+ const first150=words.slice(0,150).join(' ');
+ const numbers=(text.match(/\$\s?\d[\d,.]*|\d[\d,.]*\s?%|\b\d[\d,.]*\b/g)||[]).length;
+ const checks=[];
+ /* 1 · direct answer up top (20) */
+ let da=0;
+ if(/\$\s?\d|\d+\s?%|\b\d{2,}\b/.test(first150))da+=10;
+ if(sents.slice(0,4).some(s=>{const w=s.split(/\s+/).length;return w>=20&&w<=85&&/\b(is|are|means|costs?|takes?|runs?)\b/i.test(s)}))da+=10;
+ checks.push({k:'direct',label:'Direct answer in the first 150 words',pts:da,max:20,
+  msg:da>=15?'A committed, self-contained answer opens the page.':da>=10?'Something answer-like up top — make it commit to a number or definition.':'The answer is buried. Engines cite what they find early.'});
+ /* 2 · quotable block (10) */
+ const quot=sents.some(s=>{const w=s.split(/\s+/).length;return w>=35&&w<=85&&/\d/.test(s)});
+ const quotHalf=sents.some(s=>{const w=s.split(/\s+/).length;return w>=35&&w<=85});
+ const qp=quot?10:quotHalf?5:0;
+ checks.push({k:'quote',label:'A liftable 40–80-word block',pts:qp,max:10,
+  msg:qp===10?'At least one span an engine can quote whole, evidence included.':qp===5?'Right length exists but carries no numbers — add the evidence.':'No self-contained span of citation length.'});
+ /* 3 · hedging (15) */
+ const hedges=(text.match(/\b(it depends|may vary|might|could be|reach out|contact us|every business is different|generally|typically|often|sometimes|in some cases|and more)\b/gi)||[]).length;
+ const hr=hedges/n*1000;
+ const hp=hr<=2?15:hr<=5?10:hr<=9?5:0;
+ checks.push({k:'hedge',label:'Commitment (low hedging)',pts:hp,max:15,
+  msg:hp===15?'Confident claims — quotable by construction.':hp>=10?`${hedges} hedge phrases found — trim the "typically"s.`:`${hedges} hedge phrases. "It depends" paragraphs are unquotable by construction.`});
+ /* 4 · entity density (20) */
+ let caps=0;
+ sents.forEach(s=>{const t=s.split(/\s+/);for(let i=1;i<t.length;i++)if(/^[A-Z][A-Za-z0-9]{2,}/.test(t[i]))caps++});
+ const dens=(caps+numbers)/n*100;
+ const ep=dens>=6?20:dens>=4?15:dens>=2.5?10:dens>=1.2?5:0;
+ checks.push({k:'entity',label:'Entity & number density',pts:ep,max:20,
+  msg:ep>=15?`${caps} named entities + ${numbers} figures — specifics engines can't generate themselves.`:ep>=10?'Some specifics; vague nouns still dominate stretches.':'Named tools, figures and defined terms are what get cited. Add them.'});
+ /* 5 · question-shaped structure (15) */
+ const qlines=lines.filter(l=>l.length<95&&(/\?\s*$/.test(l)||(/^(how|what|why|when|which|should|can|is|are|do|does)\b/i.test(l)&&l.length<70))).length;
+ const sp=qlines>=3?15:qlines===2?10:qlines===1?5:0;
+ checks.push({k:'quest',label:'Headings phrased as buyer questions',pts:sp,max:15,
+  msg:sp===15?`${qlines} question-shaped lines — passage retrieval maps straight onto them.`:sp>0?'A start — rephrase more headings as the literal questions buyers ask.':'No question-shaped headings found in the paste.'});
+ /* 6 · structured data (10) */
+ const bullets=lines.filter(l=>/^([-*•]|\d+[.)])\s/.test(l)||(l.split('|').length>2)).length;
+ const stp=bullets>=5?10:bullets>=2?5:0;
+ checks.push({k:'struct',label:'Lists & tables',pts:stp,max:10,
+  msg:stp===10?'Structured blocks present — models extract these with near-perfect fidelity.':stp===5?'Light structure; anything enumerable belongs in a list or table.':'Wall of prose. Enumerable facts should be tables.'});
+ /* 7 · FAQ signals (10) */
+ let fp=0;
+ if(/faq|frequently asked/i.test(text))fp+=5;
+ if(qlines>=4)fp+=5;
+ checks.push({k:'faq',label:'FAQ block signals',pts:Math.min(10,fp),max:10,
+  msg:fp>=10?'FAQ pattern detected — pair it with FAQPage schema on the live page.':fp>=5?'Partial FAQ signals — close the page with real Q&A.':'No FAQ section. It\'s the cheapest citation surface you can add.'});
+ const score=checks.reduce((s,c)=>s+c.pts,0);
+ const FIX={direct:'Open with a Direct Answer block: 40–80 words, self-contained, committing to a number, range or definition.',
+  quote:'Write one standalone 40–80-word block an engine can lift whole — evidence included.',
+  hedge:'Cut hedge phrases and commit to ranges with conditions: "$10k–$25k, scoped at audit" is citable; "it depends" is not.',
+  entity:'Replace vague nouns with named tools, real figures and defined terms — engines cite specifics they can\'t generate.',
+  quest:'Rephrase headings as the literal questions buyers ask — retrieval matches questions to headings.',
+  struct:'Move enumerable facts into lists and tables; models extract structure with near-perfect fidelity.',
+  faq:'Close with a genuine FAQ block, and add FAQPage schema on the live page.'};
+ const fixes=checks.filter(c=>c.pts/c.max<.6).sort((a,b)=>(b.max-b.pts)-(a.max-a.pts)).slice(0,3).map(c=>FIX[c.k]);
+ return{score,checks,fixes,n,numbers,
+  band:score>=75?['CITABLE','var(--emerald)']:score>=50?['PARTIALLY CITABLE','var(--gold)']:['INVISIBLE TO ENGINES','var(--crimson)']};
+}
+const GR_SAMPLE=`How much does AI automation cost for a mid-market company?
+
+A custom AI agent fleet costs $10,000–$25,000+ to build, plus a $500–$3,000 monthly retainer covering hosting, monitoring and workflow updates. Most deployments replace roughly $60,000 per year of repetitive labour and pay back in 3–9 months.
+
+What drives the price?
+- Agent count: squadrons run 3–10 specialists (intake, pricing, sync, reconciliation)
+- Integration depth: Salesforce and NetSuite wiring is heavier than spreadsheets
+- Approval-gate design: every human checkpoint is scoped at audit
+
+The build is fixed-fee after a workflow audit. Retainers scale with volume: a 10-agent Squadron tier runs $1,000–$1,800 per month and typically absorbs 30+ staff-hours weekly, measured against a signed baseline.
+
+FAQ
+Is the retainer negotiable? The tier is set by agent count and task volume, not negotiation — the calculator on our pricing page reproduces the exact formula.
+When does it pay back? Well-chosen corridors model at month 3–9; beyond month 18, pick a different workflow.`;
+function initGrader(){
+ const ta=$('#gr-text'),run=$('#gr-run'),res=$('#gr-results'),cnt=$('#gr-count'),smp=$('#gr-sample');
+ if(!ta)return;
+ const count=()=>{const n=ta.value.trim()?ta.value.trim().split(/\s+/).length:0;cnt.textContent=n?n+' WORDS':''};
+ ta.addEventListener('input',count);
+ smp&&smp.addEventListener('click',()=>{ta.value=GR_SAMPLE;count()});
+ run.addEventListener('click',()=>{
+  const g=gradeAEO(ta.value);
+  if(g.err){res.innerHTML=`<div class="panel" style="border-color:rgba(255,77,107,.4)"><p style="color:var(--muted)">${g.err}</p></div>`;return}
+  const R=52,C=2*Math.PI*R;
+  res.innerHTML=`<div class="panel">
+   <div style="display:flex;gap:22px;align-items:center;flex-wrap:wrap">
+    <svg width="130" height="130" viewBox="0 0 130 130" role="img" aria-label="Citability score ${g.score} out of 100">
+     <circle cx="65" cy="65" r="${R}" fill="none" stroke="#1a2547" stroke-width="9"/>
+     <circle cx="65" cy="65" r="${R}" fill="none" stroke="${g.band[1]}" stroke-width="9" stroke-linecap="round"
+      stroke-dasharray="${C}" stroke-dashoffset="${C*(1-g.score/100)}" transform="rotate(-90 65 65)" style="transition:stroke-dashoffset 1s var(--ease)"/>
+     <text x="65" y="60" text-anchor="middle" font-family="var(--font-display)" font-size="30" font-weight="700" fill="var(--text)">${g.score}</text>
+     <text x="65" y="80" text-anchor="middle" font-family="var(--font-mono)" font-size="8" letter-spacing="2" fill="var(--faint)">/ 100</text>
+    </svg>
+    <div style="flex:1;min-width:180px">
+     <span class="tag" style="color:${g.band[1]};border-color:${g.band[1]}">◆ ${g.band[0]}</span>
+     <p class="mono" style="font-size:.62rem;letter-spacing:.12em;color:var(--faint);margin-top:12px">${g.n.toLocaleString()} WORDS · ${g.numbers} FIGURES · 7 CHECKS · LOCAL ONLY</p>
+    </div>
+   </div>
+   <div style="margin-top:20px">${g.checks.map(c=>`
+    <div class="gcheck"><div class="gc-head"><span>${c.label}</span><b>${c.pts}/${c.max}</b></div>
+     <div class="dbar" style="margin:5px 0 4px"><i style="width:${c.pts/c.max*100}%"></i></div>
+     <p>${c.msg}</p></div>`).join('')}
+   </div>
+   ${g.fixes.length?`<div class="key-box" style="margin:20px 0 0"><h4>Fix These First</h4><ul style="color:var(--muted)">${g.fixes.map(f=>`<li>${f}</li>`).join('')}</ul></div>`:'<p style="color:var(--tie-emerald);margin-top:18px;font-weight:600">Clean sweep — now verify the layer a paste can\'t show: schema, interlinks, identity.</p>'}
+   <div style="display:flex;gap:12px;margin-top:22px;flex-wrap:wrap">
+    <a href="#/contact" class="btn btn-coral btn-sm">Get the Full 5-Engine Audit <span class="arr">→</span></a>
+    <a href="#/blog/answer-engine-optimization-guide" class="btn btn-ghost btn-sm">Read the AEO Guide</a>
+   </div>
+  </div>`;
+  $$('#gr-results .dbar i').forEach(b=>{const w=b.style.width;b.style.width='0';requestAnimationFrame(()=>requestAnimationFrame(()=>b.style.width=w))});
+ });
+}
+
+/* ---- article extras: AEO X-ray toggle ---- */
+function initArticle(){
+ const btn=$('#xray-toggle'),art=$('.article');
+ if(!btn||!art)return;
+ btn.addEventListener('click',()=>{art.classList.toggle('xray');btn.classList.toggle('on');
+  btn.textContent=art.classList.contains('xray')?'◉ EXIT X-RAY':'◉ AEO X-RAY'});
 }
 
 /* ---- blog hub: category filter + grid ---- */
