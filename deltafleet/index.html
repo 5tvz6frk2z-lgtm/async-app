@@ -410,6 +410,26 @@ body::before{content:"";position:fixed;inset:0;z-index:998;pointer-events:none;o
 .mission-log p{font-family:var(--font-mono);font-size:.66rem;color:var(--muted);padding:5px 0;border-bottom:1px dashed rgba(122,162,255,.08)}
 .mission-log p:last-child{border:none}
 
+/* ---- WebGL earth ---- */
+#earth-gl{position:absolute;inset:0;width:100%;height:100%;display:none}
+.gl-on #earth-gl{display:block}
+.gl-on .earth-core,.gl-on .earth-land,.gl-on .earth-atmo{display:none}
+
+/* ---- dossier hologram ---- */
+.holo{position:relative;width:200px;margin:0 auto;perspective:720px}
+.holo-stage{position:relative;transform-style:preserve-3d;transition:transform .18s ease-out}
+.holo .big-bot{position:relative;z-index:2;animation:holoFloat 5s ease-in-out infinite}
+@keyframes holoFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.holo-scan{position:absolute;inset:-4px 24px 20px;z-index:3;pointer-events:none;border-radius:12px;background:repeating-linear-gradient(0deg,rgba(122,220,255,.07) 0 2px,transparent 2px 5px);mix-blend-mode:screen;animation:holoScan 7s linear infinite}
+@keyframes holoScan{from{background-position:0 0}to{background-position:0 120px}}
+.holo-base{position:relative;height:34px;margin-top:-10px;z-index:1}
+.holo-base i{position:absolute;left:50%;top:50%;border-radius:50%;border:1px solid rgba(79,216,255,.5);box-shadow:0 0 18px rgba(79,216,255,.3)}
+.holo-base i:nth-child(1){width:150px;height:150px;border-style:dashed;animation:ringSpin 9s linear infinite}
+.holo-base i:nth-child(2){width:104px;height:104px;border-color:rgba(139,123,255,.45);animation:ringSpin 6s linear infinite reverse}
+.holo-base i:nth-child(3){width:52px;height:52px;border-color:rgba(122,220,255,.85);box-shadow:0 0 24px rgba(79,216,255,.5);animation:ringPulse 2.6s ease-in-out infinite}
+@keyframes ringSpin{from{transform:translate(-50%,-50%) rotateX(74deg) rotate(0deg)}to{transform:translate(-50%,-50%) rotateX(74deg) rotate(360deg)}}
+@keyframes ringPulse{0%,100%{transform:translate(-50%,-50%) rotateX(74deg) scale(1);opacity:1}50%{transform:translate(-50%,-50%) rotateX(74deg) scale(1.12);opacity:.55}}
+
 /* ---- responsive ---- */
 @media(max-width:1060px){
   .g4{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(2,1fr)}
@@ -545,6 +565,7 @@ body::before{content:"";position:fixed;inset:0;z-index:998;pointer-events:none;o
 <section class="hero">
   <canvas id="stars"></canvas>
   <div id="hero-earth" aria-hidden="true">
+    <canvas id="earth-gl"></canvas>
     <div class="earth-core"></div>
     <div class="earth-land"><svg viewBox="0 0 800 400" preserveAspectRatio="none"><g fill="#3fae7c" opacity=".9"><path d="M40 120q40-46 96-30t50 62q-8 44-62 40t-84-26q-16-28 0-46Z"/><path d="M210 240q26-34 78-24t44 54q-10 38-66 30t-56-60Z"/><path d="M320 90q52-28 92 4t8 66q-40 30-88 6t-12-76Z"/><path d="M120 300q30-16 58 2t8 44q-30 18-58-4t-8-42Z"/><path d="M440 200 q36 -40 88 -18 t30 64 q-24 42 -80 26 t-38 -72Z"/><path d="M40 520 h0Z"/><path d="M440 120q40-46 96-30t50 62q-8 44-62 40t-84-26q-16-28 0-46Z" transform="translate(-400 0)"/><path d="M610 240q26-34 78-24t44 54q-10 38-66 30t-56-60Z"/><path d="M720 90q52-28 92 4t8 66q-40 30-88 6t-12-76Z"/><path d="M520 300q30-16 58 2t8 44q-30 18-58-4t-8-42Z"/></g></svg></div>
     <div class="earth-atmo"></div>
@@ -2877,11 +2898,13 @@ const POSTS=[
 ];
 
 /* ---- robot generator ---- */
-/* Bots are procedurally varied by seed: visor style, head silhouette,
-   beacon size, blink cadence. Dept colour drives tie + lapel beacon;
-   bow ties + shoulder epaulettes mark squadron leads. */
+/* v3 art: gradient-shaded suit, glass visor with specular sheen, ear pods,
+   jointed arms with dept-colour cuffs, tie clip; leads get bow tie,
+   epaulettes and a pocket square. Seed varies visor/eyes/head/blink.
+   Gradient ids are namespaced per-instance (SVG ids share one document). */
+let BOTUID=0;
 function botSVG(tie,bow=false,cls='av',seed=0){
- const c=TIES[tie]||TIES.cyan, v=seed%3, hv=(seed>>2)%2;
+ const c=TIES[tie]||TIES.cyan, v=seed%3, hv=(seed>>2)%2, u='bt'+(BOTUID++);
  const blink=`<animate attributeName="opacity" values="1;1;.12;1" keyTimes="0;.86;.93;1" dur="${3.6+seed%4}s" repeatCount="indefinite"/>`;
  const eyes=v===0
   ?`<circle cx="42.5" cy="27.5" r="2.7" fill="#7ae7ff">${blink}</circle><circle cx="57.5" cy="27.5" r="2.7" fill="#7ae7ff">${blink}</circle>`
@@ -2890,24 +2913,48 @@ function botSVG(tie,bow=false,cls='av',seed=0){
   :`<path d="M39 27.5h8" stroke="#7ae7ff" stroke-width="3.1" stroke-linecap="round">${blink}</path><path d="M53 27.5h8" stroke="#7ae7ff" stroke-width="3.1" stroke-linecap="round">${blink}</path>`;
  const knot=bow
   ?`<path d="M50 57 L42 52 L42 62 Z" fill="${c}"/><path d="M50 57 L58 52 L58 62 Z" fill="${c}"/><rect x="47.4" y="53.8" width="5.2" height="6.4" rx="1.6" fill="${c}" stroke="#0a0f22" stroke-width="1"/>`
-  :`<path d="M50 55 L45.4 61 L47.6 88 L50 96 L52.4 88 L54.6 61 Z" fill="${c}"/><path d="M50 55 L45.4 61 L50 65 L54.6 61 Z" fill="${c}" stroke="#0a0f22" stroke-width=".8"/>`;
- const epaulettes=bow?`<rect x="24.5" y="53.2" width="10" height="3.4" rx="1.7" fill="${c}" opacity=".95"/><rect x="65.5" y="53.2" width="10" height="3.4" rx="1.7" fill="${c}" opacity=".95"/>`:'';
+  :`<path d="M50 55 L45.4 61 L47.6 88 L50 96 L52.4 88 L54.6 61 Z" fill="${c}"/><path d="M50 55 L45.4 61 L50 65 L54.6 61 Z" fill="${c}" stroke="#0a0f22" stroke-width=".8"/><rect x="46.8" y="72" width="6.4" height="1.7" rx=".8" fill="#9fb1d8" opacity=".85"/>`;
+ const leadKit=bow
+  ?`<rect x="24.5" y="53.2" width="10" height="3.4" rx="1.7" fill="${c}" opacity=".95"/><rect x="65.5" y="53.2" width="10" height="3.4" rx="1.7" fill="${c}" opacity=".95"/><path d="M29.5 66 h6 l-3 5 Z" fill="${c}" opacity=".92"/>`
+  :'';
  return `<svg class="${cls}" viewBox="0 0 100 130" fill="none" aria-hidden="true">
- <line x1="50" y1="4" x2="50" y2="12" stroke="#4fd8ff" stroke-width="2"/><circle cx="50" cy="4" r="${hv?3:2.4}" fill="#4fd8ff"><animate attributeName="opacity" values="1;.3;1" dur="2s" repeatCount="indefinite"/></circle>
- <rect x="26" y="12" width="48" height="34" rx="${hv?15:11}" fill="#1b2547" stroke="rgba(122,162,255,.4)"/>
- <rect x="33" y="21" width="34" height="13" rx="6.5" fill="#070c1e"/>
+ <defs>
+  <linearGradient id="${u}h" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#28356a"/><stop offset="1" stop-color="#141d3f"/></linearGradient>
+  <linearGradient id="${u}j" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#202c5c"/><stop offset=".45" stop-color="#141d3c"/><stop offset="1" stop-color="#0b1228"/></linearGradient>
+  <radialGradient id="${u}v" cx=".32" cy=".25" r="1.15"><stop offset="0" stop-color="#12203f"/><stop offset="1" stop-color="#04060f"/></radialGradient>
+  <linearGradient id="${u}m" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1c2850"/><stop offset="1" stop-color="#0d1530"/></linearGradient>
+ </defs>
+ <ellipse cx="50" cy="127" rx="25" ry="2.4" fill="${c}" opacity=".12"/>
+ <line x1="50" y1="4" x2="50" y2="12" stroke="#4fd8ff" stroke-width="2"/>
+ <circle cx="50" cy="4" r="5" fill="#4fd8ff" opacity=".22"/>
+ <circle cx="50" cy="4" r="${hv?3:2.4}" fill="#4fd8ff"><animate attributeName="opacity" values="1;.3;1" dur="2s" repeatCount="indefinite"/></circle>
+ <rect x="21.5" y="24" width="3.6" height="10" rx="1.8" fill="#0d1430" stroke="rgba(122,162,255,.35)" stroke-width=".8"/>
+ <rect x="74.9" y="24" width="3.6" height="10" rx="1.8" fill="#0d1430" stroke="rgba(122,162,255,.35)" stroke-width=".8"/>
+ <rect x="26" y="12" width="48" height="34" rx="${hv?15:11}" fill="url(#${u}h)" stroke="rgba(122,162,255,.42)"/>
+ <path d="M32 14.5 Q50 11.5 68 14.5" stroke="rgba(170,205,255,.35)" stroke-width="1" fill="none"/>
+ <rect x="33" y="21" width="34" height="13" rx="6.5" fill="url(#${u}v)" stroke="rgba(122,200,255,.22)" stroke-width=".8"/>
+ <path d="M36 23.5 Q44 21.5 52 23" stroke="rgba(190,230,255,.28)" stroke-width="1.4" fill="none" stroke-linecap="round"/>
  ${eyes}
  <rect x="44" y="46" width="12" height="6" fill="#131c3a"/>
- <path d="M24 58 Q26 52 33 52 L67 52 Q74 52 76 58 L72 122 Q71 126 66 126 L34 126 Q29 126 28 122 Z" fill="#141d3c" stroke="rgba(122,162,255,.35)"/>
- ${epaulettes}
- <path d="M38 52 L50 55 L46 78 L36 60 Z" fill="#0d1430"/><path d="M62 52 L50 55 L54 78 L64 60 Z" fill="#0d1430"/>
+ <line x1="44" y1="48" x2="56" y2="48" stroke="rgba(122,162,255,.3)" stroke-width=".7"/>
+ <line x1="44" y1="50" x2="56" y2="50" stroke="rgba(122,162,255,.2)" stroke-width=".7"/>
+ <path d="M24 58 Q26 52 33 52 L67 52 Q74 52 76 58 L72 122 Q71 126 66 126 L34 126 Q29 126 28 122 Z" fill="url(#${u}j)" stroke="rgba(122,162,255,.38)"/>
+ <path d="M27 57 Q29 53.5 33.5 53.5 L66.5 53.5 Q71 53.5 73 57" stroke="rgba(160,195,255,.28)" stroke-width="1" fill="none"/>
+ ${leadKit}
+ <path d="M38 52 L50 55 L46 78 L36 60 Z" fill="#0c1330" stroke="rgba(122,162,255,.18)" stroke-width=".7"/>
+ <path d="M62 52 L50 55 L54 78 L64 60 Z" fill="#0c1330" stroke="rgba(122,162,255,.18)" stroke-width=".7"/>
  <path d="M44 52 L50 55 L56 52 L54 62 L50 96 L46 62 Z" fill="#e9eefc"/>
  ${knot}
  <circle cx="63.5" cy="70" r="2" fill="${c}"><animate attributeName="opacity" values="1;.35;1" dur="${2.2+(seed%5)*.3}s" repeatCount="indefinite"/></circle>
  <circle cx="50" cy="103" r="1.6" fill="#3a4a7a"/><circle cx="50" cy="112" r="1.6" fill="#3a4a7a"/>
- <path d="M24 60 Q14 66 15 84 Q15.5 90 21 89 Q26 88 25 82 Z" fill="#131c3a" stroke="rgba(122,162,255,.3)"/>
- <path d="M76 60 Q86 66 85 84 Q84.5 90 79 89 Q74 88 75 82 Z" fill="#131c3a" stroke="rgba(122,162,255,.3)"/>
+ <path d="M24 60 Q14 66 15 84 Q15.5 90 21 89 Q26 88 25 82 Z" fill="url(#${u}m)" stroke="rgba(122,162,255,.32)"/>
+ <path d="M76 60 Q86 66 85 84 Q84.5 90 79 89 Q74 88 75 82 Z" fill="url(#${u}m)" stroke="rgba(122,162,255,.32)"/>
+ <circle cx="19.5" cy="73.5" r="2.1" fill="#22305a" stroke="rgba(122,162,255,.4)" stroke-width=".7"/>
+ <circle cx="80.5" cy="73.5" r="2.1" fill="#22305a" stroke="rgba(122,162,255,.4)" stroke-width=".7"/>
+ <rect x="15.2" y="82.6" width="6.8" height="2.6" rx="1.3" fill="${c}" opacity=".8"/>
+ <rect x="78" y="82.6" width="6.8" height="2.6" rx="1.3" fill="${c}" opacity=".8"/>
  <circle cx="18.5" cy="90" r="5" fill="#e9eefc"/><circle cx="81.5" cy="90" r="5" fill="#e9eefc"/>
+ <circle cx="17" cy="88.4" r="1.6" fill="#fff" opacity=".7"/><circle cx="80" cy="88.4" r="1.6" fill="#fff" opacity=".7"/>
  </svg>`;
 }
 function hydrateBots(root){$$('.bot-slot',root).forEach(el=>{el.outerHTML=botSVG(el.dataset.tie||'cyan',el.dataset.bow==='1','bot')});}
@@ -2957,7 +3004,7 @@ function openAgent(i){
  const el=document.createElement('div');el.className='agent-modal';el.id='agent-modal';
  el.innerHTML=`<div class="agent-sheet" role="dialog" aria-modal="true" aria-label="${a.name} dossier">
   <button class="close" aria-label="Close dossier">✕</button>
-  <div class="big-bot">${botSVG(a.tie,a.bow,'av',a.idx)}</div>
+  <div class="holo"><div class="holo-stage"><div class="big-bot">${botSVG(a.tie,a.bow,'av',a.idx)}</div><div class="holo-scan"></div></div><div class="holo-base"><i></i><i></i><i></i></div></div>
   <h3>${a.name}</h3>
   <p class="sub">${a.pantheon} PANTHEON · ${a.serial} · ${a.bow?'SQUADRON LEAD · ':''}${a.depLabel.toUpperCase()}</p>
   <p style="text-align:center;color:var(--muted);font-size:.92rem;margin:14px 0 20px">${a.role}. On station since orbit insertion — ${a.missions.toLocaleString()} missions flown at ${a.uptime}% uptime, reporting to ${a.depLabel} through Agentloop.</p>
@@ -2967,6 +3014,13 @@ function openAgent(i){
  </div>`;
  el.addEventListener('click',e=>{if(e.target===el||e.target.closest('.close'))closeAgent()});
  document.body.appendChild(el);
+ if(!REDUCED&&matchMedia('(hover:hover)').matches){
+  const sheet=el.querySelector('.agent-sheet'),stage=el.querySelector('.holo-stage');
+  sheet.addEventListener('mousemove',e=>{const r=sheet.getBoundingClientRect();
+   const dx=(e.clientX-r.left)/r.width-.5,dy=(e.clientY-r.top)/r.height-.5;
+   stage.style.transform='rotateY('+(dx*18)+'deg) rotateX('+(-dy*10)+'deg)'});
+  sheet.addEventListener('mouseleave',()=>{stage.style.transform=''});
+ }
  document.addEventListener('keydown',escClose);
 }
 function closeAgent(){const m=document.getElementById('agent-modal');if(m)m.remove();document.removeEventListener('keydown',escClose)}
@@ -3071,6 +3125,91 @@ function initPage(h){
  else if(h==='blog')initBlog();
 }
 
+/* ---- home: WebGL shader Earth ---- */
+/* Hand-rolled WebGL (no three.js — keeps the zero-dependency guarantee).
+   Analytic sphere in a fragment shader: fbm continents, ocean specular,
+   drifting clouds, night-side city lights, atmospheric rim + halo.
+   Falls back to the CSS earth when WebGL is unavailable. */
+function initEarthGL(cv){
+ if(!cv)return false;
+ let gl;
+ try{gl=cv.getContext('webgl',{alpha:true,premultipliedAlpha:true,antialias:true})}catch(e){return false}
+ if(!gl)return false;
+ const VS='attribute vec2 a;varying vec2 v;void main(){v=a;gl_Position=vec4(a,0.,1.);}';
+ const FS=[
+ 'precision highp float;varying vec2 v;uniform float t;',
+ 'float hsh(vec3 p){p=fract(p*.3183099+.1);p*=17.;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}',
+ 'float noi(vec3 x){vec3 i=floor(x),f=fract(x);f=f*f*(3.-2.*f);',
+ ' return mix(mix(mix(hsh(i),hsh(i+vec3(1.,0.,0.)),f.x),mix(hsh(i+vec3(0.,1.,0.)),hsh(i+vec3(1.,1.,0.)),f.x),f.y),',
+ ' mix(mix(hsh(i+vec3(0.,0.,1.)),hsh(i+vec3(1.,0.,1.)),f.x),mix(hsh(i+vec3(0.,1.,1.)),hsh(i+vec3(1.,1.,1.)),f.x),f.y),f.z);}',
+ 'float fbm(vec3 p){float s=0.,a=.5;for(int i=0;i<5;i++){s+=a*noi(p);p*=2.03;a*=.5;}return s;}',
+ 'void main(){',
+ ' vec2 p=v/.86;float r2=dot(p,p);vec3 col=vec3(0.);float al=0.;',
+ ' if(r2>1.){',
+ '  float d=sqrt(r2)-1.;float g=exp(-d*7.)*.55;',
+ '  g*=smoothstep(1.16,1.0,max(abs(p.x),abs(p.y)));',
+ '  col=vec3(.32,.6,1.)*g;al=g;',
+ ' }else{',
+ '  vec3 n=vec3(p.x,p.y,sqrt(1.-r2));',
+ '  float a=t*.045;mat3 R=mat3(cos(a),0.,-sin(a),0.,1.,0.,sin(a),0.,cos(a));',
+ '  vec3 q=R*n;',
+ '  float cont=fbm(q*2.2+vec3(5.2));',
+ '  float land=smoothstep(.52,.56,cont);',
+ '  vec3 ocean=mix(vec3(.015,.08,.24),vec3(.04,.2,.44),smoothstep(.34,.52,cont));',
+ '  vec3 landc=mix(vec3(.12,.34,.17),vec3(.44,.4,.24),smoothstep(.56,.75,cont));',
+ '  vec3 surf=mix(ocean,landc,land);',
+ '  float ice=smoothstep(.74,.87,abs(q.y));',
+ '  surf=mix(surf,vec3(.78,.84,.9),ice*.9);',
+ '  float cl=fbm(q*3.1+vec3(9.7,0.,0.)+vec3(t*.012,0.,t*.017));',
+ '  float clouds=smoothstep(.55,.74,cl)*.85;',
+ '  vec3 L=normalize(vec3(-.55,.35,.75));',
+ '  float dif=clamp(dot(n,L),0.,1.);',
+ '  float day=smoothstep(0.,.28,dif);',
+ '  vec3 H=normalize(L+vec3(0.,0.,1.));',
+ '  float spec=pow(clamp(dot(n,H),0.,1.),42.)*(1.-land)*(1.-clouds)*day*.5;',
+ '  col=surf*(.07+.95*dif);',
+ '  col=mix(col,vec3(.92)*(.12+.9*dif),clouds);',
+ '  col+=spec;',
+ '  float lights=smoothstep(.6,.76,fbm(q*8.+vec3(3.3)))*land*(1.-day)*(1.-clouds);',
+ '  col+=vec3(1.,.72,.32)*lights*.85;',
+ '  float fres=pow(1.-n.z,2.6);',
+ '  col+=vec3(.3,.58,1.)*fres*.55*(.3+.7*dif);',
+ '  al=1.-smoothstep(.985,1.,r2);',
+ '  col*=al;',
+ ' }',
+ ' gl_FragColor=vec4(col,al);',
+ '}'].join('\n');
+ function sh(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);
+  if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){return null}return s}
+ const vs=sh(gl.VERTEX_SHADER,VS),fs=sh(gl.FRAGMENT_SHADER,FS);
+ if(!vs||!fs)return false;
+ const pr=gl.createProgram();gl.attachShader(pr,vs);gl.attachShader(pr,fs);gl.linkProgram(pr);
+ if(!gl.getProgramParameter(pr,gl.LINK_STATUS))return false;
+ gl.useProgram(pr);
+ const buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+ gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+ const loc=gl.getAttribLocation(pr,'a');gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
+ const uT=gl.getUniformLocation(pr,'t');
+ gl.enable(gl.BLEND);gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
+ gl.clearColor(0,0,0,0);
+ const DPR=Math.min(1.5,devicePixelRatio||1);
+ let raf=0;
+ function size(){const w=cv.offsetWidth||10,h=cv.offsetHeight||10;
+  cv.width=w*DPR;cv.height=h*DPR;gl.viewport(0,0,cv.width,cv.height);
+  if(REDUCED)frame(0);}
+ function frame(sec){gl.clear(gl.COLOR_BUFFER_BIT);gl.uniform1f(uT,sec);gl.drawArrays(gl.TRIANGLE_STRIP,0,4)}
+ const t0=performance.now();
+ function loop(now){if(!cv.isConnected){stop();return}
+  frame((now-t0)/1000);raf=requestAnimationFrame(loop)}
+ function stop(){cancelAnimationFrame(raf);ro.disconnect();document.removeEventListener('visibilitychange',vis)}
+ function vis(){cancelAnimationFrame(raf);if(!document.hidden&&cv.isConnected&&!REDUCED)raf=requestAnimationFrame(loop)}
+ const ro=new ResizeObserver(size);ro.observe(cv);size();
+ if(!REDUCED)raf=requestAnimationFrame(loop);
+ document.addEventListener('visibilitychange',vis);
+ CLEANUP.push(stop);
+ return true;
+}
+
 /* ---- home: starfield ---- */
 function initStars(cv){
  if(!cv)return;const ctx=cv.getContext('2d');const DPR=Math.min(2,devicePixelRatio||1);
@@ -3144,6 +3283,8 @@ const FEATURED=[78,7,14,3,10,5,165,40];
 function initHome(){
  initStars($('#stars'));
  startFlights($('#flight-layer'));
+ const eg=$('#earth-gl');
+ if(eg&&initEarthGL(eg))$('#hero-earth').classList.add('gl-on');
  const hg=$('#home-agents');
  if(hg){hg.innerHTML=FEATURED.map(i=>agentCard(FLEET[i])).join('');wireAgentCards(hg);}
  const earth=$('#hero-earth');
