@@ -1,10 +1,10 @@
 # DELTA FLEET · deltafleet.ai
 
-A futuristic, highly interactive single-file site for **Delta Fleet** — an AI **marketing** agency that deploys specialist agent fleets: answer engine optimization, answer-first content, sub-minute lifecycle response and async reporting.
+A futuristic, highly interactive single-file site for **Delta Fleet** — an AI **workflow integration studio** that installs supervised agent fleets into the tools a business already uses: six installable corridors (Speed-to-Lead, Inbox & CRM Hygiene, Reporting Autopilot, Content/AEO, Document Intake, Review & Reputation), a read-only $79/mo Daily Brief starter, gated and measured, run from one console.
 
-**One file. Zero build step. Zero JS dependencies.** The only external request is Google Fonts.
+**One file. Zero build step. Zero JS dependencies.** The only external request is Google Fonts. The **platform** that actually runs the fleets lives in `platform/` (Node, also zero-dependency) — see `platform/README.md`.
 
-> v3 positioning: the company **specialized in marketing services** (2026). New service pages (AEO · Content Engine · Lifecycle · Analytics · White-Label); the earlier general-ops pages and two off-niche posts are **archived, not deleted** — their URLs stay live with archive banners to preserve any citations and link equity. Intended to live in its own repository.
+> v9 positioning: the company pivoted from a marketing-only agency to an **integration studio** (marketing is now three of six corridors). The pricing ladder is Daily Brief → Recon → Install → Flight Ops. Earlier general-ops pages and off-niche posts are **archived, not deleted** — URLs stay live with banners to preserve citations and link equity. Full arc in `PIVOT-PLAN.md` and `HANDOFF.md`.
 
 ## Quick start
 
