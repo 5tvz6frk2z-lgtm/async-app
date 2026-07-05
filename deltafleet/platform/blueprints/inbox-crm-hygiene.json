@@ -1,0 +1,31 @@
+{
+  "blueprint": "inbox-crm-hygiene",
+  "title": "Inbox & CRM Hygiene",
+  "summary": "Shared inbox triaged and the CRM kept truthful — every conversation logged, routed and followed up.",
+  "trigger": { "type": "event", "source": "email.received", "description": "Message arrives in the shared inbox." },
+  "agents": [
+    { "name": "triage", "callsign": "HEIMDALL", "role": "Classifies every inbound message (lead / client / vendor / spam / urgent) and routes it.", "model": "claude-haiku-4-5", "tools": ["email.read", "email.label"] },
+    { "name": "logger", "callsign": "MNEMOSYNE", "role": "Logs conversation summaries and next steps against the right CRM contact and deal.", "model": "claude-haiku-4-5", "tools": ["email.read", "crm.read", "crm.update"] },
+    { "name": "data-steward", "callsign": "ATHENA", "role": "Fixes stale CRM fields: dead deals flagged, owners assigned, duplicates proposed for merge.", "tools": ["crm.read", "crm.update", "crm.merge"] },
+    { "name": "router", "callsign": "IRIS", "role": "Escalates anything urgent or ambiguous to the right human with a one-paragraph brief.", "model": "claude-haiku-4-5", "tools": ["email.read", "notify.slack"] }
+  ],
+  "gates": {
+    "*": "log",
+    "email.read": "auto",
+    "crm.read": "auto",
+    "email.label": "auto",
+    "crm.update": "log",
+    "crm.merge": "approve",
+    "notify.slack": "log"
+  },
+  "connectors": ["gmail-mcp", "hubspot-mcp", "slack-mcp"],
+  "metrics": {
+    "baseline": [
+      { "key": "triage_lag_min", "label": "Inbox triage lag", "unit": "min", "direction": "down" },
+      { "key": "crm_log_rate_pct", "label": "Conversations logged in CRM", "unit": "%", "direction": "up" },
+      { "key": "stale_records_pct", "label": "Stale CRM records", "unit": "%", "direction": "down" }
+    ],
+    "targets": { "crm_log_rate_pct": "> 95", "triage_lag_min": "< 15" }
+  },
+  "rollback": "Disable the email.received trigger; labels and CRM notes written so far remain (all are additive). Merge proposals are queued, never auto-applied."
+}

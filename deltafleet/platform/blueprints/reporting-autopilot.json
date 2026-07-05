@@ -1,0 +1,30 @@
+{
+  "blueprint": "reporting-autopilot",
+  "title": "Reporting Autopilot",
+  "summary": "The weekly ops/exec report assembled from live systems, narrated, and delivered on schedule.",
+  "trigger": { "type": "schedule", "source": "cron: 0 7 * * 1", "description": "Every Monday 07:00 client-local; ad-hoc runs on request." },
+  "agents": [
+    { "name": "data-puller", "callsign": "HUGINN", "role": "Pulls the week's numbers from CRM, ad platforms and sheets; verifies totals cross-foot before anything else runs.", "model": "claude-haiku-4-5", "tools": ["crm.read", "ads.read", "sheets.read"] },
+    { "name": "assembler", "callsign": "MUNINN", "role": "Builds the report tables and charts; flags metrics that moved more than the noise band.", "tools": ["sheets.read", "sheets.write"] },
+    { "name": "narrator", "callsign": "BRAGI", "role": "Writes the executive narrative: what moved, why we think so, what we are doing about it. Exception-first, no filler.", "tools": ["sheets.read", "email.draft", "email.send"] }
+  ],
+  "gates": {
+    "*": "log",
+    "crm.read": "auto",
+    "ads.read": "auto",
+    "sheets.read": "auto",
+    "sheets.write": "log",
+    "email.draft": "log",
+    "email.send": "approve"
+  },
+  "connectors": ["hubspot-mcp", "google-ads-mcp", "gsheets-mcp", "gmail-mcp"],
+  "metrics": {
+    "baseline": [
+      { "key": "report_hours", "label": "Hours to produce report", "unit": "h", "direction": "down" },
+      { "key": "on_time_pct", "label": "Reports delivered on time", "unit": "%", "direction": "up" },
+      { "key": "data_errors_per_report", "label": "Data errors per report", "unit": "count", "direction": "down" }
+    ],
+    "targets": { "report_hours": "< 0.5 human", "on_time_pct": "100" }
+  },
+  "rollback": "Disable the schedule; the report template and source queries remain documented in the runbook so a human can produce it manually."
+}

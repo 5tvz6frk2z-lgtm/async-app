@@ -1,0 +1,31 @@
+{
+  "blueprint": "speed-to-lead",
+  "title": "Speed-to-Lead",
+  "summary": "New lead → qualified, enriched, first-touched and booked in under 5 minutes, 24/7.",
+  "trigger": { "type": "event", "source": "crm.lead.created", "description": "New lead lands in the CRM, a form, or the inbox." },
+  "agents": [
+    { "name": "qualifier", "callsign": "HERMES", "role": "Scores the lead against the client's ICP; routes disqualified leads to a nurture list with a reason.", "model": "claude-haiku-4-5", "tools": ["crm.read", "crm.update"] },
+    { "name": "enricher", "callsign": "MIMIR", "role": "Pulls firmographics and context (site, role, company size) and writes an enrichment note to the CRM.", "model": "claude-haiku-4-5", "tools": ["web.lookup", "crm.update"] },
+    { "name": "first-responder", "callsign": "HERMOD", "role": "Drafts the first-touch reply in the client's voice, referencing the lead's actual context.", "tools": ["crm.read", "email.draft", "email.send"] },
+    { "name": "scheduler", "callsign": "SAGA", "role": "Proposes meeting slots and books the call once the lead replies.", "tools": ["calendar.read", "calendar.book", "email.send"] }
+  ],
+  "gates": {
+    "*": "log",
+    "crm.read": "auto",
+    "calendar.read": "auto",
+    "web.lookup": "auto",
+    "email.draft": "log",
+    "email.send": "approve",
+    "calendar.book": "approve"
+  },
+  "connectors": ["hubspot-mcp", "gmail-mcp", "gcal-mcp"],
+  "metrics": {
+    "baseline": [
+      { "key": "first_response_min", "label": "First response time", "unit": "min", "direction": "down" },
+      { "key": "contact_rate_pct", "label": "Lead contact rate", "unit": "%", "direction": "up" },
+      { "key": "booked_rate_pct", "label": "Meeting booked rate", "unit": "%", "direction": "up" }
+    ],
+    "targets": { "first_response_min": "< 5", "contact_rate_pct": "+30%" }
+  },
+  "rollback": "Disable the crm.lead.created trigger; queued leads drain to the human inbox with full context notes. No data is deleted."
+}
