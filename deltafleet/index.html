@@ -762,7 +762,7 @@ a,button{-webkit-tap-highlight-color:rgba(79,216,255,.12);touch-action:manipulat
         <p>New lead → qualified, enriched, first-touched and booked in under five minutes, around the clock. Every outbound gated until it earns autonomy.</p>
         <span class="go">View corridor →</span>
       </a>
-      <a class="card rv rv-d1" href="#/corridors">
+      <a class="card rv rv-d1" href="#/services/inbox-hygiene">
         <div class="icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#45e0ff" stroke-width="1.7"><path d="M4 5h16v14H4z"/><path d="M4 9h16M9 9v10"/></svg></div>
         <h3>Inbox &amp; CRM Hygiene</h3>
         <p>Shared inbox triaged, every conversation logged against the right deal, the CRM kept truthful, urgent items escalated with a one-paragraph brief.</p>
@@ -780,13 +780,13 @@ a,button{-webkit-tap-highlight-color:rgba(79,216,255,.12);touch-action:manipulat
         <p>Answer-first content produced against your citation gaps and published through gates — so you become the source ChatGPT and Perplexity cite.</p>
         <span class="go">View corridor →</span>
       </a>
-      <a class="card rv rv-d1" href="#/corridors">
+      <a class="card rv rv-d1" href="#/services/document-intake">
         <div class="icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#34e3a4" stroke-width="1.7"><path d="M6 2h9l3 3v17H6z"/><path d="M9 12h6M9 16h6"/></svg></div>
         <h3>Document Intake</h3>
         <p>Invoices, POs and applications extracted, validated against your source systems, and routed — exceptions to a human with the failing check named.</p>
         <span class="go">View corridor →</span>
       </a>
-      <a class="card rv rv-d2" href="#/corridors">
+      <a class="card rv rv-d2" href="#/services/review-response">
         <div class="icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ff6a3d" stroke-width="1.7"><path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9 6.8 19.2l1-5.8L3.5 9.3l5.9-.9z"/></svg></div>
         <h3>Review &amp; Reputation</h3>
         <p>Every review answered fast and in your voice; negative reviews escalated with a recovery play — a human is in every negative loop, always.</p>
@@ -1333,6 +1333,118 @@ a,button{-webkit-tap-highlight-color:rgba(79,216,255,.12);touch-action:manipulat
 </div></section>
 </template>
 
+<template id="page-service-inbox-hygiene">
+<section class="page-hero"><div class="container">
+  <div class="breadcrumb"><a href="#/">Home</a> / <a href="#/corridors">Corridors</a> / <b>Inbox &amp; CRM Hygiene</b></div>
+  <div class="eyebrow" style="color:var(--tie-cyan)">Corridor · Event-Triggered</div>
+  <h1>A shared inbox that triages itself. A CRM that stays true.</h1>
+  <p class="sec-lead">The shared inbox is where opportunities go to die and the CRM is where the truth goes stale. This corridor puts a crew on both: every message classified and routed, every conversation logged against the right deal, stale records flagged, and anything urgent escalated to a human with the context attached. Read-heavy by design — nothing it does to your systems can't be undone.</p>
+  <div style="display:flex;gap:14px;margin-top:30px;flex-wrap:wrap"><a href="#/contact" class="btn btn-coral">Book a Recon <span class="arr">&rarr;</span></a><a href="#/workflow-grader" class="btn btn-ghost">Check Your Readiness</a></div>
+</div></section>
+<section class="section" style="padding-top:10px"><div class="container">
+  <div class="callout"><div class="cl-label">Direct Answer</div><p><strong>The Inbox &amp; CRM Hygiene corridor triages every inbound message, logs each conversation against the right CRM contact and deal, keeps records current, and escalates urgent items to a human with a one-paragraph brief.</strong> It is deliberately low-risk: triage labels and CRM notes are additive and reversible, and the one destructive action &mdash; merging duplicate records &mdash; always waits for human approval, permanently. Target: 95%+ of conversations logged, inbox triage under 15 minutes, stale records trending down every month.</p></div>
+  <div class="stat-strip rv" style="grid-template-columns:repeat(3,1fr);margin-top:36px">
+    <div class="s"><b>&lt; 15 min</b><span>from message received to triaged, routed and labelled &mdash; not tomorrow morning</span></div>
+    <div class="s"><b>95%+</b><span>of conversations logged against the right deal, so the CRM is trustworthy again</span></div>
+    <div class="s"><b>0</b><span>records merged without a human approving it &mdash; merges destroy history, so they stay gated</span></div>
+  </div>
+  <div class="eyebrow rv" style="margin-top:44px;color:var(--tie-cyan)">The Crew</div>
+  <div class="grid g2" style="gap:22px;margin-top:16px">
+    <div class="card rv"><h3>HEIMDALL &middot; triage</h3><p>First eyes on everything. Classifies each inbound message &mdash; lead, client, vendor, spam, urgent &mdash; and applies labels. Never deletes: spam is labelled, not destroyed.</p></div>
+    <div class="card rv rv-d1"><h3>MNEMOSYNE &middot; logger</h3><p>Writes the conversation memory: a summary and next step against the correct contact and deal. If the contact doesn&rsquo;t exist, it proposes creating one rather than guessing a match.</p></div>
+    <div class="card rv"><h3>ATHENA &middot; data-steward</h3><p>Runs sweeps: stale deals flagged with evidence, owners assigned by rule, duplicate merges proposed. Never merges on its own &mdash; that decision is always yours.</p></div>
+    <div class="card rv rv-d1"><h3>IRIS &middot; router</h3><p>The escalation channel. Anything urgent or ambiguous reaches the right human with a one-paragraph brief: who, what, why now, suggested next step. It can notify; it can&rsquo;t act on your behalf.</p></div>
+  </div>
+  <div class="panel rv" style="margin-top:40px">
+    <div class="eyebrow" style="color:var(--tie-cyan)">What&rsquo;s Automated, What Waits for You</div>
+    <table class="tbl"><thead><tr><th>Action</th><th>Gate</th><th>Why</th></tr></thead><tbody>
+      <tr><td>Read inbox &amp; CRM, apply labels</td><td>Automatic</td><td>Read-only and reversible; zero blast radius.</td></tr>
+      <tr><td>Write conversation notes to CRM</td><td>Logged</td><td>Additive &mdash; never overwrites a human&rsquo;s note; visible in the run feed.</td></tr>
+      <tr><td>Escalate urgent items to a human</td><td>Logged</td><td>Notification only; the human decides what to do.</td></tr>
+      <tr><td>Merge duplicate records</td><td>Approve &mdash; permanent</td><td>Merges destroy history. This gate never relaxes, no matter how accurate the crew gets.</td></tr>
+    </tbody></table>
+  </div>
+  <details class="faq" style="margin-top:36px"><summary>Will it email my customers?</summary><div class="a">Not in this corridor. Inbox &amp; CRM Hygiene reads, labels, logs and escalates &mdash; it does not send on your behalf. If you want gated outbound replies, that&rsquo;s the <a href="#/services/lifecycle">Speed-to-Lead corridor</a>, where every draft waits for your approval.</div></details>
+  <details class="faq"><summary>What if it logs a conversation against the wrong deal?</summary><div class="a">Notes are additive and clearly attributed to the agent, so a mislog is visible and trivially corrected &mdash; and every correction teaches the crew, so it learns your edge cases. It also proposes rather than forces new-contact creation when it isn&rsquo;t sure of a match.</div></details>
+  <details class="faq"><summary>How does it decide what&rsquo;s urgent?</summary><div class="a">From your rules, captured on the onboarding call and refined by your industry pack &mdash; a law firm&rsquo;s "urgent" (filing deadline) differs from a shop&rsquo;s (chargeback). You can adjust the definition any time by correcting an escalation; the crew remembers.</div></details>
+  <div style="text-align:center;margin-top:40px" class="rv"><a href="#/contact" class="btn btn-primary">Install This Corridor <span class="arr">&rarr;</span></a></div>
+</div></section>
+</template>
+
+<template id="page-service-document-intake">
+<section class="page-hero"><div class="container">
+  <div class="breadcrumb"><a href="#/">Home</a> / <a href="#/corridors">Corridors</a> / <b>Document Intake</b></div>
+  <div class="eyebrow" style="color:var(--tie-emerald)">Corridor · Event-Triggered</div>
+  <h1>Invoices in. Clean records out. Exceptions to a human.</h1>
+  <p class="sec-lead">Re-keying documents is the most expensive cheap work in any business: slow, error-prone, and impossible to scale without hiring. This corridor reads invoices, POs and applications, extracts the structured record, validates it against your own source systems, and posts what&rsquo;s clean &mdash; sending anything that fails a check to a human with the failing check named. The numbers are extracted and cross-checked by code, so a wrong figure gets caught, not invented.</p>
+  <div style="display:flex;gap:14px;margin-top:30px;flex-wrap:wrap"><a href="#/contact" class="btn btn-coral">Book a Recon <span class="arr">&rarr;</span></a><a href="#/blog/real-cost-manual-data-entry" class="btn btn-ghost">The Real Cost of Manual Entry</a></div>
+</div></section>
+<section class="section" style="padding-top:10px"><div class="container">
+  <div class="callout"><div class="cl-label">Direct Answer</div><p><strong>The Document Intake corridor extracts a structured record from each incoming invoice, PO or application, validates it against your source systems &mdash; PO match, vendor exists, totals cross-foot &mdash; and posts clean records while routing exceptions to a human with the failing check named.</strong> Extraction and validation are done by deterministic code so figures are checked, not guessed; posting to your accounting or ERP system stays behind a human approval gate until 60 days of clean history. Target: keying error rate under 0.5%, receipt-to-posted cycle time under four hours.</p></div>
+  <div class="stat-strip rv" style="grid-template-columns:repeat(3,1fr);margin-top:36px">
+    <div class="s"><b>&lt; 0.5%</b><span>keying error rate &mdash; a validation false-pass is treated as worse than a slow record</span></div>
+    <div class="s"><b>&lt; 4 hr</b><span>from document received to posted or queued, versus a day or more by hand</span></div>
+    <div class="s"><b>100%</b><span>of exceptions routed to a human with the exact failing check attached</span></div>
+  </div>
+  <div class="eyebrow rv" style="margin-top:44px;color:var(--tie-emerald)">The Crew</div>
+  <div class="grid g3" style="gap:18px;margin-top:16px">
+    <div class="card rv"><h3>THOTH &middot; extractor</h3><p>Reads the document into a structured record &mdash; parties, line items, totals, dates &mdash; with a confidence mark on every field. Low-confidence fields are flagged, never guessed.</p></div>
+    <div class="card rv rv-d1"><h3>THEMIS &middot; validator</h3><p>Cross-checks every record against your systems: PO match, vendor exists, totals cross-foot, dates sane. Its job is a near-zero false-pass rate &mdash; a bad record posted is worse than ten good ones delayed.</p></div>
+    <div class="card rv rv-d2"><h3>TYR &middot; router</h3><p>Posts clean records to your accounting or ERP system; sends exceptions to the human queue with THEMIS&rsquo;s failing check quoted, so the fix is obvious.</p></div>
+  </div>
+  <div class="panel rv" style="margin-top:40px">
+    <div class="eyebrow" style="color:var(--tie-emerald)">What&rsquo;s Automated, What Waits for You</div>
+    <table class="tbl"><thead><tr><th>Action</th><th>Gate</th><th>Why</th></tr></thead><tbody>
+      <tr><td>Read the document, extract fields</td><td>Automatic</td><td>Deterministic parsing with per-field confidence; nothing written yet.</td></tr>
+      <tr><td>Validate against source systems</td><td>Automatic</td><td>Read-only checks; a rule, not an opinion.</td></tr>
+      <tr><td>Write the draft record to the review store</td><td>Logged</td><td>Staged, not posted; visible in the run feed.</td></tr>
+      <tr><td>Post to accounting / ERP</td><td>Approve &mdash; 60-day probation</td><td>Financial writes stay gated until the edit history proves the crew, then relax on evidence.</td></tr>
+    </tbody></table>
+  </div>
+  <details class="faq" style="margin-top:36px"><summary>What happens to a document it can&rsquo;t read confidently?</summary><div class="a">It never guesses. Low-confidence fields are flagged and the record is routed to your review queue with the uncertain fields marked, so a human resolves them in seconds instead of hunting through a PDF. Confident, validated records flow through; ambiguous ones surface.</div></details>
+  <details class="faq"><summary>Can it post straight to QuickBooks or NetSuite without me?</summary><div class="a">Only after it earns it. Posting starts behind a human approval gate for the first 60 days; as the edit rate on posted records stays near zero, you can relax that gate on documented evidence &mdash; the same trust curve every corridor uses. Many clients keep a low-rate sampling check permanently.</div></details>
+  <details class="faq"><summary>How is this different from OCR software?</summary><div class="a">OCR extracts text; it doesn&rsquo;t know whether the total matches the PO or whether the vendor exists in your system. This corridor validates against your own data and routes by the result &mdash; and it improves as it learns your document formats and edge cases, which static OCR never does.</div></details>
+  <div style="text-align:center;margin-top:40px" class="rv"><a href="#/contact" class="btn btn-primary">Install This Corridor <span class="arr">&rarr;</span></a></div>
+</div></section>
+</template>
+
+<template id="page-service-review-response">
+<section class="page-hero"><div class="container">
+  <div class="breadcrumb"><a href="#/">Home</a> / <a href="#/corridors">Corridors</a> / <b>Review &amp; Reputation</b></div>
+  <div class="eyebrow" style="color:var(--coral)">Corridor · Event-Triggered</div>
+  <h1>Every review answered. Every crisis caught early.</h1>
+  <p class="sec-lead">Reviews are the first thing a buyer reads and the last thing a busy owner has time for. This corridor watches every platform, drafts a genuine response in your voice within the hour, and &mdash; crucially &mdash; treats negative reviews as a recovery play with a human always in the loop, never an automated apology. Praise gets thanked specifically; problems get escalated with a plan.</p>
+  <div style="display:flex;gap:14px;margin-top:30px;flex-wrap:wrap"><a href="#/contact" class="btn btn-coral">Book a Recon <span class="arr">&rarr;</span></a><a href="#/workflow-grader" class="btn btn-ghost">Check Your Readiness</a></div>
+</div></section>
+<section class="section" style="padding-top:10px"><div class="container">
+  <div class="callout"><div class="cl-label">Direct Answer</div><p><strong>The Review &amp; Reputation corridor monitors every review platform, drafts platform-appropriate responses in the business&rsquo;s voice, and escalates negative reviews with a recovery play &mdash; a human is in every negative-review loop, permanently.</strong> Positive reviews are thanked specifically (never a generic "thanks for the kind words"); publishing any response stays behind a human approval gate; and review-bombing patterns are detected and flagged immediately. Target: 100% response rate, median response time under four hours.</p></div>
+  <div class="stat-strip rv" style="grid-template-columns:repeat(3,1fr);margin-top:36px">
+    <div class="s"><b>100%</b><span>response rate &mdash; every review gets a real, specific reply, not silence</span></div>
+    <div class="s"><b>&lt; 4 hr</b><span>median time from review posted to a drafted response ready for your approval</span></div>
+    <div class="s"><b>Always</b><span>a human in the loop on negative reviews &mdash; this gate never relaxes</span></div>
+  </div>
+  <div class="eyebrow rv" style="margin-top:44px;color:var(--coral)">The Crew</div>
+  <div class="grid g3" style="gap:18px;margin-top:16px">
+    <div class="card rv"><h3>ARGUS &middot; monitor</h3><p>Watches every platform, classifies sentiment and severity, and detects review-bombing patterns &mdash; velocity plus similarity &mdash; alerting a human immediately when something coordinated is happening.</p></div>
+    <div class="card rv rv-d1"><h3>ECHO &middot; responder</h3><p>Drafts platform-appropriate responses in your voice. Positive reviews are thanked for the specific thing praised, by name where possible &mdash; never a template. Publishing waits for your approval.</p></div>
+    <div class="card rv rv-d2"><h3>EIR &middot; recovery</h3><p>On negative reviews, drafts the private recovery outreach and the accountable public holding response, and always escalates to the account owner. No negative review is ever answered without a human.</p></div>
+  </div>
+  <div class="panel rv" style="margin-top:40px">
+    <div class="eyebrow" style="color:var(--coral)">What&rsquo;s Automated, What Waits for You</div>
+    <table class="tbl"><thead><tr><th>Action</th><th>Gate</th><th>Why</th></tr></thead><tbody>
+      <tr><td>Monitor platforms, classify reviews</td><td>Automatic</td><td>Read-only; the earlier a problem is seen, the smaller it stays.</td></tr>
+      <tr><td>Draft a response</td><td>Logged</td><td>Drafted, not published; visible in the run feed for review.</td></tr>
+      <tr><td>Escalate a negative review to the owner</td><td>Logged</td><td>Notification with a recovery plan attached; a human always leads.</td></tr>
+      <tr><td>Publish a response</td><td>Approve</td><td>Public brand voice &mdash; you approve every publish; negative-review handling stays human by policy.</td></tr>
+    </tbody></table>
+  </div>
+  <details class="faq" style="margin-top:36px"><summary>Will it auto-reply to angry reviews?</summary><div class="a">Never. Negative reviews are the one thing this corridor will not automate &mdash; a human is in every negative-review loop, permanently, no matter how accurate the crew becomes. EIR drafts a private recovery message and a public holding response and escalates to you; you decide and approve. Automated apologies to upset customers are exactly how reputations get worse.</div></details>
+  <details class="faq"><summary>How does it avoid sounding like a robot?</summary><div class="a">It writes in your voice from your profile, and it thanks reviewers for the specific thing they mentioned rather than issuing a generic line. Every edit you make to a draft teaches it your tone, so the drafts need less editing over time.</div></details>
+  <details class="faq"><summary>What&rsquo;s review-bombing detection?</summary><div class="a">ARGUS watches for a sudden cluster of similar negative reviews &mdash; unusual velocity plus similar content &mdash; which usually signals a coordinated attack or a viral complaint rather than genuine feedback. It alerts you immediately so you can respond to the situation, not just the individual reviews.</div></details>
+  <div style="text-align:center;margin-top:40px" class="rv"><a href="#/contact" class="btn btn-primary">Install This Corridor <span class="arr">&rarr;</span></a></div>
+</div></section>
+</template>
+
 <template id="page-corridors">
 <section class="page-hero"><div class="container">
   <div class="breadcrumb"><a href="#/">Home</a> / <b>Corridors</b></div>
@@ -1358,7 +1470,7 @@ a,button{-webkit-tap-highlight-color:rgba(79,216,255,.12);touch-action:manipulat
       <p style="color:var(--muted);font-size:.92rem">Shared inbox triaged and the CRM kept truthful &mdash; every conversation logged, routed and followed up.</p>
       <p class="mono" style="font-size:.6rem;letter-spacing:.1em;color:var(--faint);margin:10px 0 4px">CREW &nbsp;<span style="color:var(--ion)">HEIMDALL</span> triage &middot; <span style="color:var(--ion)">MNEMOSYNE</span> logger &middot; <span style="color:var(--ion)">ATHENA</span> data-steward &middot; <span style="color:var(--ion)">IRIS</span> router</p>
       <p style="font-size:.82rem;color:var(--muted)"><b style="color:var(--gold)">Human gate:</b> record merges (permanently &mdash; merges destroy history). <b style="color:var(--text)">Target:</b> 95%+ conversations logged, triage &lt; 15&nbsp;min.</p>
-      <a href="#/workflow-grader" class="go" style="display:inline-block;margin-top:8px">Check readiness &rarr;</a>
+      <a href="#/services/inbox-hygiene" class="go" style="display:inline-block;margin-top:8px">View the corridor &rarr;</a>
     </div>
 
     <div class="panel" style="border-left:3px solid var(--tie-violet)">
@@ -1382,15 +1494,15 @@ a,button{-webkit-tap-highlight-color:rgba(79,216,255,.12);touch-action:manipulat
       <p style="color:var(--muted);font-size:.92rem">Invoices, POs and applications extracted, validated against your source systems, and routed &mdash; exceptions to a human with the failing check named.</p>
       <p class="mono" style="font-size:.6rem;letter-spacing:.1em;color:var(--faint);margin:10px 0 4px">CREW &nbsp;<span style="color:var(--ion)">THOTH</span> extractor &middot; <span style="color:var(--ion)">THEMIS</span> validator &middot; <span style="color:var(--ion)">TYR</span> router</p>
       <p style="font-size:.82rem;color:var(--muted)"><b style="color:var(--gold)">Human gate:</b> posting to your accounting system, until 60 days of clean history. <b style="color:var(--text)">Target:</b> keying errors &lt; 0.5%, cycle time &lt; 4h.</p>
-      <a href="#/workflow-grader" class="go" style="display:inline-block;margin-top:8px">Check readiness &rarr;</a>
+      <a href="#/services/document-intake" class="go" style="display:inline-block;margin-top:8px">View the corridor &rarr;</a>
     </div>
 
-    <div class="panel" style="border-left:3px solid var(--tie-coral)">
-      <div class="phead" style="align-items:baseline"><h3 style="font-size:1.15rem">Review &amp; Reputation</h3><span class="spacer"></span><span class="tie-chip"><i style="color:var(--tie-coral);background:var(--tie-coral)"></i>event</span></div>
+    <div class="panel" style="border-left:3px solid var(--coral)">
+      <div class="phead" style="align-items:baseline"><h3 style="font-size:1.15rem">Review &amp; Reputation</h3><span class="spacer"></span><span class="tie-chip"><i style="color:var(--coral);background:var(--coral)"></i>event</span></div>
       <p style="color:var(--muted);font-size:.92rem">Every review answered fast and in your voice; negative reviews escalated with a recovery play, never auto-answered.</p>
       <p class="mono" style="font-size:.6rem;letter-spacing:.1em;color:var(--faint);margin:10px 0 4px">CREW &nbsp;<span style="color:var(--ion)">ARGUS</span> monitor &middot; <span style="color:var(--ion)">ECHO</span> responder &middot; <span style="color:var(--ion)">EIR</span> recovery</p>
       <p style="font-size:.82rem;color:var(--muted)"><b style="color:var(--gold)">Human gate:</b> publishing responses; a human is in every negative-review loop, permanently. <b style="color:var(--text)">Target:</b> 100% response rate, median &lt; 4h.</p>
-      <a href="#/workflow-grader" class="go" style="display:inline-block;margin-top:8px">Check readiness &rarr;</a>
+      <a href="#/services/review-response" class="go" style="display:inline-block;margin-top:8px">View the corridor &rarr;</a>
     </div>
 
   </div>
@@ -3683,8 +3795,8 @@ function wireAgentCards(c){if(!c)return;
 }
 
 /* ---- router ---- */
-const ROUTES={'':'page-home','services':'page-services','services/agent-fleets':'page-service-agent-fleets','services/agentloop':'page-service-agentloop','services/the-swarm':'page-service-the-swarm','services/marketing':'page-service-marketing','services/white-label':'page-service-white-label','industries':'page-industries','industries/saas-technology':'page-industry-saas-technology','industries/professional-services':'page-industry-professional-services','industries/financial-services':'page-industry-financial-services','services/aeo':'page-service-aeo','services/content-engine':'page-service-content-engine','services/lifecycle':'page-service-lifecycle','services/analytics':'page-service-analytics','answers':'page-answers','aeo-grader':'page-aeo-grader','workflow-grader':'page-workflow-grader','daily-brief':'page-daily-brief','corridors':'page-corridors','agents':'page-agents','pricing':'page-pricing','about':'page-about','contact':'page-contact','blog':'page-blog'};
-const TITLES={'':'Delta Fleet — AI Marketing Fleets | AEO, Content Engine & Lifecycle Agents','services':'Services | Delta Fleet','services/agent-fleets':'Custom Agent Fleets | Delta Fleet','services/agentloop':'Agentloop Dashboard | Delta Fleet','services/the-swarm':'The Swarm — Local Sandboxed AI Infrastructure | Delta Fleet','services/marketing':'Delta Fleet Marketing — AI Marketing Automation','services/white-label':'White-Label AI Agent Partnerships | Delta Fleet','industries':'Industries | Delta Fleet','industries/saas-technology':'AI Agents for SaaS & Technology | Delta Fleet','industries/professional-services':'AI Agents for Professional Services | Delta Fleet','industries/financial-services':'AI Agents for Financial Services | Delta Fleet','services/aeo':'Answer Engine Optimization (AEO) Services | Delta Fleet','services/content-engine':'Content Engine — Answer-First Content on Cadence | Delta Fleet','services/lifecycle':'Lifecycle & Nurture — Speed-to-Lead Fleets | Delta Fleet','services/analytics':'Analytics & Reporting — One Weekly Digest | Delta Fleet','answers':'Answer Hub — Straight Answers on AI Automation | Delta Fleet','aeo-grader':'Free AEO Grader — Is Your Content Citable? | Delta Fleet','workflow-grader':'Free Workflow Grader — Which Workflow Should AI Run First? | Delta Fleet','daily-brief':'The Daily Brief — $79/mo Read-Only AI Morning Brief | Delta Fleet','corridors':'The Corridors — Six AI Workflows We Install | Delta Fleet','agents':'The Agents — 500+ Fleet Roster | Delta Fleet','pricing':'Pricing — Build Fee + Retainer | Delta Fleet','about':'About | Delta Fleet','contact':'Launch a Fleet — Contact | Delta Fleet','blog':'The Flight Log — AI Automation Blog | Delta Fleet'};
+const ROUTES={'':'page-home','services':'page-services','services/agent-fleets':'page-service-agent-fleets','services/agentloop':'page-service-agentloop','services/the-swarm':'page-service-the-swarm','services/marketing':'page-service-marketing','services/white-label':'page-service-white-label','industries':'page-industries','industries/saas-technology':'page-industry-saas-technology','industries/professional-services':'page-industry-professional-services','industries/financial-services':'page-industry-financial-services','services/aeo':'page-service-aeo','services/content-engine':'page-service-content-engine','services/lifecycle':'page-service-lifecycle','services/analytics':'page-service-analytics','answers':'page-answers','aeo-grader':'page-aeo-grader','workflow-grader':'page-workflow-grader','daily-brief':'page-daily-brief','corridors':'page-corridors','services/inbox-hygiene':'page-service-inbox-hygiene','services/document-intake':'page-service-document-intake','services/review-response':'page-service-review-response','agents':'page-agents','pricing':'page-pricing','about':'page-about','contact':'page-contact','blog':'page-blog'};
+const TITLES={'':'Delta Fleet — AI Workflow Integration Studio | Supervised Agent Fleets, Installed','services':'Services | Delta Fleet','services/agent-fleets':'Custom Agent Fleets | Delta Fleet','services/agentloop':'Agentloop Dashboard | Delta Fleet','services/the-swarm':'The Swarm — Local Sandboxed AI Infrastructure | Delta Fleet','services/marketing':'Delta Fleet Marketing — AI Marketing Automation','services/white-label':'White-Label AI Agent Partnerships | Delta Fleet','industries':'Industries | Delta Fleet','industries/saas-technology':'AI Agents for SaaS & Technology | Delta Fleet','industries/professional-services':'AI Agents for Professional Services | Delta Fleet','industries/financial-services':'AI Agents for Financial Services | Delta Fleet','services/aeo':'Answer Engine Optimization (AEO) Services | Delta Fleet','services/content-engine':'Content Engine — Answer-First Content on Cadence | Delta Fleet','services/lifecycle':'Lifecycle & Nurture — Speed-to-Lead Fleets | Delta Fleet','services/analytics':'Analytics & Reporting — One Weekly Digest | Delta Fleet','answers':'Answer Hub — Straight Answers on AI Automation | Delta Fleet','aeo-grader':'Free AEO Grader — Is Your Content Citable? | Delta Fleet','workflow-grader':'Free Workflow Grader — Which Workflow Should AI Run First? | Delta Fleet','daily-brief':'The Daily Brief — $79/mo Read-Only AI Morning Brief | Delta Fleet','corridors':'The Corridors — Six AI Workflows We Install | Delta Fleet','services/inbox-hygiene':'Inbox & CRM Hygiene — AI Inbox Triage & CRM Upkeep | Delta Fleet','services/document-intake':'Document Intake — AI Invoice & Document Processing | Delta Fleet','services/review-response':'Review & Reputation — AI Review Response | Delta Fleet','agents':'The Agents — 500+ Fleet Roster | Delta Fleet','pricing':'Pricing — Build Fee + Retainer | Delta Fleet','about':'About | Delta Fleet','contact':'Launch a Fleet — Contact | Delta Fleet','blog':'The Flight Log — AI Automation Blog | Delta Fleet'};
 let CLEANUP=[];
 function clean(){CLEANUP.forEach(f=>{try{f()}catch(e){}});CLEANUP=[];}
 
