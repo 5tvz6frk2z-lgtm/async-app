@@ -13,7 +13,8 @@
 import { newId } from './ledger.js';
 
 export class AgentRun {
-  constructor({ blueprint, agentName, ledger, gates, adapter, tools, maxSteps = 24, maxTokens = 200_000 }) {
+  constructor({ blueprint, agentName, ledger, gates, adapter, tools, context = [], maxSteps = 24, maxTokens = 200_000 }) {
+    this.context = context; // specialization cascade lines: pack + profile + memory
     this.bp = blueprint;
     this.agent = blueprint.agents.find((a) => a.name === agentName);
     if (!this.agent) throw new Error(`agent ${agentName} not in blueprint ${blueprint.blueprint}`);
@@ -38,6 +39,7 @@ export class AgentRun {
       `You are ${this.agent.callsign} (${this.agent.name}), an agent in the "${this.bp.title}" corridor operated by Delta Fleet.`,
       `Role: ${this.agent.role}`,
       `Corridor: ${this.bp.summary}`,
+      ...this.context,
       `Operating rules: act only through your tools; one workflow instance per run; when the task is complete, reply with a one-sentence completion note and stop calling tools.`,
       `Some actions require human approval. A rejected action is a final decision — do not retry it; adapt or finish with a note.`,
     ].join('\n');

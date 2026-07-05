@@ -1,0 +1,26 @@
+{
+  "pack": "ecommerce",
+  "title": "E-commerce & Retail",
+  "terminology": {
+    "lead": "shopper",
+    "deal": "order"
+  },
+  "standingRules": [
+    "Order-status questions get the tracking answer FIRST, then anything else.",
+    "Never promise stock, shipping dates or refunds in drafts \u2014 quote system data or escalate.",
+    "Peak-season volume spikes are normal; alert on pattern changes, not raw volume."
+  ],
+  "urgency": [
+    "chargebacks and payment disputes",
+    "shipping-damage claims",
+    "viral complaint threads"
+  ],
+  "compliance": [
+    "Refund and return commitments follow the published policy verbatim \u2014 no improvised exceptions in drafts."
+  ],
+  "corridorHints": {
+    "review-response": "Product reviews mentioning safety issues escalate immediately regardless of rating.",
+    "document-intake": "Supplier invoices reconcile against POs and received quantities, not just totals.",
+    "daily-brief": "Include yesterday's order count and refund count in every brief."
+  }
+}

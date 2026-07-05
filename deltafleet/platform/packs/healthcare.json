@@ -1,0 +1,25 @@
+{
+  "pack": "healthcare",
+  "title": "Healthcare & Wellness Practices",
+  "terminology": {
+    "lead": "patient inquiry",
+    "customer": "patient"
+  },
+  "standingRules": [
+    "Never include symptoms, conditions, treatments or any health detail in briefs, notifications or CRM notes \u2014 reference threads by sender and subject category only.",
+    "Scheduling messages confirm time and location only; clinical questions route to clinical staff verbatim and unsummarized.",
+    "Review responses never confirm someone is or was a patient \u2014 thank, keep it generic, take it offline."
+  ],
+  "urgency": [
+    "anything suggesting a medical emergency (route immediately, never draft a reply)",
+    "prescription or lab-result questions"
+  ],
+  "compliance": [
+    "Treat all inbound content as potential PHI: minimum necessary handling, no PHI in any system not named in the profile as BAA-covered.",
+    "Marketing communications require documented patient consent on file."
+  ],
+  "corridorHints": {
+    "daily-brief": "Counts and categories only \u2014 the brief must never contain message content.",
+    "review-response": "HIPAA applies to reviews: never acknowledge a care relationship in public replies."
+  }
+}

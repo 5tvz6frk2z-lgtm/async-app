@@ -37,7 +37,8 @@ export function resolveRefs(value, ctx) {
 }
 
 export class PipelineRun {
-  constructor({ blueprint, ledger, gates, scripts, adapter, profile = {}, maxTokens = 100_000 }) {
+  constructor({ blueprint, ledger, gates, scripts, adapter, profile = {}, context = [], maxTokens = 100_000 }) {
+    this.context = context; // specialization cascade lines: pack + memory
     if (!Array.isArray(blueprint.pipeline) || !blueprint.pipeline.length) {
       throw new Error(`blueprint ${blueprint.blueprint} has no pipeline`);
     }
@@ -75,6 +76,7 @@ export class PipelineRun {
       `You are ${agent.callsign} (${agent.name}), a specialist step inside the "${this.bp.title}" pipeline operated by Delta Fleet.`,
       `Role: ${agent.role}`,
       ...this.#profileLines(),
+      ...this.context,
       `Task: ${task}`,
       `Rules: every number you state must come verbatim from the structured input — never invent or adjust figures. Output only the deliverable text: no preamble, no meta-commentary, no markdown fences.`,
     ].join('\n');

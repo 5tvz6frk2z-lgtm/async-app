@@ -134,6 +134,16 @@ td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
         <div id="approvals"></div>
       </div>
       <div class="panel">
+        <div class="phead"><h3>Client memory</h3><span class="count" id="mem-count" style="color:var(--nebula);border-color:rgba(139,123,255,.4)">0</span><span class="spacer"></span><span class="klabel" id="pack-chip">PACK</span></div>
+        <div id="memories"></div>
+        <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
+          <select id="mem-kind" style="width:auto;background:var(--deep);border:1px solid var(--line-strong);border-radius:8px;color:var(--text);font-size:.76rem;padding:6px 8px"><option value="rule">RULE</option><option value="preference">PREF</option><option value="fact">FACT</option><option value="pattern">PATTERN</option></select>
+          <input id="mem-text" placeholder="Teach the fleet something…" style="flex:1;min-width:160px;background:var(--deep);border:1px solid var(--line-strong);border-radius:8px;color:var(--text);font-size:.8rem;padding:6px 9px">
+          <button class="btn sm" id="mem-add">Add</button>
+        </div>
+        <p class="hint">Rules & preferences are standing instructions in every future run. Edits and rejections in the approvals queue teach the fleet automatically.</p>
+      </div>
+      <div class="panel">
         <div class="phead"><h3>Gate changes</h3><span class="spacer"></span><span class="klabel">TRUST CURVE LOG</span></div>
         <div id="gatelog"><p class="hint">No gate changes yet. Relaxation proposals appear on corridor cards when a gated tool earns them.</p></div>
       </div>
@@ -243,6 +253,14 @@ function bpsHTML(bps,trust,demo){
    ${demo&&bp.hasScenario?`<button class="btn sm" style="margin-top:8px" data-sim-one="${bp.id}">▸ Simulate this corridor</button>`:''}
   </div>`).join('');
 }
+const KINDC={rule:'var(--crimson)',preference:'var(--gold)',fact:'var(--ion)',pattern:'var(--faint)'};
+function memoriesHTML(list){
+ if(!list.length)return '<p class="hint">Nothing learned yet. Onboarding seeds, operator notes, and captured corrections land here.</p>';
+ return list.map(m=>`<div class="tr" style="margin-bottom:7px;align-items:center">
+   <span class="g" style="color:${KINDC[m.kind]};border-color:${KINDC[m.kind]}40">${m.kind.toUpperCase()}</span>
+   <span style="font-size:.78rem;flex:1">${esc(m.text)} <span class="klabel">${m.scope==='client'?'':'· '+esc(m.scope)} · ${Math.round((m.confidence||0)*100)}%${m.confirms>1?' · ×'+m.confirms:''} · ${esc(m.source?.type||'')}</span></span>
+   <button class="btn bad sm" data-mem-retire="${m.id}" title="Retire">✕</button></div>`).join('');
+}
 function gatelogHTML(list){
  if(!list.length)return '<p class="hint">No gate changes yet. Relaxation proposals appear on corridor cards when a gated tool earns them.</p>';
  return list.map(e=>`<div class="tr" style="margin-bottom:6px"><span class="g log">${new Date(e.t).toLocaleDateString()}</span><span class="tool">${esc(e.blueprint)} · ${esc(e.tool)}</span><span style="font-size:.74rem">${esc(e.from)} → <b style="color:var(--gold)">${esc(e.to)}</b> by ${esc(e.by)}${e.reason?' — '+esc(e.reason):''}</span></div>`).join('');
@@ -258,6 +276,10 @@ function render(st){
  $('#runs').innerHTML=runsHTML(st.runs);
  $('#bps').innerHTML=bpsHTML(st.blueprints,st.trust,st.demo);
  $('#gatelog').innerHTML=gatelogHTML(st.gateChanges);
+ const memEditing=document.activeElement&&document.activeElement.id==='mem-text';
+ if(!memEditing)$('#memories').innerHTML=memoriesHTML(st.memories||[]);
+ $('#mem-count').textContent=(st.memories||[]).length;
+ if(st.pack)$('#pack-chip').textContent='PACK · '+st.pack.title.toUpperCase();
  if(st.demo){$('#demo-chip').style.display='';$('#btn-sim').style.display=''}
 }
 
@@ -281,9 +303,14 @@ document.addEventListener('click',async e=>{
   if(confirm(`Relax ${tool} from APPROVE to LOG for ${blueprint}? Evidence: clean trust window. Reversible via gate change.`))
    await post('/api/gate',{blueprint,tool,to:'log',reason:'trust window earned relaxation'});
  }
+ if(t.dataset.memRetire)await post('/api/memory/retire',{id:t.dataset.memRetire});
+ if(t.id==='mem-add'){
+  const text=$('#mem-text').value.trim();
+  if(text){await post('/api/memory',{kind:$('#mem-kind').value,text});$('#mem-text').value=''}
+ }
  if(t.id==='btn-sim')await post('/api/simulate',{});
  if(t.dataset.simOne)await post('/api/simulate',{scenario:t.dataset.simOne});
- if(t.dataset.approve||t.dataset.edit||t.dataset.reject||t.dataset.kill||t.dataset.relax||t.id==='btn-sim'||t.dataset.simOne)tick();
+ if(t.dataset.approve||t.dataset.edit||t.dataset.reject||t.dataset.kill||t.dataset.relax||t.id==='btn-sim'||t.dataset.simOne||t.dataset.memRetire||t.id==='mem-add')tick();
 });
 
 let inflight=false;

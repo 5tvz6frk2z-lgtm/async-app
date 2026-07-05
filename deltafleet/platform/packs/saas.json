@@ -1,0 +1,24 @@
+{
+  "pack": "saas",
+  "title": "SaaS & Technology",
+  "terminology": {
+    "customer": "account"
+  },
+  "standingRules": [
+    "Distinguish trial, paying and churned accounts in every summary \u2014 context changes everything.",
+    "Bug reports and outage mentions route to support tooling, never to sales cadences.",
+    "Usage data beats opinions: cite product events when describing account health."
+  ],
+  "urgency": [
+    "outage or data-loss mentions",
+    "security questionnaires",
+    "enterprise renewal threads"
+  ],
+  "compliance": [
+    "Security questionnaire answers come from the approved library only \u2014 never improvised."
+  ],
+  "corridorHints": {
+    "speed-to-lead": "Route by segment: self-serve signups get product-led follow-up, enterprise inquiries get a human call offer.",
+    "reporting-autopilot": "Lead with MRR movement and activation rate; vanity metrics go last or nowhere."
+  }
+}

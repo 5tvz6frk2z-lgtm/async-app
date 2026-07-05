@@ -20,6 +20,8 @@ In demo mode, hit **▸ Run demo sortie** — four corridor runs (HERMOD speed-t
 | `lib/triggers.js` | Intake: 5-field cron scheduler + authenticated webhook handler |
 | `lib/pipeline.js` | Hybrid executor: deterministic `script` steps + single-shot `infer` steps, `$ref` wiring, profile-configured prompts |
 | `lib/scripts.js` | ScriptRegistry (the deterministic spine) + Daily Brief sim handlers; startup coverage guard |
+| `lib/memory.js` | Learning layer: typed memories (rule/pref/fact/pattern) in the ledger; correction capture from gate verdicts; decay + consolidation |
+| `lib/packs.js` + `packs/` | Industry packs — terminology, standing rules, compliance per industry; one JSON file per industry |
 | `lib/metrics.js` | Delta Proof math (baseline vs current) + ops rollups |
 | `lib/demo.js` | Simulated connectors + scripted scenarios (what Install #0 dry-runs look like) |
 | `server.js` | node:http — console + JSON API (`/api/state`, `/api/verdict`, `/api/kill`, `/api/gate`, `/api/simulate`) + `POST /hooks/{blueprint}` |

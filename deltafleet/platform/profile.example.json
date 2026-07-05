@@ -1,11 +1,17 @@
 {
-  "//": "Per-client profile. Copy to profile.json, run with --profile profile.json. Every infer step reads this — it is the 'configured to your brand' layer. byok: bring-your-own-key; when enabled, inference bills to the client's own Anthropic key (read from the named env var) instead of ours.",
+  "//": "Per-client profile — layer 3 of the specialization cascade (blueprint → industry pack → THIS FILE → learned memory). Copy to profile.json, fill in on the onboarding call, run with --profile profile.json. byok: bring-your-own-key — inference bills to the client's own Anthropic key (env var named below).",
   "brand": "Ironvale Manufacturing",
+  "pack": "generic",
   "industry": "Industrial equipment (B2B, dealer network)",
   "website": "https://ironvale.example",
   "voice": "Plainspoken, direct, zero fluff. Numbers first. Never exclamation marks.",
   "audience": "Owner-operator; reads on phone at 7am; wants decisions, not summaries.",
   "briefTo": "dana@ironvale.example",
   "notes": "Quiet hours before 7am. Escalate anything legal or press to Dana directly.",
+  "seedMemories": [
+    { "kind": "rule", "scope": "client", "text": "Dana is the only approver for anything involving money or press." },
+    { "kind": "preference", "scope": "daily-brief", "text": "Lead the brief with dealer-network threads when any are waiting — they outrank everything else." },
+    { "kind": "fact", "scope": "client", "text": "Corvid Studios is a vendor (white-label content); their invoices arrive from billing@corvid.example as PDFs." }
+  ],
   "byok": { "enabled": false, "env": "CLIENT_ANTHROPIC_KEY" }
 }

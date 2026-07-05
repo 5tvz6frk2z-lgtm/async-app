@@ -23,6 +23,8 @@ import { demoScriptRegistry, assertScriptsCovered } from './lib/scripts.js';
 import { demoToolRegistry, seedBaselines, launchScenario, SCENARIOS } from './lib/demo.js';
 import { buildMcpRegistry, assertBlueprintsCovered } from './lib/connectors.js';
 import { TriggerEngine, makeHookHandler } from './lib/triggers.js';
+import { MemoryEngine } from './lib/memory.js';
+import { loadPackDir, packContext } from './lib/packs.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const arg = (name, dflt) => {
@@ -62,6 +64,28 @@ if (CONNECTORS) {
 const scripts = demoScriptRegistry(); // production swaps pull.*/deliver.* handlers for MCP/IMAP-backed ones
 assertScriptsCovered(blueprints, scripts);
 
+/* ---------------- specialization cascade: pack + memory ---------------- */
+
+const packs = loadPackDir(path.join(here, 'packs'));
+const pack = packs.get(profile.pack || 'generic');
+if (!pack) throw new Error(`profile.pack "${profile.pack}" not found in packs/`);
+
+const memory = new MemoryEngine(ledger).enableCorrectionCapture();
+for (const [i, seed] of (profile.seedMemories || []).entries()) {
+  const key = seed.key || `onboarding:${i}`;
+  if (!memory.active().some((m) => m.key === key)) {
+    memory.add({ ...seed, key, source: { type: 'onboarding' } });
+  }
+}
+
+/** Layered prompt context for a run: industry pack, then learned memory. */
+function contextFor(blueprintId) {
+  const lines = packContext(pack, blueprintId);
+  const mem = memory.contextBlock({ blueprint: blueprintId });
+  if (mem) lines.push(mem);
+  return lines;
+}
+
 function adapterFor(blueprintId, agentName) {
   if (!DEMO) {
     // BYOK: when the client profile opts in, inference bills to their key.
@@ -84,12 +108,13 @@ function launchRun(blueprintId, triggerInput, { agentName } = {}) {
   const bp = blueprints.get(blueprintId);
   if (!bp) throw new Error(`unknown blueprint ${blueprintId}`);
   let run;
+  const context = contextFor(blueprintId);
   if (bp.pipeline) {
     const inferAgent = bp.pipeline.find((s) => s.infer)?.infer || bp.agents[0].name;
-    run = new PipelineRun({ blueprint: bp, ledger, gates, scripts, adapter: adapterFor(blueprintId, inferAgent), profile });
+    run = new PipelineRun({ blueprint: bp, ledger, gates, scripts, adapter: adapterFor(blueprintId, inferAgent), profile, context });
   } else {
     const agent = agentName || bp.entry || bp.agents[0].name;
-    run = new AgentRun({ blueprint: bp, agentName: agent, ledger, gates, adapter: adapterFor(blueprintId, agent), tools });
+    run = new AgentRun({ blueprint: bp, agentName: agent, ledger, gates, adapter: adapterFor(blueprintId, agent), tools, context });
   }
   activeRuns.set(run.id, run);
   run.run(triggerInput).finally(() => activeRuns.delete(run.id));
@@ -133,6 +158,8 @@ function apiState() {
     blueprints: bps,
     demo: DEMO,
     intake: { triggers: TRIGGERS, webhooks: !!HOOK_SECRET, connectors: !!CONNECTORS },
+    pack: { id: pack.pack, title: pack.title },
+    memories: memory.active().sort((a, b) => (a.updated < b.updated ? 1 : -1)).slice(0, 100),
   };
 }
 const pick = (r) => r && { id: r.id, blueprint: r.blueprint, agent: r.agent, callsign: r.callsign, status: r.status };
@@ -176,6 +203,19 @@ const server = http.createServer(async (req, res) => {
       if (!run) return json(res, 404, { ok: false, error: 'run not active (already finished?)' });
       run.kill(b.by || 'operator');
       return json(res, 200, { ok: true });
+    }
+    if (req.method === 'POST' && url.pathname === '/api/memory') {
+      const b = await readBody(req);
+      const m = memory.add({ kind: b.kind, text: b.text, scope: b.scope || 'client', source: { type: 'operator', by: b.by || 'operator' } });
+      return json(res, 200, { ok: true, memory: m });
+    }
+    if (req.method === 'POST' && url.pathname === '/api/memory/retire') {
+      const b = await readBody(req);
+      memory.retire(b.id, { by: b.by || 'operator', reason: b.reason || '' });
+      return json(res, 200, { ok: true });
+    }
+    if (req.method === 'POST' && url.pathname === '/api/memory/consolidate') {
+      return json(res, 200, { ok: true, ...memory.consolidate() });
     }
     if (req.method === 'POST' && url.pathname === '/api/gate') {
       const b = await readBody(req);

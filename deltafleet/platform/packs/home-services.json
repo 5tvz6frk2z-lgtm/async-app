@@ -1,0 +1,25 @@
+{
+  "pack": "home-services",
+  "title": "Home & Field Services (trades, contractors, repair)",
+  "terminology": {
+    "lead": "job request",
+    "deal": "job"
+  },
+  "standingRules": [
+    "Speed wins jobs: a fast, specific reply beats a polished slow one.",
+    "Always capture service address and preferred time window in the first exchange.",
+    "Quote ranges come from the price book in the profile \u2014 never invent a number."
+  ],
+  "urgency": [
+    "no-heat / no-water / active-leak emergencies",
+    "same-day cancellations (backfill the slot)"
+  ],
+  "compliance": [
+    "Licensing and insurance claims in drafts must match the profile exactly."
+  ],
+  "corridorHints": {
+    "speed-to-lead": "Ask for photos of the problem in the first reply \u2014 it doubles quote accuracy.",
+    "review-response": "Name the technician when thanking for praise; crews share reviews in the group chat.",
+    "daily-brief": "Lead with today's job schedule and any unconfirmed appointments."
+  }
+}
