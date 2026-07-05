@@ -1,10 +1,14 @@
 // Agentloop server — one process per client deployment.
 // Serves the console UI and the JSON API over node:http. Zero dependencies.
 //
-//   node server.js [--port 4600] [--data ./data/ledger.jsonl] [--demo]
+//   node server.js [--port 4600] [--data ./data/ledger.jsonl]
+//                  [--demo]                    simulated connectors + /api/simulate
+//                  [--connectors cfg.json]     MCP-backed tools (see lib/connectors.js)
+//                  [--triggers]                enable cron scheduler for schedule blueprints
+//                  [--hook-secret S]           enable POST /hooks/{blueprint} (or env FLEET_HOOK_SECRET)
 //
-// --demo seeds baselines and enables POST /api/simulate so the console can be
-// exercised without API keys or client connectors.
+// Adapter selection: --demo uses scripted MockAdapters; otherwise
+// ANTHROPIC_API_KEY must be set and the real AnthropicAdapter drives agents.
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -13,7 +17,10 @@ import { loadBlueprintDir } from './lib/blueprint.js';
 import { Ledger } from './lib/ledger.js';
 import { GateEngine } from './lib/gates.js';
 import { proofFor, opsSummary } from './lib/metrics.js';
+import { AgentRun, AnthropicAdapter, MockAdapter } from './lib/runtime.js';
 import { demoToolRegistry, seedBaselines, launchScenario, SCENARIOS } from './lib/demo.js';
+import { buildMcpRegistry, assertBlueprintsCovered } from './lib/connectors.js';
+import { TriggerEngine, makeHookHandler } from './lib/triggers.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const arg = (name, dflt) => {
@@ -23,14 +30,60 @@ const arg = (name, dflt) => {
 const PORT = Number(arg('port', 4600));
 const DATA = arg('data', path.join(here, 'data', 'ledger.jsonl'));
 const DEMO = process.argv.includes('--demo');
+const CONNECTORS = arg('connectors', null);
+const TRIGGERS = process.argv.includes('--triggers');
+const HOOK_SECRET = arg('hook-secret', process.env.FLEET_HOOK_SECRET || null);
 
 const blueprints = loadBlueprintDir(path.join(here, 'blueprints'));
 const ledger = new Ledger(DATA);
 const gates = new GateEngine(ledger, blueprints);
-const tools = demoToolRegistry(); // real deployments swap in MCP-backed registries
-const activeRuns = new Map();     // run id -> AgentRun (for kill)
+const activeRuns = new Map(); // run id -> AgentRun (for kill)
+
+/* ---------------- tools & adapter ---------------- */
+
+let tools;
+if (CONNECTORS) {
+  const built = await buildMcpRegistry(CONNECTORS);
+  tools = built.registry;
+  assertBlueprintsCovered(blueprints, tools);
+  console.log(`connectors: ${built.mapped.length} tools mapped across ${Object.keys(built.clients).length} MCP server(s)`);
+} else {
+  tools = demoToolRegistry();
+  if (!DEMO) console.log('WARNING: no --connectors given; using simulated tool stubs');
+}
+
+function adapterFor(blueprintId, agentName) {
+  if (!DEMO) {
+    if (!process.env.ANTHROPIC_API_KEY) throw new Error('live mode needs ANTHROPIC_API_KEY (or run with --demo)');
+    return new AnthropicAdapter({});
+  }
+  const sc = SCENARIOS[blueprintId];
+  if (sc && sc.agent === agentName) return new MockAdapter(structuredClone(sc.script));
+  return new MockAdapter([{ text: `(${agentName}) trigger received and acknowledged — no scripted scenario for this agent in demo mode.` }]);
+}
+
+/** Single entry point every intake path uses: simulate, webhook, schedule. */
+function launchRun(blueprintId, triggerInput, { agentName } = {}) {
+  const bp = blueprints.get(blueprintId);
+  if (!bp) throw new Error(`unknown blueprint ${blueprintId}`);
+  const agent = agentName || bp.entry || bp.agents[0].name;
+  const run = new AgentRun({
+    blueprint: bp, agentName: agent, ledger, gates,
+    adapter: adapterFor(blueprintId, agent), tools,
+  });
+  activeRuns.set(run.id, run);
+  run.run(triggerInput).finally(() => activeRuns.delete(run.id));
+  return run.id;
+}
 
 if (DEMO && ledger.events.length === 0) seedBaselines(ledger);
+
+const hookHandler = makeHookHandler({ blueprints, launch: (id, payload, meta) => launchRun(id, { ...payload, _via: meta.via }), secret: HOOK_SECRET });
+const triggerEngine = new TriggerEngine({ blueprints, launch: (id, input) => launchRun(id, input), log: console.log });
+if (TRIGGERS) {
+  triggerEngine.start();
+  console.log(`triggers: cron scheduler armed for ${triggerEngine.schedules.length} schedule blueprint(s)`);
+}
 
 /* ---------------- state serialization ---------------- */
 
@@ -59,6 +112,7 @@ function apiState() {
     gateChanges: s.gateChanges.slice(-20).reverse(),
     blueprints: bps,
     demo: DEMO,
+    intake: { triggers: TRIGGERS, webhooks: !!HOOK_SECRET, connectors: !!CONNECTORS },
   };
 }
 const pick = (r) => r && { id: r.id, blueprint: r.blueprint, agent: r.agent, callsign: r.callsign, status: r.status };
@@ -85,6 +139,12 @@ const server = http.createServer(async (req, res) => {
     }
     if (req.method === 'GET' && url.pathname === '/api/state') return json(res, 200, apiState());
 
+    if (req.method === 'POST' && url.pathname.startsWith('/hooks/')) {
+      const blueprintId = url.pathname.slice('/hooks/'.length);
+      const body = await readBody(req);
+      const out = hookHandler(blueprintId, Object.fromEntries(Object.entries(req.headers)), body);
+      return json(res, out.status, out.body);
+    }
     if (req.method === 'POST' && url.pathname === '/api/verdict') {
       const b = await readBody(req);
       const e = gates.verdict(b.action, { verdict: b.verdict, by: b.by || 'operator', editedInput: b.editedInput, reason: b.reason });
@@ -123,4 +183,5 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, () => {
   console.log(`AGENTLOOP console  → http://localhost:${PORT}  (${DEMO ? 'DEMO MODE' : 'live'}; ledger: ${DATA})`);
+  if (HOOK_SECRET) console.log(`webhooks: POST /hooks/{blueprint} with x-fleet-secret`);
 });

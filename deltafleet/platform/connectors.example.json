@@ -1,0 +1,17 @@
+{
+  "//": "Per-client deployment config. Copy to connectors.json, fill in the client's real MCP servers, run with --connectors connectors.json. Startup fails loudly if any blueprint tool is unmapped or a server doesn't expose the mapped tool.",
+  "servers": {
+    "hubspot": { "url": "https://mcp.yourgateway.example/hubspot", "headers": { "authorization": "Bearer REPLACE" } },
+    "gmail":   { "url": "https://mcp.yourgateway.example/gmail",   "headers": { "authorization": "Bearer REPLACE" } },
+    "gcal":    { "url": "https://mcp.yourgateway.example/gcal",    "headers": { "authorization": "Bearer REPLACE" } }
+  },
+  "map": {
+    "crm.read":      { "server": "hubspot", "tool": "get_contact" },
+    "crm.update":    { "server": "hubspot", "tool": "update_contact" },
+    "web.lookup":    { "server": "hubspot", "tool": "enrich_company" },
+    "email.draft":   { "server": "gmail",   "tool": "create_draft" },
+    "email.send":    { "server": "gmail",   "tool": "send_message" },
+    "calendar.read": { "server": "gcal",    "tool": "list_free_slots" },
+    "calendar.book": { "server": "gcal",    "tool": "create_event" }
+  }
+}

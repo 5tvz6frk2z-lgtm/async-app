@@ -52,6 +52,11 @@ export function validateBlueprint(bp) {
 
   if (typeof bp.rollback !== 'string' || !bp.rollback) err('rollback must be a non-empty string');
 
+  // Optional entry agent for trigger-launched runs (defaults to agents[0]).
+  if (bp.entry !== undefined && !(bp.agents || []).some((a) => a.name === bp.entry)) {
+    err(`entry "${bp.entry}" does not name an agent`);
+  }
+
   // Every tool named in gates (other than *) should belong to some agent.
   if (Array.isArray(bp.agents)) {
     const agentTools = new Set(bp.agents.flatMap((a) => a.tools || []));

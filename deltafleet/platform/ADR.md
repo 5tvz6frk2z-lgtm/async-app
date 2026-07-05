@@ -20,10 +20,14 @@
 
 **8. Budgets are hard.** `maxSteps` and `maxTokens` per run; exceeding either ends the run as `error` with the reason ledgered. Runaways die loudly.
 
+**9. MCP is the connector seam (v0.2).** `lib/mcp.js` is a minimal zero-dep MCP client over Streamable HTTP: initialize → initialized → tools/list → tools/call, handling both JSON and SSE response modes and echoing `mcp-session-id`. `lib/connectors.js` binds fleet tool names to a client's MCP servers via `connectors.json`; schemas and descriptions come from the server's own tools/list, and `assertBlueprintsCovered` makes an unmapped tool a startup failure, not a mid-run surprise. Deliberately not implemented: stdio transport (we deploy against hosted/gateway MCP servers), resources/prompts (tools are all the runtime consumes), streaming partial results.
+
+**10. Intake mirrors the blueprint's trigger block (v0.2).** Schedule blueprints (`cron: …`) fire from an in-process 5-field cron scheduler (with the classic dom/dow OR rule; at-most-once per matching minute). Event blueprints accept `POST /hooks/{blueprint}` authenticated by a shared `x-fleet-secret`; schedule blueprints refuse webhooks (409). Trigger-launched runs start at the blueprint's optional `entry` agent (default: first listed). All intake funnels through one `launchRun` path — same runtime, gates, ledger.
+
 ## Not built yet (deliberately)
 
-MCP connector handlers (per-client work), trigger listeners (webhook/cron intake — runs are launched programmatically or via `/api/simulate` for now), auth on the console (deployments sit behind a client-scoped tunnel/VPN until this lands), Delta Proof PDF export (data is already computed by `proofFor`), snapshot/compaction of long ledgers.
+Auth on the console (deployments sit behind a client-scoped tunnel/VPN until this lands), Delta Proof PDF export (data is already computed by `proofFor`), snapshot/compaction of long ledgers, MCP stdio transport + OAuth token refresh (gateway concern for now), webhook payload schemas per blueprint.
 
 ## Test coverage
 
-`npm test` — 13 cases: blueprint validation, ledger replay, verdict lifecycle + double-verdict rejection, trust-curve relaxation proposal + gate change, runtime happy path, approval park/resume with edited input, rejection-as-final, kill-while-parked, step-budget enforcement, proof math direction-awareness, ops rollup.
+`npm test` — 21 cases. Core (13): blueprint validation, ledger replay, verdict lifecycle + double-verdict rejection, trust-curve relaxation proposal + gate change, runtime happy path, approval park/resume with edited input, rejection-as-final, kill-while-parked, step-budget enforcement, proof math direction-awareness, ops rollup. Intake (8): MCP handshake/session/tool-call over both JSON and SSE wire modes, connector mapping + error surfacing + coverage guard, cron matching (steps/ranges/lists/dom-dow OR), scheduler once-per-minute semantics, webhook auth/routing/schedule-rejection.

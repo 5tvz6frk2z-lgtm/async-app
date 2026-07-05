@@ -15,10 +15,25 @@ In demo mode, hit **▸ Run demo sortie** — four corridor runs (HERMOD speed-t
 | `lib/ledger.js` | Append-only JSONL event log; all state derived by replay |
 | `lib/gates.js` | auto/log/approve classification, verdicts, trust curve, relaxation proposals |
 | `lib/runtime.js` | Agent loop: park-on-approval, resume-with-edit, kill switch, hard budgets; Anthropic + Mock adapters |
+| `lib/mcp.js` | Zero-dep MCP client (Streamable HTTP: JSON + SSE responses, session handling) |
+| `lib/connectors.js` | connectors.json → ToolRegistry bridge; startup coverage guard |
+| `lib/triggers.js` | Intake: 5-field cron scheduler + authenticated webhook handler |
 | `lib/metrics.js` | Delta Proof math (baseline vs current) + ops rollups |
 | `lib/demo.js` | Simulated connectors + scripted scenarios (what Install #0 dry-runs look like) |
-| `server.js` | node:http — console + JSON API (`/api/state`, `/api/verdict`, `/api/kill`, `/api/gate`, `/api/simulate`) |
+| `server.js` | node:http — console + JSON API (`/api/state`, `/api/verdict`, `/api/kill`, `/api/gate`, `/api/simulate`) + `POST /hooks/{blueprint}` |
 | `console/index.html` | The Agentloop console (five MVP features, house HUD style) |
+| `connectors.example.json` | Template for binding fleet tool names to a client's MCP servers |
 | `ADR.md` | Why it's built this way, and what's deliberately not built yet |
 
-Production deployment = this process + a real `ANTHROPIC_API_KEY` (AnthropicAdapter) + MCP-backed tool handlers per client. The demo path exists so nothing ships that we can't first fly in simulation.
+## Production deployment
+
+```bash
+ANTHROPIC_API_KEY=… FLEET_HOOK_SECRET=… \
+  node server.js --connectors connectors.json --triggers --data /var/fleet/ledger.jsonl
+```
+
+- **Tools:** `--connectors` binds fleet tool names (`crm.read`, `email.send`, …) to the client's MCP servers; startup fails loudly if any blueprint tool is unmapped.
+- **Intake:** `--triggers` arms the cron scheduler for schedule blueprints; `FLEET_HOOK_SECRET` enables `POST /hooks/{blueprint}` (header `x-fleet-secret`) for event blueprints. Trigger-launched runs start at the blueprint's `entry` agent (default: first agent).
+- **Models:** live mode uses the Anthropic adapter (adaptive thinking; default `claude-opus-4-8`, per-agent overrides like `claude-haiku-4-5` in the blueprint).
+
+The demo path exists so nothing ships that we can't first fly in simulation.
