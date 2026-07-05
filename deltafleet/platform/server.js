@@ -26,6 +26,8 @@ import { TriggerEngine, makeHookHandler } from './lib/triggers.js';
 import { MemoryEngine } from './lib/memory.js';
 import { loadPackDir, packContext } from './lib/packs.js';
 import { reportData, renderReportHTML } from './lib/report.js';
+import { benchmarkExport } from './lib/benchmark.js';
+import crypto from 'node:crypto';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const arg = (name, dflt) => {
@@ -188,6 +190,17 @@ const server = http.createServer(async (req, res) => {
     }
     if (req.method === 'GET' && url.pathname === '/api/state') return json(res, 200, apiState());
 
+    if (req.method === 'GET' && url.pathname === '/api/benchmark-export') {
+      // Anonymized cross-install export. installId is an opaque salted hash of
+      // the client brand — never the brand itself. A central aggregator pulls
+      // this from each deployment; see bin/aggregate.js.
+      const installId = 'ins_' + crypto.createHash('sha256')
+        .update((process.env.FLEET_BENCHMARK_SALT || 'df-benchmark') + '|' + (profile.brand || 'anon'))
+        .digest('hex').slice(0, 16);
+      const e = benchmarkExport(blueprints, ledger.state(), { installId });
+      e.at = new Date().toISOString();
+      return json(res, 200, e);
+    }
     if (req.method === 'GET' && url.pathname === '/report') {
       const now = new Date();
       const dflt = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
