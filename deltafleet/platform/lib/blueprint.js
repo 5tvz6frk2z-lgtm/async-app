@@ -27,9 +27,22 @@ export function validateBlueprint(bp) {
   else bp.agents.forEach((a, i) => {
     if (!a.name || !/^[a-z0-9-]+$/.test(a.name)) err(`agents[${i}].name must be kebab-case`);
     if (!a.role) err(`agents[${i}].role required`);
-    if (!Array.isArray(a.tools) || a.tools.length === 0) err(`agents[${i}].tools must be non-empty`);
+    if (!Array.isArray(a.tools)) err(`agents[${i}].tools must be an array`);
+    else if (a.tools.length === 0 && !bp.pipeline) err(`agents[${i}].tools must be non-empty (empty allowed only in pipeline blueprints)`);
     if (a.model !== undefined && typeof a.model !== 'string') err(`agents[${i}].model must be a string`);
   });
+
+  // Hybrid pipelines: deterministic script steps + single-shot infer steps.
+  if (bp.pipeline !== undefined) {
+    if (!Array.isArray(bp.pipeline) || bp.pipeline.length === 0) err('pipeline must be a non-empty array');
+    else bp.pipeline.forEach((s, i) => {
+      const kinds = ['script', 'infer'].filter((k) => k in s);
+      if (kinds.length !== 1) err(`pipeline[${i}] must have exactly one of "script" or "infer"`);
+      if (s.script && !/^[a-z0-9_.-]+$/.test(s.script)) err(`pipeline[${i}].script has an invalid name`);
+      if (s.infer && !(bp.agents || []).some((a) => a.name === s.infer)) err(`pipeline[${i}].infer references unknown agent "${s.infer}"`);
+      if (s.save !== undefined && !/^[a-zA-Z][a-zA-Z0-9_]*$/.test(s.save)) err(`pipeline[${i}].save must be an identifier`);
+    });
+  }
 
   if (typeof bp.gates !== 'object') err('gates must be an object');
   else {
@@ -57,11 +70,15 @@ export function validateBlueprint(bp) {
     err(`entry "${bp.entry}" does not name an agent`);
   }
 
-  // Every tool named in gates (other than *) should belong to some agent.
+  // Every tool named in gates (other than *) should belong to some agent or
+  // be a pipeline script step.
   if (Array.isArray(bp.agents)) {
-    const agentTools = new Set(bp.agents.flatMap((a) => a.tools || []));
+    const known = new Set([
+      ...bp.agents.flatMap((a) => a.tools || []),
+      ...(bp.pipeline || []).map((s) => s.script).filter(Boolean),
+    ]);
     for (const tool of Object.keys(bp.gates || {})) {
-      if (tool !== '*' && !agentTools.has(tool)) err(`gates["${tool}"] refers to a tool no agent uses`);
+      if (tool !== '*' && !known.has(tool)) err(`gates["${tool}"] refers to a tool no agent or pipeline step uses`);
     }
   }
   return errs;

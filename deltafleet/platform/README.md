@@ -18,11 +18,14 @@ In demo mode, hit **▸ Run demo sortie** — four corridor runs (HERMOD speed-t
 | `lib/mcp.js` | Zero-dep MCP client (Streamable HTTP: JSON + SSE responses, session handling) |
 | `lib/connectors.js` | connectors.json → ToolRegistry bridge; startup coverage guard |
 | `lib/triggers.js` | Intake: 5-field cron scheduler + authenticated webhook handler |
+| `lib/pipeline.js` | Hybrid executor: deterministic `script` steps + single-shot `infer` steps, `$ref` wiring, profile-configured prompts |
+| `lib/scripts.js` | ScriptRegistry (the deterministic spine) + Daily Brief sim handlers; startup coverage guard |
 | `lib/metrics.js` | Delta Proof math (baseline vs current) + ops rollups |
 | `lib/demo.js` | Simulated connectors + scripted scenarios (what Install #0 dry-runs look like) |
 | `server.js` | node:http — console + JSON API (`/api/state`, `/api/verdict`, `/api/kill`, `/api/gate`, `/api/simulate`) + `POST /hooks/{blueprint}` |
 | `console/index.html` | The Agentloop console (five MVP features, house HUD style) |
 | `connectors.example.json` | Template for binding fleet tool names to a client's MCP servers |
+| `profile.example.json` | Per-client brand/voice/industry config + BYOK (client's own API key) |
 | `ADR.md` | Why it's built this way, and what's deliberately not built yet |
 
 ## Production deployment

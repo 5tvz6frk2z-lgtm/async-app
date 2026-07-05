@@ -18,6 +18,8 @@ import { Ledger } from './lib/ledger.js';
 import { GateEngine } from './lib/gates.js';
 import { proofFor, opsSummary } from './lib/metrics.js';
 import { AgentRun, AnthropicAdapter, MockAdapter } from './lib/runtime.js';
+import { PipelineRun } from './lib/pipeline.js';
+import { demoScriptRegistry, assertScriptsCovered } from './lib/scripts.js';
 import { demoToolRegistry, seedBaselines, launchScenario, SCENARIOS } from './lib/demo.js';
 import { buildMcpRegistry, assertBlueprintsCovered } from './lib/connectors.js';
 import { TriggerEngine, makeHookHandler } from './lib/triggers.js';
@@ -33,6 +35,11 @@ const DEMO = process.argv.includes('--demo');
 const CONNECTORS = arg('connectors', null);
 const TRIGGERS = process.argv.includes('--triggers');
 const HOOK_SECRET = arg('hook-secret', process.env.FLEET_HOOK_SECRET || null);
+const PROFILE_PATH = arg('profile', null);
+
+// Per-client profile: brand/voice/industry config for every infer step,
+// plus BYOK (bring-your-own-key) inference billing.
+const profile = PROFILE_PATH ? JSON.parse(fs.readFileSync(PROFILE_PATH, 'utf8')) : {};
 
 const blueprints = loadBlueprintDir(path.join(here, 'blueprints'));
 const ledger = new Ledger(DATA);
@@ -52,25 +59,38 @@ if (CONNECTORS) {
   if (!DEMO) console.log('WARNING: no --connectors given; using simulated tool stubs');
 }
 
+const scripts = demoScriptRegistry(); // production swaps pull.*/deliver.* handlers for MCP/IMAP-backed ones
+assertScriptsCovered(blueprints, scripts);
+
 function adapterFor(blueprintId, agentName) {
   if (!DEMO) {
-    if (!process.env.ANTHROPIC_API_KEY) throw new Error('live mode needs ANTHROPIC_API_KEY (or run with --demo)');
-    return new AnthropicAdapter({});
+    // BYOK: when the client profile opts in, inference bills to their key.
+    const key = profile.byok?.enabled
+      ? process.env[profile.byok.env || 'CLIENT_ANTHROPIC_KEY']
+      : process.env.ANTHROPIC_API_KEY;
+    if (!key) throw new Error(profile.byok?.enabled
+      ? `BYOK enabled but ${profile.byok.env || 'CLIENT_ANTHROPIC_KEY'} is not set`
+      : 'live mode needs ANTHROPIC_API_KEY (or run with --demo)');
+    return new AnthropicAdapter({ apiKey: key });
   }
   const sc = SCENARIOS[blueprintId];
   if (sc && sc.agent === agentName) return new MockAdapter(structuredClone(sc.script));
   return new MockAdapter([{ text: `(${agentName}) trigger received and acknowledged — no scripted scenario for this agent in demo mode.` }]);
 }
 
-/** Single entry point every intake path uses: simulate, webhook, schedule. */
+/** Single entry point every intake path uses: simulate, webhook, schedule.
+ *  Pipeline blueprints run the hybrid executor; the rest run the agent loop. */
 function launchRun(blueprintId, triggerInput, { agentName } = {}) {
   const bp = blueprints.get(blueprintId);
   if (!bp) throw new Error(`unknown blueprint ${blueprintId}`);
-  const agent = agentName || bp.entry || bp.agents[0].name;
-  const run = new AgentRun({
-    blueprint: bp, agentName: agent, ledger, gates,
-    adapter: adapterFor(blueprintId, agent), tools,
-  });
+  let run;
+  if (bp.pipeline) {
+    const inferAgent = bp.pipeline.find((s) => s.infer)?.infer || bp.agents[0].name;
+    run = new PipelineRun({ blueprint: bp, ledger, gates, scripts, adapter: adapterFor(blueprintId, inferAgent), profile });
+  } else {
+    const agent = agentName || bp.entry || bp.agents[0].name;
+    run = new AgentRun({ blueprint: bp, agentName: agent, ledger, gates, adapter: adapterFor(blueprintId, agent), tools });
+  }
   activeRuns.set(run.id, run);
   run.run(triggerInput).finally(() => activeRuns.delete(run.id));
   return run.id;
@@ -168,6 +188,10 @@ const server = http.createServer(async (req, res) => {
       const names = b.scenario ? [b.scenario] : Object.keys(SCENARIOS);
       const launched = [];
       for (const scenario of names) {
+        if (blueprints.get(scenario)?.pipeline) {
+          launched.push(launchRun(scenario, SCENARIOS[scenario]?.trigger || { demo: true }));
+          continue;
+        }
         const { run, finished } = launchScenario({ ledger, gates, blueprints, tools, scenario });
         activeRuns.set(run.id, run);
         finished.finally(() => activeRuns.delete(run.id));

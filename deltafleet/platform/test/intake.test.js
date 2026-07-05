@@ -134,16 +134,17 @@ test('cron dom/dow OR rule when both restricted', () => {
 });
 
 test('trigger engine fires schedule blueprints once per matching minute', () => {
-  const bps = loadBlueprintDir(BP_DIR); // reporting-autopilot = cron: 0 7 * * 1
+  const bps = loadBlueprintDir(BP_DIR); // daily-brief (0 7 * * 1-5) + reporting-autopilot (0 7 * * 1)
   const launched = [];
   const eng = new TriggerEngine({ blueprints: bps, launch: (id, input) => launched.push({ id, input }) });
-  assert.equal(eng.schedules.length, 1);
+  assert.equal(eng.schedules.length, 2);
   const mon7 = new Date(2026, 6, 6, 7, 0, 10);
-  assert.deepEqual(eng.checkNow(mon7), ['reporting-autopilot']);
+  assert.deepEqual(eng.checkNow(mon7).sort(), ['daily-brief', 'reporting-autopilot']);
   assert.deepEqual(eng.checkNow(new Date(2026, 6, 6, 7, 0, 40)), [], 'same minute must not refire');
-  assert.deepEqual(eng.checkNow(new Date(2026, 6, 13, 7, 0, 0)), ['reporting-autopilot'], 'next week fires again');
-  assert.equal(launched.length, 2);
-  assert.ok(launched[0].input.schedule.includes('0 7 * * 1'));
+  assert.deepEqual(eng.checkNow(new Date(2026, 6, 7, 7, 0, 0)), ['daily-brief'], 'Tuesday: only the weekday brief');
+  assert.deepEqual(eng.checkNow(new Date(2026, 6, 13, 7, 0, 0)).sort(), ['daily-brief', 'reporting-autopilot'], 'next Monday fires both again');
+  assert.equal(launched.length, 5);
+  assert.ok(launched.every((l) => l.input.schedule.startsWith('cron') === false && l.input.schedule.length > 0));
 });
 
 /* ---------- webhooks ---------- */

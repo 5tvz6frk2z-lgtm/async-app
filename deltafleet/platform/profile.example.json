@@ -1,0 +1,11 @@
+{
+  "//": "Per-client profile. Copy to profile.json, run with --profile profile.json. Every infer step reads this — it is the 'configured to your brand' layer. byok: bring-your-own-key; when enabled, inference bills to the client's own Anthropic key (read from the named env var) instead of ours.",
+  "brand": "Ironvale Manufacturing",
+  "industry": "Industrial equipment (B2B, dealer network)",
+  "website": "https://ironvale.example",
+  "voice": "Plainspoken, direct, zero fluff. Numbers first. Never exclamation marks.",
+  "audience": "Owner-operator; reads on phone at 7am; wants decisions, not summaries.",
+  "briefTo": "dana@ironvale.example",
+  "notes": "Quiet hours before 7am. Escalate anything legal or press to Dana directly.",
+  "byok": { "enabled": false, "env": "CLIENT_ANTHROPIC_KEY" }
+}

@@ -28,10 +28,10 @@ function demoTools() {
 
 /* ---------- blueprints ---------- */
 
-test('all six launch blueprints load and validate', () => {
+test('all launch blueprints load and validate', () => {
   const bps = loadBlueprintDir(BP_DIR);
-  assert.equal(bps.size, 6);
-  for (const id of ['speed-to-lead', 'inbox-crm-hygiene', 'reporting-autopilot', 'content-aeo-engine', 'document-intake', 'review-response']) {
+  assert.equal(bps.size, 7);
+  for (const id of ['speed-to-lead', 'inbox-crm-hygiene', 'reporting-autopilot', 'content-aeo-engine', 'document-intake', 'review-response', 'daily-brief']) {
     assert.ok(bps.has(id), `missing ${id}`);
   }
 });

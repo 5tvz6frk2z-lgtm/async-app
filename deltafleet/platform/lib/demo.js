@@ -85,6 +85,12 @@ export const SCENARIOS = {
   },
 };
 
+SCENARIOS['daily-brief'] = {
+  agent: 'narrator',
+  trigger: { schedule: 'weekday 07:00', demo: true },
+  script: [{ text: "Good morning, Dana. Handle Corvid's invoice question first — it's 9 hours old and it blocks AP. Reply debt is 3 threads; the oldest is M. Calloway at 31 hours. Today: 3 meetings, 90 minutes total, first at 09:30; your clear block is 13:00–15:00 — protect it for the Atlas renewal prep. One pattern: 6 threads this week were opened but never answered, all arriving after 4pm. A 4:30 reply pass would clear them same-day.", usage: { in: 900, out: 170 } }],
+};
+
 export function seedBaselines(ledger) {
   const b = (blueprint, key, value) => ledger.append({ type: 'baseline', blueprint, key, value });
   const s = (blueprint, key, value) => ledger.append({ type: 'sample', blueprint, key, value });
@@ -97,6 +103,8 @@ export function seedBaselines(ledger) {
   b('document-intake', 'keying_error_rate_pct', 1.8); s('document-intake', 'keying_error_rate_pct', 0.3);
   b('review-response', 'response_rate_pct', 45); s('review-response', 'response_rate_pct', 100);
   b('review-response', 'response_time_h', 38);   s('review-response', 'response_time_h', 2.2);
+  b('daily-brief', 'overdue_replies', 5);        s('daily-brief', 'overdue_replies', 1);
+  s('daily-brief', 'briefs_on_time_pct', 100);
 }
 
 /** Launch one scripted scenario run. Returns the AgentRun (caller keeps it for kill()). */
