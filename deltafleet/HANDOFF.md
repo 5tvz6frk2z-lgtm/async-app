@@ -1,109 +1,102 @@
-# DELTA FLEET — Project Handoff
+# DELTA FLEET — Project Handoff (v2)
 
-**Date:** July 3, 2026 · **Status:** ✅ all validation passing, everything committed & pushed
+**Date:** July 5, 2026 · **Status:** ✅ 40/40 platform tests green, site validated, everything committed & pushed
 **Repo:** `5tvz6frk2z-lgtm/async-app` · **Branch:** `claude/ultrathink-homepage-redesign-3tjsgf` · **Folder:** `deltafleet/`
 **Browse:** https://github.com/5tvz6frk2z-lgtm/async-app/tree/claude/ultrathink-homepage-redesign-3tjsgf/deltafleet
+**Draft PR:** https://github.com/5tvz6frk2z-lgtm/async-app/pull/1
 
-This document is sufficient to continue the project in a fresh session with zero prior context.
+This document is sufficient to continue in a fresh session with zero prior context. Read it before touching anything.
 
 ---
 
-## 1 · What this project is
+## 1 · What this business is now (it evolved — follow the arc)
 
-**Delta Fleet (deltafleet.ai)** — an AI **marketing** agency that deploys specialist agent fleets. Current positioning (v8, the "niche pivot"): marketing services **only** — AEO is the flagship, supported by Content Engine, Lifecycle & Nurture, Analytics & Reporting, and White-Label for agencies. The company's earlier general-ops positioning (quote-to-cash / RevOps) is **archived, not deleted**: those pages keep live URLs with archive banners, per the project's own AEO doctrine (never kill a URL an engine may have cited). The pivot is narrated honestly on the home page ("Specialists beat generalists. We took our own advice.") and About page.
+**Delta Fleet (deltafleet.ai)** started as an AI *marketing* agency site (v1–v8), then pivoted (see `PIVOT-PLAN.md`) into an **AI workflow integration studio**: we install supervised agent fleets into a client's existing tools, gated and measured, and leave them a console. Current strategy layers, decided with the owner across sessions:
 
-**Business model:** fixed-fee build $10k–$25k+ (CapEx) + managed retainer $500–$3k/mo (OpEx). Tiers: Scout (measurement + starter cadence) / Squadron (the full marketing department, $1,000–$1,800/mo, "most deployed") / Armada (multi-brand & agencies). Retainer auto-formula: `350 + agents×95 + weeklyTasks×0.35 + integrations×40`, clamped $500–$3,400, rounded to $50.
+- **The ladder:** Daily Brief ($99 setup + $79/mo, or $49/mo BYOK) → Recon (paid audit, ~$2k, fee credited from starter setup) → Install ($8–20k fixed, 30 days) → Flight Ops retainer. Affordability at the bottom, moat at the top. No à-la-carte agent marketplace (deliberately rejected — see chat history rationale in PIVOT-PLAN framing).
+- **Execution doctrine: "deterministic spine, agent joints."** Anything that can be plain code IS plain code (zero tokens, reproducible); models are reserved for judgment (classify, summarize, draft in brand voice). Numbers in deliverables are computed, never generated.
+- **Plug-and-play across industries** via a four-layer specialization cascade: Blueprint (generic) → Industry Pack (JSON data file) → Client Profile (onboarding call) → **Memory** (learned per client, forever).
+- **Trust curve:** brand-visible/irreversible actions start approve-gated; ≥20 verdicts with ≤5% intervention earns a relaxation *proposal* a human applies. Two things never relax: CRM merges, negative-review responses.
+- **The flywheel (key moat):** every human edit/rejection at a gate is auto-captured as client memory, so interventions teach the fleet. Trust curve reduces gating; memory reduces the need for edits at all.
 
-**Fictional-facts caveat:** all statistics, testimonials, POC references and the AEO scoreboard are **plausible-but-illustrative** and labelled as such in figcaptions. Replace with real data before real-world publishing (see §8).
+## 2 · Repo layout
 
-## 2 · Deliverables & where they live
-
-| File | What it is |
+| Path | What |
 |---|---|
-| `deltafleet/index.html` | The entire site. One file, ~466 KB, zero build step, zero JS libraries. Only external request: Google Fonts. |
-| `deltafleet/tools/audit-cockpit.html` | Internal tool #1 — CFO-grade corridor business cases (see §5). Single file, localStorage. |
-| `deltafleet/tools/citation-deck.html` | Internal tool #2 — AEO citation-audit console (see §5). Single file, localStorage. |
-| `deltafleet/llms.txt` | AI-crawler descriptor for the marketing positioning (deploy at site root as `/llms.txt`). |
-| `deltafleet/README.md` | Site feature/architecture summary + editing cheatsheet. |
-| `deltafleet/HANDOFF.md` | This file. |
+| `deltafleet/index.html` | The whole site (~486KB, single file, zero deps): 24 routes, 20 posts, WebGL Earth + raymarched ship, Workflow Grader, Daily Brief page, AEO stack. |
+| `deltafleet/platform/` | **The real product.** Agentloop platform v0.4+: Node ≥22, zero npm deps. See §3. |
+| `deltafleet/tools/` | Internal single-file tools: `audit-cockpit.html` (Recon ROI cases), `citation-deck.html` (AEO audits), `fleet-ledger.html` (client book/MRR/NRR). |
+| `deltafleet/PIVOT-PLAN.md` | The v9 strategy + phased execution plan. |
+| `deltafleet/platform/AGENTS.md` | Field manual for all 22 agents (missions, gates, KPIs, escalation). |
+| `deltafleet/platform/ADR.md` | **Read before changing the platform.** 14 numbered decisions incl. memory (§13) and packs (§14) with research basis. |
+| `deltafleet/HANDOFF.md` | This file. `README.md` + `llms.txt` = site docs/AI-crawler descriptor. |
 
-**Live preview artifacts** (claude.ai, private to owner; redeploy by rebuilding the artifact copy — see §7):
-- Site: https://claude.ai/code/artifact/3c557067-1ca4-4745-ac11-9a40304d5a38
-- Audit Cockpit: https://claude.ai/code/artifact/a6ab0adf-df17-49bc-9762-e1e29538d52d
-- Citation Deck: https://claude.ai/code/artifact/248210e5-eff9-4fe1-9151-0940845eae5c
+**Live preview artifacts (claude.ai):** site https://claude.ai/code/artifact/3c557067-1ca4-4745-ac11-9a40304d5a38 · Audit Cockpit …/a6ab0adf-df17-49bc-9762-e1e29538d52d · Citation Deck …/248210e5-eff9-4fe1-9151-0940845eae5c
 
-**New-repo intent:** the user wants this in its own repository. Session GitHub integration returned 403 on repo creation. Path: user creates an empty repo (e.g. `deltafleet`), then in-session `add_repo` → copy the `deltafleet/` folder contents to its root → push. `index.html` works from GitHub Pages as-is (hash routing, no rewrites).
+## 3 · Platform architecture (deltafleet/platform — the crown jewels)
 
-## 3 · Site architecture (index.html, four zones)
+One Node process per client. `npm test` (40 tests) · `npm run demo` → console at :4600.
 
-1. **Head** — title/meta/OG/Twitter (marketing positioning), Organization + WebSite JSON-LD, inline SVG favicon, Google Fonts (Space Grotesk / Instrument Sans / JetBrains Mono).
-2. **`<style>`** — full design system on CSS custom properties. Tie colors = departments: gold AEO & Search · crimson Content Studio · magenta Lifecycle · violet Analytics · cyan Data & Integrations · emerald Web & CRO. Mobile hardening at ≤820px (incl. a `[style*="grid-template-columns"]` collapse rule — inline grids MUST stay collapsible), ≤560px refinements, `prefers-reduced-motion` everywhere.
-3. **`<template>` blocks** — 43 templates: 23 pages + 20 posts. Pages inert until routed.
-4. **`<script>` engine** — hash router (`ROUTES`/`TITLES` maps; `''`=home; unknown→404; `#/blog/:slug` dynamic via `articleHTML()`), `CLEANUP[]` teardown registry (every page-init pushes stoppers), IntersectionObserver reveal/counter system, and the modules below.
-
-**Key engine modules:**
-- `initEarthGL` — WebGL fragment-shader Earth (fbm continents, clouds, night lights, atmo rim + vignetted halo). CSS-earth fallback if no WebGL. Mobile: DPR 1, framebuffer cap 640px.
-- `initShipGL` — **raymarched SDF interceptor** (convex faceted hull from plane intersections, smin glass canopy, swept fins, engine cores + volumetric plume sampled along ray, fresnel star env). SVG ship fallback (`#ship-svg`, shown unless `.glship` class set). Mobile cap 360px. The old "robot flyers" system was removed in v7.
-- `botSVG(tie,bow,cls,seed)` — procedurally varied suited-robot SVGs (per-instance gradient ids via `BOTUID`). `hydrateBots()` fills `.bot-slot` spans.
-- `FLEET` — 504 agents: Norse (36) + Greek (48) deity callsigns, stride 11 (coprime with 84), generation suffixes (ODIN II…) per 84-block; leads via `Math.floor(i/6)%14===13` (bow tie + epaulettes + pocket square); deterministic stats (missions/uptime/precision/autonomy/throughput). `openAgent(i)` = hologram dossier modal (spin rings, scanline, cursor tilt).
-- `POSTS` (20) — 18 live + 2 with `arch:1` (`ai-agents-revenue-operations`, `ai-agents-customer-support-operations`). Archived posts: hidden from blog hub, Answer Hub and related-links; still routable with an "ARCHIVED — PRE-SPECIALIZATION" chip.
-- `articleHTML()` — adds header, freshness badges, **AEO X-RAY toggle** (`.xray` class dims prose, labels extractable blocks via CSS ::after), TOC, related posts, CTA, **FAQPage + BlogPosting JSON-LD** (note the `<\/script>` escape inside the template literal — keep it).
-- `ANSQ` + `initAnswers()` — Answer Hub: question→slug map; answers **auto-extracted at runtime** from each post's first `.callout p` (single source of truth) + FAQPage JSON-LD.
-- `gradeAEO()` + `initGrader()` — the free AEO Grader: 7 heuristic checks (direct answer ≤150 words / quotable 40–80w block / hedging rate / entity+number density / question-shaped headings / lists-tables / FAQ signals) → score dial, band, top-3 fixes. Pure client-side.
-- `initAgentloop` — simulated live feed (marketing missions); `initPricing` — retainer calculator; `initContact` — front-end-only validation (backend hook = the submit handler).
-
-**Routes (22):** home, services (hub), services/{aeo, content-engine, lifecycle, analytics, white-label, agentloop, the-swarm, agent-fleets*, marketing*}, industries* + 3 industry pages*, agents, pricing, about, contact, blog, answers, aeo-grader. `*` = archived (banner via `.arch-note`, removed from nav/footer).
-
-## 4 · How to edit (conventions that must hold)
-
-- **Add a page:** `<template id="page-x">` + entries in `ROUTES` and `TITLES` + link it. **Add a post:** `<template id="post-slug">` (no h1/meta/CTA — router adds chrome; end with `details.faq` block) + prepend metadata to `POSTS`.
-- **Never delete published routes/posts** — archive: add `arch:1` (posts) or an `.arch-note` banner (pages) and remove from nav.
-- **Zero dependencies is a hard rule** — no CDNs, no npm. New visual tech = hand-rolled WebGL/canvas with graceful fallback (this also keeps the claude.ai artifact preview working, since its CSP blocks external requests).
-- **Answer-first content pattern** on every substantive page: Direct Answer callout (40–80 words, commits to numbers), entity-rich copy, question-shaped headings, tables, FAQ.
-- All temporary work in the session scratchpad; patches to index.html done via anchored Python replaces with `assert`-style guards (see repo history), then validated (§7) before commit.
-
-## 5 · Internal tools (v2.2, research-hardened)
-
-**Audit Cockpit** (`tools/audit-cockpit.html`, storage `df-audit-v2`, migrates v1):
-Clients → corridors → baseline (roles×loaded-rate×hours, volume, rate-based errors 1–4% benchmark, revenue lift) → model: coverage-adjusted hours (60/40/25 by process type) × residual touch × redeployment factor (1.0/0.7/0.5 hard-vs-soft split); credits 60% errors / 50% lift(soft); ramped 36-month cash (go-live + 25/50/75% ramp); NPV @ hurdle (default 14%, editable in Assumptions tab), IRR (bisection), hard-only NPV, breakeven "survives at X%", 800-iter triangular Monte Carlo via M/E/G confidence tags (±12/28/50%) → P50/P90 payback, P(NPV>0); tornado chart; 6-factor suitability gate (<55 ⇒ RESHAPE); verdict = P50≤12 ∧ P90≤18 ∧ NPV>0 ∧ suit≥55; CD3 portfolio tab; printable client blueprint with measurement plan.
-
-**Citation Deck** (`tools/citation-deck.html`, storage `df-citation-v2`, migrates v1):
-Question bank (topic, P1–P3, funnel stage aw/co/de) × 5 engines (ChatGPT, Perplexity, Gemini, Claude, AI Overviews). Cell = outcome (ABSENT/INFLUENCED/MENTIONED/CITED) × position (1 lead/.6 mid/.3 trailing) × sentiment ± inaccuracy × recommended × competitor checkboxes (fixed 3–6 set; delete remaps indices across history) × cited URL; **k=3 samples on P1** (modal outcome, pessimistic ties) → stability index. Metrics: weighted visibility (outcome×position×rec), **true SoV = us/(us+competitor appearances)**, inclusion rate ±95% CI (<5pt deltas display FLAT), mention-vs-citation link gap, rec rate, net sentiment (+corrections trigger >5% inaccurate), leader gap, stage-weighted presence, win/loss with 2-run confirmation rule, domain ledger, gap briefs ranked `pri×stage×absence×(1+compPressure)` with publish tracking + close velocity. Editable tracked brand (run decks per client) + printable client report.
-
-Both: demo seed buttons, JSON export/import, mobile-hardened. Deliberately excluded (per research briefs): WACC/tax modeling, per-cell confidence intervals, prompt-volume indexes, sub-monthly trends.
-
-## 6 · Version history (all on the branch)
-
-v1 handoff (construction-niche original, in first commit message context) → **v2** corporate RevOps rebrand, 17 pages, 10 posts → **v3** pantheon roster + dossiers, +10 posts (20 total), telemetry ticker → **v4** WebGL shader Earth + hologram dossiers + bot art v3 → tools v1 → tools **v2** (two research subagents: RPA/CFO metrics; Profound/Peec/Otterly AEO metrics) → review pass (slider drag fix, v1 data migration, competitor-index integrity, client-report printing) → **v5** AEO stack (service page, Answer Hub, Grader, X-ray, llms.txt, badges) → **v6** mobile pass (inline-grid collapse, table scroll, iOS input zoom, WebGL caps) → **v7** raymarched ship, flyers removed → **v8** marketing-niche specialization + archives. `git log --oneline` on the branch narrates the same.
-
-## 7 · Dev workflow: validate, preview, deploy
-
-```bash
-cd deltafleet
-# 1) JS syntax (engine extraction)
-awk 'f&&/^<\/script>$/{exit} f{print} /^<script>$/{f=1}' index.html > /tmp/app.js && node --check /tmp/app.js
-# 2) Wiring: every ROUTES id has a template; every POSTS slug has post-* (and vice versa);
-#    every TITLES entry exists; zero dead #/ links. (Validator script pattern lives in repo history;
-#    trivially re-derivable: parse ROUTES/POSTS/template ids/hrefs from source.)
-# 3) Headless render (WebGL needs swiftshader in containers):
-chrome --headless=new --no-sandbox --disable-gpu-sandbox --use-angle=swiftshader \
-  --enable-unsafe-swiftshader --hide-scrollbars --virtual-time-budget=7000 \
-  --window-size=1440,950 --screenshot=out.png "file://$PWD/index.html#/route"
-# NOTE: headless window min-width ≈500px — test mobile breakpoints at 500 (560/820 queries both fire);
-# a DOM scrollWidth-vs-clientWidth probe beats eyeballing screenshots for overflow.
 ```
-**Artifact redeploy** (claude.ai previews): strip `<!DOCTYPE html>`, `<html>`, `<head>`, `</head>`, `<body>`, `</body>`, `</html>` wrapper lines (artifact supplies its own skeleton), remove the 3 Google-Fonts `<link>` lines (CSP), and swap the three `--font-*` tokens to fallback stacks (`'Space Grotesk','Avenir Next','Segoe UI',system-ui,...` / `'JetBrains Mono',ui-monospace,...`). Then publish to the same artifact URL. Deployed real site keeps the true fonts.
+blueprints/*.json  7 corridors (6 install + daily-brief starter). Spec: trigger, agents
+                   (callsign/role/model/tools), gates {tool: auto|log|approve}, optional
+                   pipeline[] (script/infer steps + $refs), metrics, rollback, entry, tier.
+packs/*.json       6 industry packs: terminology, standing rules, urgency, compliance
+                   (healthcare pack carries PHI guardrails), corridorHints.
+lib/ledger.js      Append-only JSONL; ALL state derived by replay (runs, actions,
+                   approvals, metrics, gate overrides, memory). Never mutate events.
+lib/gates.js       auto/log/approve classification; approve/edit/reject verdicts resolve
+                   parked promises; trustStats() → relaxation proposals; changeGate().
+lib/runtime.js     AgentRun (tool loop; parks on approval, resumes w/ edited input,
+                   rejection final, AbortController kill, step/token budgets) +
+                   AnthropicAdapter (fetch, adaptive thinking, default claude-opus-4-8)
+                   + MockAdapter (scripted; tests/demo).
+lib/pipeline.js    PipelineRun — hybrid executor: script steps (ScriptRegistry, gated
+                   like tools) + infer steps (SINGLE completion, numbers-from-input rule);
+                   $trigger/$profile/$results refs.
+lib/scripts.js     ScriptRegistry + Daily Brief sim handlers + coverage guard.
+lib/memory.js      MemoryEngine: rule/preference/fact/pattern, provenance, confidence,
+                   confirms; events in the SAME ledger; enableCorrectionCapture() =
+                   the flywheel; retrieve() scoped+ranked+budgeted; consolidate() decay.
+lib/packs.js       Pack loader + packContext() prompt lines.
+lib/mcp.js         Zero-dep MCP client (Streamable HTTP, JSON+SSE responses, session id).
+lib/connectors.js  connectors.json maps fleet tool names → MCP server tools;
+                   assertBlueprintsCovered = unmapped tool is a BOOT failure.
+lib/triggers.js    5-field cron (dom/dow OR rule) + TriggerEngine + webhook handler
+                   (x-fleet-secret; schedule blueprints 409 webhooks).
+lib/metrics.js     proofFor (baseline vs current, direction-aware) + opsSummary.
+lib/report.js      Delta Proof: reportData (activity in window, proof all-time) +
+                   printable HTML. Served at GET /report.
+server.js          Wires everything. Flags: --demo --port --data --profile
+                   --connectors --triggers --hook-secret. BYOK via profile.byok.
+console/index.html Client console: approvals queue (approve/edit/reject), run feed
+                   with traces, kill, corridor cards (proof + gates + trust), Client
+                   Memory panel (teach/retire), Delta Proof button, demo sortie.
+profile.example.json / connectors.example.json  Per-client config templates.
+```
 
-**Git:** develop on `claude/ultrathink-homepage-redesign-3tjsgf`; push with `git push -u origin <branch>`.
+**Gotchas:** memory/baseline seeding order (capture `FRESH_LEDGER` before seeds — regression fixed in the Delta Proof commit); killed runs void pending approvals in `Ledger.state()`; tool names use `domain.verb`, translated to `__` on the Anthropic wire; `pkill node server.js` from a compound Bash command kills the shell (exit 144) — run it alone.
 
-## 8 · Open items / next steps (in rough priority)
+## 4 · Site (index.html) essentials
 
-1. **Move to its own repo** (blocked only by integration permissions — see §2).
-2. **Pre-launch reality pass:** replace illustrative stats + testimonials + scoreboard with real data; wire contact form backend (`initContact` submit handler); og:image + analytics (fire pageviews in `render()`); prerender/canonical strategy if organic search matters (hash URLs = one URL to crawlers; all content IS in source).
-3. **Run the first real citation audit** in Citation Deck and publish the scoreboard numbers on `/services/aeo` (replacing "ILLUSTRATIVE" labels) + a dated "Citation Audit: <month>" post — the build-in-public proof loop.
-4. **Tool queue** (agreed ideas, unbuilt): **Rulebook** (exceptions→rulings→standing rules, gate-threshold registry), **Fleet Ledger** (client/retainer/MRR ops), **Shadow Grader** (human-vs-agent output grading → gate-relaxation evidence), **Squadron Composer** (visual fleet architect → feeds Audit Cockpit).
-5. Nice-to-haves parked: per-dept agent detail expansion, sitemap generator, per-post OG images, second distant escort ship in hero, ship heading tracking Earth's limb.
+Same conventions as ever: hash router (`ROUTES`/`TITLES` maps + init dispatch in `render()`), inert `<template>` pages, `CLEANUP[]` teardowns, archive-don't-delete, zero deps, anchored-Python-patch workflow. Key newer pages: `#/workflow-grader` (12-question corridor-readiness scorer feeding the funnel), `#/daily-brief` (starter product page; sample brief is REAL pipeline output), pricing has a "Phase 00 Starter Rung" panel. Keep the `<\/script>` escape in `articleHTML()`. Validate: `node --check` on extracted script + route/template/link audit + headless render (`--use-angle=swiftshader --enable-unsafe-swiftshader`; headless min width ≈500px). Artifact redeploy: strip doctype/html/head/body + 3 font links, swap `--font-*` fallbacks, publish to the SAME artifact URL.
 
-## 9 · Voice & design quick-reference
+## 5 · Version history
 
-Dark sci-fi HUD ("orbital command"): tokens `--void #05070f`, `--ion #4fd8ff` primary, `--coral #ff6a3d` warm accent; JetBrains Mono for labels/data in `.klabel`-style uppercase letter-spaced; Space Grotesk display. Copy voice: confident operator-to-operator, specific numbers over adjectives, honest about limits (illustrative labels, "we'll say so at audit"), space-mission vocabulary (squadrons, missions, sorties, ground control) used consistently but never at the expense of clarity. Agents are named colleagues (ODIN, ATHENA) — this is deliberate change-management doctrine, not just theming.
+Site: v1 handoff → v2 corporate → v3 pantheon+20 posts → v4 WebGL Earth/dossiers → v5 AEO stack → v6 mobile → v7 raymarched ship → v8 marketing-niche + archives → **v8.5** Workflow Grader + Daily Brief page.
+Platform: **v0.1** ledger/gates/runtime/console → **v0.2** MCP bridge + cron/webhook intake → **v0.3** hybrid pipelines + profile + BYOK + daily-brief blueprint → **v0.4** memory engine + industry packs + cascade → **v0.4.1** Delta Proof report.
+`git log --oneline` on the branch narrates all of it.
+
+## 6 · Open items (priority order)
+
+1. **Real read-only connectors for Daily Brief** (Gmail/GCal MCP w/ read-only scopes) — needs owner-created OAuth credentials; the bridge already accepts them via connectors.json.
+2. **Stripe checkout link** in the Daily Brief CTA + **contact form backend** — account setup, not engineering.
+3. **Install #0:** run our own corridors daily on the platform; replace demo scripts with real handlers; first real Delta Proof.
+4. **Site v9 repositioning** (home/services around Recon→Install→Flight Ops; archive v8 marketing service pages per doctrine) + 5 integration pillar posts. Good Opus-tier work.
+5. Move `deltafleet/` to its own repo (blocked: integration can't create repos; owner creates empty repo → add_repo → push).
+6. Console auth; Recon print mode in Audit Cockpit; VOR observation→pattern memories; per-blueprint webhook payload schemas.
+7. Pre-launch reality pass on the site (replace illustrative stats, og:image, analytics).
+
+## 7 · Voice & doctrine quick-reference
+
+Dark sci-fi HUD (`--void #05070f`, ion cyan, coral warm; JetBrains Mono klabels). Copy voice: operator-to-operator, numbers over adjectives, honest about limits ("illustrative" labels stay until real data exists). Agents are named colleagues (pantheon callsigns) — change-management doctrine. Business writing: lead with the outcome; never let a model state a number code didn't compute.
