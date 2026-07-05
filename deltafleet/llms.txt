@@ -24,6 +24,7 @@ This site is a single-page application with hash routing; all page and article c
 ## Quick answers & tools
 - The Answer Hub (buyer questions answered in one citable block each): https://deltafleet.ai/#/answers
 - Free AEO Grader (client-side citability scoring): https://deltafleet.ai/#/aeo-grader
+- Free Workflow Grader (12 questions → readiness score for each of six agent corridors): https://deltafleet.ai/#/workflow-grader
 
 ## Pillar guides (The Flight Log — answer-first, FAQ + BlogPosting schema)
 - Answer Engine Optimization, the complete guide: https://deltafleet.ai/#/blog/answer-engine-optimization-guide

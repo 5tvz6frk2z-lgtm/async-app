@@ -620,6 +620,7 @@ a,button{-webkit-tap-highlight-color:rgba(79,216,255,.12);touch-action:manipulat
         <a href="#/blog">The Flight Log (Blog)</a>
         <a href="#/answers">The Answer Hub</a>
         <a href="#/aeo-grader">AEO Grader (free tool)</a>
+        <a href="#/workflow-grader">Workflow Grader (free tool)</a>
         <a href="#/blog/what-are-ai-agent-fleets">What Are Agent Fleets?</a>
         <a href="#/blog/ai-marketing-automation-2026">The Marketing Fleet Model</a>
         <a href="#/blog/ai-automation-roi-framework">Automation ROI Guide</a>
@@ -1527,12 +1528,40 @@ a,button{-webkit-tap-highlight-color:rgba(79,216,255,.12);touch-action:manipulat
         <button class="btn btn-ghost btn-sm" id="gr-sample">Try a sample</button>
         <span class="mono" style="font-size:.62rem;letter-spacing:.12em;color:var(--faint)" id="gr-count"></span>
       </div>
-      <p class="hint-sm">Heuristic, honest about its limits: pasted text can't reveal schema markup, internal links or site-wide identity — those need the <a href="#/services/aeo">full audit</a>.</p>
+      <p class="hint-sm">Heuristic, honest about its limits: pasted text can't reveal schema markup, internal links or site-wide identity — those need the <a href="#/services/aeo">full audit</a>. Not sure content is your first corridor? Take the <a href="#/workflow-grader">Workflow Grader</a>.</p>
     </div>
     <div id="gr-results">
       <div class="panel center" style="border-style:dashed">
         <p class="mono" style="font-size:.68rem;letter-spacing:.18em;color:var(--faint)">AWAITING TRANSMISSION</p>
         <p style="color:var(--muted);font-size:.9rem;margin-top:10px">Your score, the seven checks, and the top fixes will render here.</p>
+      </div>
+    </div>
+  </div>
+</div></section>
+</template>
+
+<template id="page-workflow-grader">
+<section class="page-hero"><div class="container">
+  <div class="breadcrumb"><a href="#/">Home</a> / <b>Workflow Grader</b></div>
+  <div class="eyebrow" style="color:var(--ion)">Free Tool &middot; 3 Minutes &middot; Runs Entirely In Your Browser</div>
+  <h1>Which workflow should run itself first?</h1>
+  <p class="sec-lead">Twelve questions about how your business actually runs. You get a readiness score for each of the six agent corridors we install &mdash; scored with the same logic we use in a paid Recon, minus the baseline measurement. Nothing you enter leaves this page.</p>
+</div></section>
+<section class="section" style="padding-top:6px"><div class="container">
+  <div class="grid" style="grid-template-columns:1.05fr .95fr;gap:30px;align-items:start">
+    <div class="panel">
+      <div class="eyebrow" style="color:var(--ion)">The Twelve Questions</div>
+      <div id="wg-form"></div>
+      <div style="display:flex;gap:12px;align-items:center;margin-top:18px;flex-wrap:wrap">
+        <button class="btn btn-coral" id="wg-run">Score My Workflows <span class="arr">&rarr;</span></button>
+        <span class="mono" style="font-size:.62rem;letter-spacing:.12em;color:var(--faint)" id="wg-progress"></span>
+      </div>
+      <p class="hint-sm">Readiness scores are heuristic, not quotes. A paid <a href="#/contact">Recon</a> adds the baseline measurement and a fixed-price install plan; grading your content instead? Use the <a href="#/aeo-grader">AEO Grader</a>.</p>
+    </div>
+    <div id="wg-results">
+      <div class="panel center" style="border-style:dashed">
+        <p class="mono" style="font-size:.68rem;letter-spacing:.18em;color:var(--faint)">AWAITING TELEMETRY</p>
+        <p style="color:var(--muted);font-size:.9rem;margin-top:10px">Your six corridor scores, the recommended first install, and its target metrics will render here.</p>
       </div>
     </div>
   </div>
@@ -3380,8 +3409,8 @@ function wireAgentCards(c){if(!c)return;
 }
 
 /* ---- router ---- */
-const ROUTES={'':'page-home','services':'page-services','services/agent-fleets':'page-service-agent-fleets','services/agentloop':'page-service-agentloop','services/the-swarm':'page-service-the-swarm','services/marketing':'page-service-marketing','services/white-label':'page-service-white-label','industries':'page-industries','industries/saas-technology':'page-industry-saas-technology','industries/professional-services':'page-industry-professional-services','industries/financial-services':'page-industry-financial-services','services/aeo':'page-service-aeo','services/content-engine':'page-service-content-engine','services/lifecycle':'page-service-lifecycle','services/analytics':'page-service-analytics','answers':'page-answers','aeo-grader':'page-aeo-grader','agents':'page-agents','pricing':'page-pricing','about':'page-about','contact':'page-contact','blog':'page-blog'};
-const TITLES={'':'Delta Fleet — AI Marketing Fleets | AEO, Content Engine & Lifecycle Agents','services':'Services | Delta Fleet','services/agent-fleets':'Custom Agent Fleets | Delta Fleet','services/agentloop':'Agentloop Dashboard | Delta Fleet','services/the-swarm':'The Swarm — Local Sandboxed AI Infrastructure | Delta Fleet','services/marketing':'Delta Fleet Marketing — AI Marketing Automation','services/white-label':'White-Label AI Agent Partnerships | Delta Fleet','industries':'Industries | Delta Fleet','industries/saas-technology':'AI Agents for SaaS & Technology | Delta Fleet','industries/professional-services':'AI Agents for Professional Services | Delta Fleet','industries/financial-services':'AI Agents for Financial Services | Delta Fleet','services/aeo':'Answer Engine Optimization (AEO) Services | Delta Fleet','services/content-engine':'Content Engine — Answer-First Content on Cadence | Delta Fleet','services/lifecycle':'Lifecycle & Nurture — Speed-to-Lead Fleets | Delta Fleet','services/analytics':'Analytics & Reporting — One Weekly Digest | Delta Fleet','answers':'Answer Hub — Straight Answers on AI Automation | Delta Fleet','aeo-grader':'Free AEO Grader — Is Your Content Citable? | Delta Fleet','agents':'The Agents — 500+ Fleet Roster | Delta Fleet','pricing':'Pricing — Build Fee + Retainer | Delta Fleet','about':'About | Delta Fleet','contact':'Launch a Fleet — Contact | Delta Fleet','blog':'The Flight Log — AI Automation Blog | Delta Fleet'};
+const ROUTES={'':'page-home','services':'page-services','services/agent-fleets':'page-service-agent-fleets','services/agentloop':'page-service-agentloop','services/the-swarm':'page-service-the-swarm','services/marketing':'page-service-marketing','services/white-label':'page-service-white-label','industries':'page-industries','industries/saas-technology':'page-industry-saas-technology','industries/professional-services':'page-industry-professional-services','industries/financial-services':'page-industry-financial-services','services/aeo':'page-service-aeo','services/content-engine':'page-service-content-engine','services/lifecycle':'page-service-lifecycle','services/analytics':'page-service-analytics','answers':'page-answers','aeo-grader':'page-aeo-grader','workflow-grader':'page-workflow-grader','agents':'page-agents','pricing':'page-pricing','about':'page-about','contact':'page-contact','blog':'page-blog'};
+const TITLES={'':'Delta Fleet — AI Marketing Fleets | AEO, Content Engine & Lifecycle Agents','services':'Services | Delta Fleet','services/agent-fleets':'Custom Agent Fleets | Delta Fleet','services/agentloop':'Agentloop Dashboard | Delta Fleet','services/the-swarm':'The Swarm — Local Sandboxed AI Infrastructure | Delta Fleet','services/marketing':'Delta Fleet Marketing — AI Marketing Automation','services/white-label':'White-Label AI Agent Partnerships | Delta Fleet','industries':'Industries | Delta Fleet','industries/saas-technology':'AI Agents for SaaS & Technology | Delta Fleet','industries/professional-services':'AI Agents for Professional Services | Delta Fleet','industries/financial-services':'AI Agents for Financial Services | Delta Fleet','services/aeo':'Answer Engine Optimization (AEO) Services | Delta Fleet','services/content-engine':'Content Engine — Answer-First Content on Cadence | Delta Fleet','services/lifecycle':'Lifecycle & Nurture — Speed-to-Lead Fleets | Delta Fleet','services/analytics':'Analytics & Reporting — One Weekly Digest | Delta Fleet','answers':'Answer Hub — Straight Answers on AI Automation | Delta Fleet','aeo-grader':'Free AEO Grader — Is Your Content Citable? | Delta Fleet','workflow-grader':'Free Workflow Grader — Which Workflow Should AI Run First? | Delta Fleet','agents':'The Agents — 500+ Fleet Roster | Delta Fleet','pricing':'Pricing — Build Fee + Retainer | Delta Fleet','about':'About | Delta Fleet','contact':'Launch a Fleet — Contact | Delta Fleet','blog':'The Flight Log — AI Automation Blog | Delta Fleet'};
 let CLEANUP=[];
 function clean(){CLEANUP.forEach(f=>{try{f()}catch(e){}});CLEANUP=[];}
 
@@ -3475,6 +3504,7 @@ function initPage(h){
  else if(h==='blog')initBlog();
  else if(h==='answers')initAnswers();
  else if(h==='aeo-grader')initGrader();
+ else if(h==='workflow-grader')initWGrader();
  else if(h.indexOf('blog/')===0)initArticle();
 }
 
@@ -3893,6 +3923,73 @@ The build is fixed-fee after a workflow audit. Retainers scale with volume: a 10
 FAQ
 Is the retainer negotiable? The tier is set by agent count and task volume, not negotiation — the calculator on our pricing page reproduces the exact formula.
 When does it pay back? Well-chosen corridors model at month 3–9; beyond month 18, pick a different workflow.`;
+/* ---- workflow grader: corridor readiness scoring ---- */
+/* Model: score = 100 x (0.62 x pain + 0.38 x feasibility) x governance,
+   +8 intent bonus for the corridor the visitor says they would pick first.
+   Pain comes from volume/frequency answers; feasibility from how integratable
+   the stack is. Same shape as the Recon suitability model, minus baselines. */
+const WGQ=[
+ {q:'Where does your business actually run?',o:[['Modern cloud apps with APIs (Gmail, HubSpot, QuickBooks Online\u2026)',1],['Mostly cloud, plus a few load-bearing spreadsheets',.75],['Mostly desktop or legacy software',.4],['Mostly paper, phone calls and memory',.15]]},
+ {q:'Who signs off on customer-facing sends today?',o:[['One owner or manager reviews everything',1],['A defined reviewer per channel',.95],['Whoever wrote it hits send',.8],['There is no review step',.7]]},
+ {q:'When a new lead comes in, the first real response typically takes\u2026',o:[['Under 5 minutes',.1],['Under an hour',.45],['Same business day',.75],['Next day or longer',1]]},
+ {q:'New inquiries per week, roughly:',o:[['Fewer than 5',.3],['5\u201320',.6],['20\u2013100',.9],['100+',1]]},
+ {q:'How truthful is your CRM right now?',o:[['Clean \u2014 we trust it',.2],['Mostly right, some rot',.5],['Honestly, a mess',1],['We don\u2019t really have one',.9]]},
+ {q:'Hours per week someone spends assembling reports:',o:[['Basically none',.05],['1\u20132',.4],['3\u20136',.75],['7 or more',1]]},
+ {q:'Hours per week re-keying documents (invoices, POs, applications):',o:[['Basically none',.05],['1\u20133',.45],['4\u20138',.8],['9 or more',1]]},
+ {q:'Answer-worthy content gets published\u2026',o:[['Weekly or better',.35],['Monthly-ish',.6],['Rarely',.85],['Never',1]]},
+ {q:'Ask ChatGPT about your category \u2014 do you appear?',o:[['Often, by name',.2],['Sometimes',.55],['Never',.9],['Never checked',.75]]},
+ {q:'Customer reviews get responses\u2026',o:[['All of them, within a day',.1],['Most, eventually',.5],['Rarely',.85],['We don\u2019t monitor them',1]]},
+ {q:'The shared inbox is\u2026',o:[['Triaged within the hour',.2],['Cleared by end of day',.5],['A permanent backlog',.9],['What shared inbox?',.7]]},
+ {q:'If one workflow ran itself starting next month, you\u2019d pick:',o:[['Lead response & booking','stl'],['Inbox & CRM upkeep','hyg'],['Reporting','rep'],['Content & AI visibility','cae'],['Document intake','doc'],['Review responses','rev']]}
+];
+const WGC={
+ stl:{name:'Speed-to-Lead',what:'Qualify, enrich, first-touch and book every lead in minutes, 24/7.',target:'First response < 5 min; contact rate +30%',href:'#/services/lifecycle',agents:'HERMES \u00b7 MIMIR \u00b7 HERMOD \u00b7 SAGA'},
+ hyg:{name:'Inbox & CRM Hygiene',what:'Every conversation triaged, logged and routed; the CRM kept truthful.',target:'95%+ conversations logged; triage < 15 min',href:'#/services/analytics',agents:'HEIMDALL \u00b7 MNEMOSYNE \u00b7 ATHENA \u00b7 IRIS'},
+ rep:{name:'Reporting Autopilot',what:'The weekly ops report assembled from live systems and narrated, on schedule.',target:'< 30 human minutes per report; 100% on time',href:'#/services/analytics',agents:'HUGINN \u00b7 MUNINN \u00b7 BRAGI'},
+ cae:{name:'Content / AEO Engine',what:'Answer-first content produced against your citation gaps, published through gates.',target:'< 1.5 human hours per piece; measured AI share of voice',href:'#/services/aeo',agents:'ODIN \u00b7 CALLIOPE \u00b7 APOLLO \u00b7 HELIOS'},
+ doc:{name:'Document Intake',what:'Invoices, POs and applications extracted, validated and routed; exceptions to humans.',target:'Keying errors < 0.5%; cycle time < 4h',href:'#/contact',agents:'THOTH \u00b7 THEMIS \u00b7 TYR'},
+ rev:{name:'Review & Reputation',what:'Every review answered fast and in-voice; negatives escalated with a recovery play.',target:'100% response rate; median < 4h',href:'#/contact',agents:'ARGUS \u00b7 ECHO \u00b7 EIR'}
+};
+function initWGrader(){
+ const form=document.getElementById('wg-form'),results=document.getElementById('wg-results'),prog=document.getElementById('wg-progress');
+ const ans=new Array(WGQ.length).fill(-1);
+ form.innerHTML=WGQ.map((q,i)=>'<label style="display:block;margin:14px 0 4px;font-size:.86rem;color:var(--text)"><span class="mono" style="color:var(--faint);font-size:.62rem;letter-spacing:.14em">Q'+(i+1)+'</span>&nbsp; '+q.q+'</label>'+
+  '<select data-wg="'+i+'" style="width:100%;background:var(--deep);border:1px solid var(--line-strong);border-radius:8px;padding:10px 11px;color:var(--text);font-size:.88rem"><option value="-1">Choose\u2026</option>'+q.o.map((o,j)=>'<option value="'+j+'">'+o[0]+'</option>').join('')+'</select>').join('');
+ const upd=()=>{const n=ans.filter(a=>a>-1).length;prog.textContent=n+' / '+WGQ.length+' ANSWERED'};
+ form.addEventListener('change',e=>{const i=+e.target.dataset.wg;ans[i]=+e.target.value;upd()});
+ upd();
+ document.getElementById('wg-run').addEventListener('click',()=>{
+  const missing=ans.map((a,i)=>a<0?i+1:0).filter(Boolean);
+  if(missing.length){results.innerHTML='<div class="panel center" style="border-style:dashed"><p style="color:var(--muted);font-size:.9rem">Answer question'+(missing.length>1?'s':'')+' '+missing.join(', ')+' first \u2014 every corridor score depends on the full picture.</p></div>';return}
+  const v=i=>WGQ[i].o[ans[i]][1];
+  const gf=v(0),gov=.85+.15*v(1),noCrm=ans[4]===3;
+  const P={stl:v(2)*(.5+.5*v(3)),hyg:Math.min(1,((v(4)+v(10))/2)*(.6+.4*v(3))),rep:v(5),doc:v(6),cae:(v(7)+v(8))/2,rev:v(9)};
+  const F={stl:gf*(noCrm?.65:1),hyg:gf*(noCrm?.65:1),rep:gf,doc:gf,cae:Math.min(1,gf+.15),rev:Math.min(1,gf+.2)};
+  const pick=WGQ[11].o[ans[11]][1];
+  const rows=Object.keys(WGC).map(k=>{
+   let s=Math.round(100*(.62*P[k]+.38*F[k])*gov);if(k===pick)s=Math.min(100,s+8);
+   const band=s>=70?['READY','var(--emerald)']:s>=50?['STRONG CANDIDATE','var(--ion)']:s>=30?['PARTIAL','var(--gold)']:['NOT YET','var(--faint)'];
+   return{k,s,band}}).sort((a,b)=>b.s-a.s);
+  const top=rows[0],tc=WGC[top.k];
+  results.innerHTML='<div class="panel"><div class="eyebrow" style="color:var(--ion)">Recommended First Install</div>'+
+   '<h3 style="margin:6px 0 4px">'+tc.name+' \u2014 '+top.s+'/100</h3>'+
+   '<p style="color:var(--muted);font-size:.9rem">'+tc.what+'</p>'+
+   '<p class="mono" style="font-size:.66rem;letter-spacing:.1em;color:var(--faint);margin:10px 0 2px">CREW &nbsp;'+tc.agents+'</p>'+
+   '<p class="mono" style="font-size:.66rem;letter-spacing:.1em;color:var(--gold)">TARGET &nbsp;'+tc.target+'</p>'+
+   '<div style="display:flex;gap:12px;margin-top:16px;flex-wrap:wrap"><a href="#/contact" class="btn btn-coral">Book the Recon <span class="arr">\u2192</span></a><a href="'+tc.href+'" class="btn btn-ghost btn-sm">How this corridor works</a></div></div>'+
+   '<div class="panel" style="margin-top:16px"><div class="eyebrow" style="color:var(--ion)">All Six Corridors</div>'+
+   rows.map(r=>{const c=WGC[r.k];return '<div style="margin:12px 0"><div style="display:flex;justify-content:space-between;gap:10px;font-size:.84rem"><span>'+c.name+'</span><span class="mono" style="font-size:.64rem;letter-spacing:.1em;color:'+r.band[1]+'">'+r.band[0]+' \u00b7 '+r.s+'</span></div>'+
+    '<div style="height:7px;background:rgba(122,162,255,.09);border-radius:5px;margin-top:5px;overflow:hidden"><div style="height:100%;width:'+r.s+'%;background:'+r.band[1]+';border-radius:5px"></div></div></div>'}).join('')+
+   '<p class="hint-sm" style="margin-top:14px">Readiness = workflow pain \u00d7 stack integratability \u00d7 review discipline. A Recon replaces these heuristics with your measured baseline \u2014 and the install is quoted fixed-price from the same blueprint.</p>'+
+   '<button class="btn btn-ghost btn-sm" id="wg-copy" style="margin-top:6px">Copy my results</button></div>';
+  document.getElementById('wg-copy').addEventListener('click',()=>{
+   const txt='Delta Fleet Workflow Grader\n'+rows.map(r=>WGC[r.k].name+': '+r.s+'/100 ('+r.band[0]+')').join('\n')+'\nRecommended first install: '+tc.name;
+   navigator.clipboard.writeText(txt).then(()=>{document.getElementById('wg-copy').textContent='Copied.'});
+  });
+  results.scrollIntoView({behavior:'smooth',block:'nearest'});
+ });
+}
+
 function initGrader(){
  const ta=$('#gr-text'),run=$('#gr-run'),res=$('#gr-results'),cnt=$('#gr-count'),smp=$('#gr-sample');
  if(!ta)return;
