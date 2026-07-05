@@ -31,6 +31,7 @@ This site is a single-page application with hash routing; all page and article c
 - The Daily Brief ($79/mo read-only starter agent — inbox + calendar debriefed every weekday 7am): https://deltafleet.ai/#/daily-brief
 
 ## Pillar guides (The Flight Log — answer-first, FAQ + BlogPosting schema)
+- How to integrate AI into your business workflows (the practical, gated playbook): https://deltafleet.ai/#/blog/how-to-integrate-ai-into-business-workflows
 - Answer Engine Optimization, the complete guide: https://deltafleet.ai/#/blog/answer-engine-optimization-guide
 - AI marketing automation in 2026 (the fleet operating model): https://deltafleet.ai/#/blog/ai-marketing-automation-2026
 - What are AI agent fleets: https://deltafleet.ai/#/blog/what-are-ai-agent-fleets

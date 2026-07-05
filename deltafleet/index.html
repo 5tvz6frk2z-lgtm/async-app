@@ -1872,6 +1872,87 @@ a,button{-webkit-tap-highlight-color:rgba(79,216,255,.12);touch-action:manipulat
 </template>
 
 <!-- ============ TEMPLATES: BLOG POSTS ============ -->
+<template id="post-how-to-integrate-ai-into-business-workflows">
+<p class="lede">Every owner has now heard that AI will transform their business. Far fewer have gotten it to actually run a workflow — reliably, safely, on Monday, without a data-science team. The gap isn't the models; frontier models are more than capable. The gap is <em>integration</em>: connecting a capable model to your real tools, deciding what it's allowed to do unsupervised, proving it works, and keeping it working. This is the practical playbook for closing that gap — the unit of work that succeeds, the architecture that keeps it reliable, and the sequence that de-risks the whole thing.</p>
+
+<div class="callout"><div class="cl-label">Direct Answer</div><p><strong>To integrate AI into a business workflow, install a small crew of task-scoped agents into the tools you already use, with a human approval gate on anything brand-visible or irreversible.</strong> Build it as a hybrid pipeline — deterministic code for anything that can be exact (pulling data, checking totals, filling templates) and a model only for judgment (classifying, drafting in your voice, deciding exceptions) — so results are cheap and consistent and numbers are computed, never generated. Capture a baseline first, start read-only or gated, and relax the gates only as measured accuracy earns it. Start with one workflow, prove it, then add the next.</p></div>
+
+<div class="key-box"><h4>Key Takeaways</h4><ul>
+<li>The failure mode isn't model quality — it's <strong>integration, trust and measurement</strong>. DIY tools leave you doing the integration; consultancies leave slideware; vertical SaaS solves one silo. The winning unit is a <strong>done-for-you workflow with a console you keep</strong>.</li>
+<li>The atomic unit is the <strong>corridor</strong>: one workflow, a small crew of agents, wired to your systems, gated where it matters, measured against a baseline.</li>
+<li><strong>Deterministic spine, agent joints.</strong> Anything that can be plain code is plain code (fast, cheap, identical every run); the model is reserved for judgment. Numbers in deliverables are computed, not generated — a figure can't be hallucinated.</li>
+<li><strong>Start read-only or gated, climb on evidence.</strong> Brand-visible or irreversible actions wait for a human until accuracy earns autonomy — the <a href="#/blog/human-in-the-loop-approval-gates">trust curve</a>, not a launch-day leap of faith.</li>
+<li>Every human correction should <strong>teach the system</strong>, so the same edit is never needed twice — the difference between automation that plateaus and automation that compounds.</li>
+</ul></div>
+
+<h2>Why most "AI in our workflows" projects stall</h2>
+<p>The demo works. The pilot impresses. Then it never reaches production — and the reason is almost never the model. Three gaps do the killing. <strong>The integration gap:</strong> a capable model still has to be connected to your CRM, your inbox, your accounting system, with the right permissions and the right data — exactly the work the buyer couldn't do alone, which is why "here's a tool, go integrate it" fails the people who need it most. <strong>The trust gap:</strong> the first time an agent sends something wrong under your name, the project is politically dead; without a gating and audit story, no owner will let it touch customers. <strong>The measurement gap:</strong> nobody captured what the workflow cost <em>before</em>, so nobody can prove it's better <em>after</em>, and unproven automation gets cut in the first budget review. Integration that lasts closes all three on purpose.</p>
+
+<h2>The unit that works: the corridor</h2>
+<p>Don't "add AI." Install a corridor — one workflow, run end-to-end by a small crew of task-scoped agents. A speed-to-lead corridor, for instance, is four agents: one qualifies the lead, one enriches it, one drafts the first reply in your voice, one books the meeting. Each has a single job and a single number it's accountable for. This beats both extremes: a monolithic "do everything" assistant is impossible to trust or debug, and a pile of disconnected point tools leaves you as the integration layer. A corridor is small enough to reason about, gate precisely, and measure honestly — and once one is live, the second costs a fraction of the first because the pattern repeats.</p>
+
+<h2>Deterministic spine, agent joints</h2>
+<p>The single most important architectural choice is refusing to use a model for work that doesn't need one. Most of any workflow is deterministic: pull the numbers, check they cross-foot, fill the template, route by a rule. Code does that faster, for effectively zero cost, and identically every single time. Reserve the model for the few steps that genuinely require judgment. This is what makes AI in a real business <em>reliable</em> instead of impressive-but-flaky — and it's why the numbers in your reports should be computed by code, with the model only writing the sentences around them. A computed figure cannot be hallucinated.</p>
+<table class="tbl"><thead><tr><th>Step in a reporting workflow</th><th>Deterministic (code)</th><th>Judgment (model)</th></tr></thead><tbody>
+<tr><td>Pull the week's numbers from source systems</td><td>✓ exact, every run</td><td></td></tr>
+<tr><td>Check totals cross-foot; halt if not</td><td>✓ a rule, not an opinion</td><td></td></tr>
+<tr><td>Decide which movement is the exception worth flagging</td><td></td><td>✓ judgment</td></tr>
+<tr><td>Write the exec narrative in the owner's voice</td><td></td><td>✓ judgment</td></tr>
+<tr><td>Assemble and send the formatted report</td><td>✓ templated</td><td></td></tr>
+</tbody></table>
+<p>The payoff is compounding: cheaper (a model touches a fraction of the run), more reliable (deterministic steps never vary), and easier to audit (you can point at exactly which step did what). It's also what makes a genuinely cheap entry point possible — a read-only daily brief where code does the counting costs cents per run to operate.</p>
+
+<h2>The five decisions every integration must make</h2>
+<p>Before wiring anything, answer these five. They are the whole design; get them right and the build is mechanical.</p>
+<table class="tbl"><thead><tr><th>Decision</th><th>The question</th><th>Good default</th></tr></thead><tbody>
+<tr><td>Trigger</td><td>What kicks this off — an event, a schedule, a queue?</td><td>Start with a schedule or a single clear event; avoid ambiguous triggers.</td></tr>
+<tr><td>Connectors</td><td>Which systems does it read and write?</td><td>Use the maturing standard (MCP) and curated servers — don't hand-build integrations.</td></tr>
+<tr><td>Gates</td><td>What can it do unsupervised vs. what needs a human?</td><td>Auto for reads; log for internal writes; <strong>approve for anything brand-visible or irreversible</strong>.</td></tr>
+<tr><td>Metrics</td><td>What's the before, and what's the target?</td><td>Capture the baseline in week one, or you'll never prove the after.</td></tr>
+<tr><td>Rollback</td><td>How do you turn it off cleanly?</td><td>Disable the trigger; queued work drains to a human. Read-only corridors need no rollback at all.</td></tr>
+</tbody></table>
+
+<h2>Start where the risk is zero, climb on evidence</h2>
+<p>The safest — and fastest-to-trust — way in is a read-only workflow: an agent that reads your systems and tells you something useful but writes nothing. A morning brief that computes your reply debt and the shape of your day has zero blast radius; the worst case is a boring email. From there you climb deliberately. Anything that writes starts behind a human approval gate. As the edit rate on a gated action stays low over enough decisions, you relax that gate on documented evidence — the <a href="#/blog/human-in-the-loop-approval-gates">trust curve</a>, workflow by workflow, never fleet-wide and never by vibes. A thin set of gates stays human forever by policy: irreversible or destructive actions (merging records, publicly responding to an angry customer) don't earn their way out no matter how good the accuracy gets.</p>
+<div class="chart-wrap rv">
+  <h5 class="mono" style="font-size:.66rem;letter-spacing:.2em;color:var(--faint);text-transform:uppercase;margin-bottom:18px">A workflow's autonomy climbs as accuracy earns it · illustrative</h5>
+  <svg viewBox="0 0 460 220" style="width:100%">
+    <g font-family="monospace" font-size="10" fill="#5d6b8f">
+      <text x="6" y="205">WEEK 1</text><text x="118" y="205">READ-ONLY</text><text x="238" y="205">GATED</text><text x="352" y="205">RELAXED</text>
+    </g>
+    <g>
+      <rect class="bar" x="24" y="150" width="52" height="50" fill="url(#ig1)" rx="4"/>
+      <rect class="bar" x="140" y="120" width="52" height="80" fill="url(#ig1)" rx="4" style="transition-delay:.12s"/>
+      <rect class="bar" x="256" y="72" width="52" height="128" fill="url(#ig1)" rx="4" style="transition-delay:.24s"/>
+      <rect class="bar" x="372" y="34" width="52" height="166" fill="url(#ig2)" rx="4" style="transition-delay:.36s"/>
+    </g>
+    <defs>
+      <linearGradient id="ig1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4fd8ff"/><stop offset="1" stop-color="#2ea8d4"/></linearGradient>
+      <linearGradient id="ig2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#34e3a4"/><stop offset="1" stop-color="#1f9e73"/></linearGradient>
+    </defs>
+    <g font-family="monospace" font-size="10" fill="#94a3c7">
+      <text x="30" y="142">measure</text><text x="142" y="112">observe</text><text x="262" y="64">approve</text><text x="372" y="26" fill="#34e3a4">autonomous*</text>
+    </g>
+  </svg>
+  <p class="mono" style="font-size:.66rem;letter-spacing:.14em;color:var(--faint);margin-top:14px">*EXCEPT PERMANENT GATES — MERGES, DELETIONS, NEGATIVE-REVIEW REPLIES STAY HUMAN BY POLICY</p>
+</div>
+
+<h2>Make every correction teach the system</h2>
+<p>Here's the difference between automation that plateaus and automation that compounds. When a human edits or rejects a gated action, that correction is data: it says "this is how we actually want it done." Capture it. Turn a repeated edit into a standing preference the agents read on every future run; turn a rejection reason into a rule. Layered with a per-client profile (your voice, your industry's terminology, your escalation rules) and an industry pack (so a healthcare workflow respects PHI on day one and a law firm says "inquiry" not "lead"), the system arrives specialized and then gets more specialized every week it runs. That accumulated, client-specific knowledge is the part a competitor can't copy — and the reason the same correction should never be needed twice.</p>
+
+<h2>A 30-day integration, concretely</h2>
+<p>You don't need a quarter or a data team. A realistic sequence: <strong>Week 1 — Recon.</strong> Map the workflow, capture the baseline numbers, pick the one corridor with the best ratio of pain to feasibility. <strong>Weeks 2–3 — Install.</strong> Wire the agents to your tools, configure gates, test in a sandbox before anything touches production. <strong>Week 4 — Go live gated.</strong> Every brand-visible action waits for a one-click human approval; you watch the run feed and the numbers. Then <strong>ongoing — Flight Ops:</strong> relax gates on evidence, tune to your voice, and get a monthly report that puts baseline next to current so the value is proven, not asserted. One corridor at a time; each proves the case for the next.</p>
+
+<h2>What to measure (so it survives budget review)</h2>
+<p>Automation that can't prove itself gets cut. For every corridor, capture the baseline before go-live and track the delta: cycle time (receipt to done), touch time (human minutes per item), error rate, and the outcome that matters to the business (response time, contact rate, on-time delivery). Track the trust signals too — approval clean rate and edit rate — because a falling edit rate is the evidence that earns the next gate relaxation. Put those numbers in front of the owner monthly. "Invoices went from a day and a half a week to twenty gated minutes, keying errors from 1.8% to 0.3%" survives every budget review. "We added AI" does not.</p>
+
+<details class="faq"><summary>Do I need engineers or a data team to integrate AI into my workflows?</summary><div class="a">No — that's the whole point of the done-for-you model. The integration work (connecting systems, configuring permissions, designing gates) is exactly what a small business can't staff, so it's what a good integration partner does for you. You supply the domain judgment on the onboarding call and approve the gated actions; you don't write code or manage infrastructure.</div></details>
+<details class="faq"><summary>How is this different from Zapier, Make, or a Copilot?</summary><div class="a">Those are DIY tools — they give you building blocks and leave you to do the integration and decide what's safe to automate, which is the hard part. This is done-for-you: we install a working, gated, measured workflow and leave you a console to run it from. Tools are components; a corridor is an installed outcome with a human accountable for it.</div></details>
+<details class="faq"><summary>What if the AI makes a mistake?</summary><div class="a">Two defenses. First, anything brand-visible or irreversible starts behind a human approval gate, so a mistake is caught before it has consequence — you approve, edit, or reject. Second, numbers in deliverables are computed by code, not generated by the model, so the most damaging class of error (a made-up figure) can't happen. Every action is logged and reversible, and read-only workflows can't write at all.</div></details>
+<details class="faq"><summary>Which workflow should I automate first?</summary><div class="a">The one with the best ratio of pain to feasibility — high, repetitive volume running through cloud tools with clear rules and a reviewable output. Common first wins: lead response, invoice intake, weekly reporting. A structured readiness assessment (like our <a href="#/workflow-grader">Workflow Grader</a>) scores your workflows on exactly this, or start read-only with a <a href="#/daily-brief">Daily Brief</a> and let the data tell you.</div></details>
+<details class="faq"><summary>How much does integrating one workflow cost, and how fast is it live?</summary><div class="a">A read-only starter can be live in 48 hours for under $100/month. A full corridor is a fixed-fee install (typically a few weeks of work) plus a managed monthly retainer — quoted from a paid audit that captures your baseline first, so the number you sign is the number you pay. You climb from cheap-and-read-only to full corridor on your own timeline, on evidence.</div></details>
+</template>
+
 <template id="post-what-are-ai-agent-fleets">
 <p class="lede">Every operator has now met a chatbot. Far fewer have met a fleet: a coordinated team of specialised AI agents that plans, executes and checks real operational work across your actual software — quoting, data entry, reporting, follow-ups — while you supervise output from a dashboard. This guide explains what agent fleets are, how they differ from assistants and Zapier-style automation, what they cost, and how to deploy one without betting the business.</p>
 
@@ -3445,6 +3526,7 @@ const REDUCED=matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /* ---- blog metadata ---- */
 const POSTS=[
+{slug:'how-to-integrate-ai-into-business-workflows',title:'How to Integrate AI Into Your Business Workflows: The Practical, Gated Playbook (2026)',cat:'Foundations',tie:'cyan',mins:12,date:'Jul 5, 2026',desc:'The integration gap is not model quality — it is connecting AI to real tools, gating what matters, and proving it works. The corridor unit, deterministic spine, the trust curve, and a concrete 30-day plan.'},
 {slug:'agent-manager-new-operating-role',title:'The Agent Manager: The New Operating Role Emerging Inside AI-Run Companies',cat:'Future of Work',tie:'gold',mins:12,date:'Jul 2, 2026',desc:'Job description, skills matrix, org design and KPIs for the person who commands a fleet instead of a team — and why your best ops analyst is the obvious first hire.'},
 {slug:'answer-engine-optimization-guide',title:'Answer Engine Optimization (AEO): The Complete Guide to Getting Cited by AI',cat:'Marketing',tie:'crimson',mins:13,date:'Jun 30, 2026',desc:'How AI assistants choose their sources, the citability stack, AEO vs classic SEO, measurement, and the content patterns that win citations.'},
 {slug:'sandboxing-ai-agents-security-architecture',title:'Sandboxing AI Agents: The Security Architecture Guide for Business Deployments',cat:'Infrastructure',tie:'emerald',mins:12,date:'Jun 26, 2026',desc:'Threat model, least-privilege design, the four sandbox layers, prompt injection defence and the audit trail — how to run agents without handing them the keys.'},
@@ -3999,6 +4081,7 @@ function initAgents(){
 /* Questions map to posts; answers are extracted at runtime from each post's
    Direct Answer callout — no duplicated copy to drift out of sync. */
 const ANSQ=[
+ ['how-to-integrate-ai-into-business-workflows','How do I integrate AI into my business workflows?'],
  ['what-are-ai-agent-fleets','What is an AI agent fleet?'],
  ['ai-agents-revenue-operations','How do AI agents automate the quote-to-cash process?'],
  ['agent-manager-new-operating-role','What does an Agent Manager do?'],
