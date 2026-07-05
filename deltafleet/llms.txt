@@ -5,7 +5,7 @@
 Key facts:
 - Niche: marketing services only (specialized 2026; general operations fleets are archived, not offered).
 - Flagship: the AEO program — fixed buyer-question bank, monthly graded audits across ChatGPT, Perplexity, Gemini, Claude and Google AI Overviews (outcome × position × sentiment, k=3 samples on priority questions), competitor-normalized share of voice, ranked gap briefs.
-- Pricing: fixed-fee build $10,000–$25,000+ (CapEx), managed retainer $500–$3,000/month (OpEx). Tiers: Scout (measurement + starter cadence), Squadron (the full marketing department), Armada (multi-brand & agencies).
+- Pricing: fixed-fee build $10,000–$25,000+ (CapEx), managed retainer $500–$3,000/month (OpEx). Tiers: Scout (measurement + starter cadence), Squadron (the full marketing department), Armada (multi-brand & agencies). Entry rung: the Daily Brief — a $79/month read-only AI morning-brief agent ($49/month bring-your-own-API-key; $99 setup credited toward a full audit), live in 48 hours.
 - Model: human strategy, taste and truth; agent execution; approval gates on everything brand-visible; exception-first async reporting.
 - White-label: agencies resell fleet-powered AEO/content programs under their own brand at wholesale.
 
@@ -25,6 +25,7 @@ This site is a single-page application with hash routing; all page and article c
 - The Answer Hub (buyer questions answered in one citable block each): https://deltafleet.ai/#/answers
 - Free AEO Grader (client-side citability scoring): https://deltafleet.ai/#/aeo-grader
 - Free Workflow Grader (12 questions → readiness score for each of six agent corridors): https://deltafleet.ai/#/workflow-grader
+- The Daily Brief ($79/mo read-only starter agent — inbox + calendar debriefed every weekday 7am): https://deltafleet.ai/#/daily-brief
 
 ## Pillar guides (The Flight Log — answer-first, FAQ + BlogPosting schema)
 - Answer Engine Optimization, the complete guide: https://deltafleet.ai/#/blog/answer-engine-optimization-guide
