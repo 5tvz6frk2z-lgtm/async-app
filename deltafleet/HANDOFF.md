@@ -83,7 +83,7 @@ Same conventions as ever: hash router (`ROUTES`/`TITLES` maps + init dispatch in
 
 ## 5 · Version history
 
-Site: v1 handoff → v2 corporate → v3 pantheon+20 posts → v4 WebGL Earth/dossiers → v5 AEO stack → v6 mobile → v7 raymarched ship → v8 marketing-niche + archives → **v8.5** Workflow Grader + Daily Brief page.
+Site: v1 handoff → v2 corporate → v3 pantheon+20 posts → v4 WebGL Earth/dossiers → v5 AEO stack → v6 mobile → v7 raymarched ship → v8 marketing-niche + archives → **v8.5** Workflow Grader + Daily Brief page → **v9** integration-studio repositioning (home rewrite, `#/corridors` catalog page, nav/footer/meta/llms.txt reframed; marketing = 3 of 6 corridors) + flagship pillar post `how-to-integrate-ai-into-business-workflows`. Marketing service pages (aeo/content-engine/lifecycle/analytics/white-label) intentionally kept as corridor deep-dives, NOT yet rewritten to corridor framing (see open items).
 Platform: **v0.1** ledger/gates/runtime/console → **v0.2** MCP bridge + cron/webhook intake → **v0.3** hybrid pipelines + profile + BYOK + daily-brief blueprint → **v0.4** memory engine + industry packs + cascade → **v0.4.1** Delta Proof report.
 `git log --oneline` on the branch narrates all of it.
 
@@ -92,7 +92,7 @@ Platform: **v0.1** ledger/gates/runtime/console → **v0.2** MCP bridge + cron/w
 1. **Real read-only connectors for Daily Brief** (Gmail/GCal MCP w/ read-only scopes) — needs owner-created OAuth credentials; the bridge already accepts them via connectors.json.
 2. **Stripe checkout link** in the Daily Brief CTA + **contact form backend** — account setup, not engineering.
 3. **Install #0:** run our own corridors daily on the platform; replace demo scripts with real handlers; first real Delta Proof.
-4. **Site v9 repositioning** (home/services around Recon→Install→Flight Ops; archive v8 marketing service pages per doctrine) + 5 integration pillar posts. Good Opus-tier work.
+4. **Finish the v9 site pass:** home + `#/corridors` + shell + 1 flagship pillar post are DONE. Remaining: (a) the four marketing service pages still open with marketing-agency framing — reframe as corridor deep-dives, and consider building 3 dedicated deep-dive pages for the corridors that only have catalog entries (Inbox Hygiene, Document Intake, Review Response — their home cards currently link to `#/corridors`/`#/workflow-grader`); (b) 4 more integration pillar posts (per-corridor: "AI for invoice processing", "AI for lead response", etc.) to build the content cluster around the flagship; (c) the About page still tells the marketing-pivot story — update to the integration-studio arc.
 5. Move `deltafleet/` to its own repo (blocked: integration can't create repos; owner creates empty repo → add_repo → push).
 6. Console auth; Recon print mode in Audit Cockpit; VOR observation→pattern memories; per-blueprint webhook payload schemas.
 7. Pre-launch reality pass on the site (replace illustrative stats, og:image, analytics).
