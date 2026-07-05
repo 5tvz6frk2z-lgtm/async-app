@@ -25,6 +25,7 @@ import { buildMcpRegistry, assertBlueprintsCovered } from './lib/connectors.js';
 import { TriggerEngine, makeHookHandler } from './lib/triggers.js';
 import { MemoryEngine } from './lib/memory.js';
 import { loadPackDir, packContext } from './lib/packs.js';
+import { reportData, renderReportHTML } from './lib/report.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const arg = (name, dflt) => {
@@ -45,6 +46,7 @@ const profile = PROFILE_PATH ? JSON.parse(fs.readFileSync(PROFILE_PATH, 'utf8'))
 
 const blueprints = loadBlueprintDir(path.join(here, 'blueprints'));
 const ledger = new Ledger(DATA);
+const FRESH_LEDGER = ledger.events.length === 0; // captured before any seeding writes
 const gates = new GateEngine(ledger, blueprints);
 const activeRuns = new Map(); // run id -> AgentRun (for kill)
 
@@ -121,7 +123,7 @@ function launchRun(blueprintId, triggerInput, { agentName } = {}) {
   return run.id;
 }
 
-if (DEMO && ledger.events.length === 0) seedBaselines(ledger);
+if (DEMO && FRESH_LEDGER) seedBaselines(ledger);
 
 const hookHandler = makeHookHandler({ blueprints, launch: (id, payload, meta) => launchRun(id, { ...payload, _via: meta.via }), secret: HOOK_SECRET });
 const triggerEngine = new TriggerEngine({ blueprints, launch: (id, input) => launchRun(id, input), log: console.log });
@@ -185,6 +187,20 @@ const server = http.createServer(async (req, res) => {
       return;
     }
     if (req.method === 'GET' && url.pathname === '/api/state') return json(res, 200, apiState());
+
+    if (req.method === 'GET' && url.pathname === '/report') {
+      const now = new Date();
+      const dflt = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+      const d = reportData({
+        blueprints, ledgerState: ledger.state(), trust: gates.trustStats(),
+        memories: memory.active(), profile, pack,
+        since: url.searchParams.get('since') || dflt,
+        until: url.searchParams.get('until') || null,
+      });
+      res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
+      res.end(renderReportHTML(d));
+      return;
+    }
 
     if (req.method === 'POST' && url.pathname.startsWith('/hooks/')) {
       const blueprintId = url.pathname.slice('/hooks/'.length);
