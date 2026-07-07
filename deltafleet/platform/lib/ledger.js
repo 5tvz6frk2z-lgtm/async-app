@@ -21,6 +21,8 @@ let SEQ = 0;
 export const newId = (prefix) => `${prefix}_${Date.now().toString(36)}${(SEQ++ % 1296).toString(36).padStart(2, '0')}`;
 
 export class Ledger {
+  static SAMPLE_WINDOW = 200; // metric samples retained hot in the projection (full history stays on disk)
+
   constructor(file) {
     this.file = file;
     this.events = [];
@@ -132,15 +134,21 @@ export class Ledger {
       case 'baseline': {
         if (!metrics.has(e.blueprint)) metrics.set(e.blueprint, new Map());
         const m = metrics.get(e.blueprint);
-        if (!m.has(e.key)) m.set(e.key, { baseline: undefined, samples: [] });
+        if (!m.has(e.key)) m.set(e.key, { baseline: undefined, samples: [], count: 0 });
         m.get(e.key).baseline = e.value;
         break;
       }
       case 'sample': {
         if (!metrics.has(e.blueprint)) metrics.set(e.blueprint, new Map());
         const m = metrics.get(e.blueprint);
-        if (!m.has(e.key)) m.set(e.key, { baseline: undefined, samples: [] });
-        m.get(e.key).samples.push({ t: e.t, value: e.value });
+        if (!m.has(e.key)) m.set(e.key, { baseline: undefined, samples: [], count: 0 });
+        const rec = m.get(e.key);
+        rec.count = (rec.count || 0) + 1;
+        rec.samples.push({ t: e.t, value: e.value });
+        // Bounded window: only the latest value and total count are ever read
+        // (proofFor), so retaining every sample forever is pure bloat. The full
+        // history remains in the JSONL audit trail.
+        if (rec.samples.length > Ledger.SAMPLE_WINDOW) rec.samples.shift();
         break;
       }
       case 'gate.change': {

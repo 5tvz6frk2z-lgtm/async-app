@@ -15,7 +15,7 @@ export function proofFor(blueprint, ledgerState) {
     }
     rows.push({ key: def.key, label: def.label, unit: def.unit, direction: def.direction,
       target: blueprint.metrics.targets?.[def.key] ?? null,
-      baseline, current, deltaPct, improved, samples: samples.length });
+      baseline, current, deltaPct, improved, samples: rec?.count ?? samples.length });
   }
   return rows;
 }

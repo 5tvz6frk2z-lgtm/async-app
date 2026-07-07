@@ -96,6 +96,17 @@ test('pendingApprovals independently matches the canonical filter over all actio
   assert.deepEqual(reference, ['act9'], 'only the live parked approval is pending');
 });
 
+test('metric samples are bounded in the projection but the count stays true', () => {
+  const l = new Ledger(null);
+  l.append({ type: 'baseline', blueprint: 'bp', key: 'lat', value: 100 });
+  const N = Ledger.SAMPLE_WINDOW + 50;
+  for (let i = 0; i < N; i++) l.append({ type: 'sample', blueprint: 'bp', key: 'lat', value: i });
+  const rec = l.state().metrics.get('bp').get('lat');
+  assert.equal(rec.samples.length, Ledger.SAMPLE_WINDOW, 'retained window is capped');
+  assert.equal(rec.count, N, 'true total count is preserved');
+  assert.equal(rec.samples[rec.samples.length - 1].value, N - 1, 'the latest sample is retained');
+});
+
 test('repeated state() returns the same live projection maps (no re-derivation)', () => {
   const l = new Ledger(null);
   script(l);
