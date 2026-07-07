@@ -220,6 +220,18 @@ function apiState() {
 }
 const pick = (r) => r && { id: r.id, blueprint: r.blueprint, agent: r.agent, callsign: r.callsign, status: r.status };
 
+// The console polls /api/state ~every 1.5s and every poll recomputes the full
+// derived payload (trust/verification/confidence/ops stats, all history). That
+// payload only changes when the ledger changes, so memoize it by ledger version:
+// N pollers and back-to-back idle ticks collapse to one recompute per append.
+let _stateCache = { version: -1, body: null };
+function apiStateBody() {
+  if (_stateCache.version === ledger.version) return _stateCache.body;
+  const body = JSON.stringify(apiState());
+  _stateCache = { version: ledger.version, body };
+  return body;
+}
+
 /* ---------------- http ---------------- */
 
 const json = (res, code, body) => {
@@ -240,7 +252,11 @@ const server = http.createServer(async (req, res) => {
       res.end(fs.readFileSync(path.join(here, 'console', 'index.html')));
       return;
     }
-    if (req.method === 'GET' && url.pathname === '/api/state') return json(res, 200, apiState());
+    if (req.method === 'GET' && url.pathname === '/api/state') {
+      res.writeHead(200, { 'content-type': 'application/json' });
+      res.end(apiStateBody());
+      return;
+    }
 
     if (req.method === 'GET' && url.pathname === '/api/benchmark-export') {
       // Anonymized cross-install export. installId is an opaque salted hash of

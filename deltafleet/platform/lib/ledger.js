@@ -25,6 +25,7 @@ export class Ledger {
     this.file = file;
     this.events = [];
     this.listeners = new Set();
+    this.version = 0; // bumps on every append; lets consumers cache derived views cheaply
     if (file && fs.existsSync(file)) {
       for (const line of fs.readFileSync(file, 'utf8').split('\n')) {
         if (line.trim()) this.events.push(JSON.parse(line));
@@ -37,6 +38,7 @@ export class Ledger {
   append(event) {
     const e = { t: new Date().toISOString(), ...event };
     this.events.push(e);
+    this.version++;
     if (this.file) fs.appendFileSync(this.file, JSON.stringify(e) + '\n');
     // Keep the materialized view current so state() is O(1) amortized rather
     // than an O(events) replay on every call. Applied BEFORE listeners fire so a
