@@ -92,7 +92,11 @@ export class AgentRun {
   }
 
   async #executeGated(call) {
-    const { action, gate, promise } = this.gates.request(this.id, this.bp.blueprint, call.tool, call.input);
+    // An agent may self-report confidence (call.confidence or an input._confidence
+    // field); it can only escalate the gate to human approval, never relax it.
+    const confidence = typeof call.confidence === 'number' ? call.confidence
+      : (call.input && typeof call.input._confidence === 'number' ? call.input._confidence : undefined);
+    const { action, gate, promise } = this.gates.request(this.id, this.bp.blueprint, call.tool, call.input, { confidence });
     let input = call.input;
     if (gate === 'verify') {
       // Adversarial self-check. A held action is NOT executed; the acting agent

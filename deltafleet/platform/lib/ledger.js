@@ -74,6 +74,8 @@ export class Ledger {
         }
         case 'action.request': {
           const a = { id: e.action, run: e.run, tool: e.tool, input: e.input, gate: e.gate, t: e.t };
+          if (typeof e.confidence === 'number') { a.confidence = e.confidence; a.calibrated = e.calibrated; }
+          if (e.escalated) a.escalated = true;
           actions.set(e.action, a);
           const r = runs.get(e.run);
           if (r) r.actions.push(e.action);

@@ -3,7 +3,7 @@
 The real thing behind the Delta Fleet pitch: per-client agent runtime + gate engine + append-only run ledger + the client console. Zero dependencies, Node ≥ 22.
 
 ```bash
-npm test          # 98 tests, node:test, no deps
+npm test          # 105 tests, node:test, no deps
 npm run demo      # console with simulated connectors → http://localhost:4600
 node bin/shadow.js daily-brief scenarios/daily-brief.example.json   # grade a corridor before launch
 ```

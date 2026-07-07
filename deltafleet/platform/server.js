@@ -205,6 +205,7 @@ function apiState() {
     runs,
     trust: gates.trustStats(),
     verification: gates.verificationStats(),
+    confidence: gates.confidenceStats(),
     threads: [...s.threads.values()].sort((a, b) => (a.start < b.start ? 1 : -1)).slice(0, 20),
     gateChanges: s.gateChanges.slice(-20).reverse(),
     blueprints: bps,
