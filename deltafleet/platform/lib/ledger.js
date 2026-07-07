@@ -29,8 +29,29 @@ export class Ledger {
     this.listeners = new Set();
     this.version = 0; // bumps on every append; lets consumers cache derived views cheaply
     if (file && fs.existsSync(file)) {
-      for (const line of fs.readFileSync(file, 'utf8').split('\n')) {
-        if (line.trim()) this.events.push(JSON.parse(line));
+      // Crash-safe load: a process killed mid-append can leave a torn final
+      // line. Tolerate that one partial trailing record (drop it with a warning
+      // — the next append writes cleanly after it) rather than failing to boot.
+      // A malformed line anywhere BUT the end is real corruption and must not be
+      // silently skipped — that would rewrite history — so it throws.
+      const lines = fs.readFileSync(file, 'utf8').split('\n');
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (!line.trim()) continue;
+        try {
+          this.events.push(JSON.parse(line));
+        } catch (err) {
+          const isLastNonEmpty = lines.slice(i + 1).every((l) => !l.trim());
+          if (isLastNonEmpty) {
+            // Truncate the torn bytes from disk so the next append writes cleanly
+            // after the last intact record (a partial line has no newline).
+            const validBytes = lines.slice(0, i).reduce((n, l) => n + Buffer.byteLength(l, 'utf8') + 1, 0);
+            try { fs.truncateSync(file, validBytes); } catch { /* read-only fs: in-memory drop still correct */ }
+            console.warn(`ledger: dropped torn final record in ${path.basename(file)} (crash mid-append?), truncated to ${validBytes} bytes`);
+            break;
+          }
+          throw new Error(`ledger ${path.basename(file)} corrupt at line ${i + 1}: ${err.message}`);
+        }
       }
     } else if (file) {
       fs.mkdirSync(path.dirname(file), { recursive: true });

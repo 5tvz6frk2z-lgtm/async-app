@@ -1,5 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import { Ledger } from '../lib/ledger.js';
 
 // A representative event sequence exercising every derivation rule.
@@ -105,6 +108,28 @@ test('metric samples are bounded in the projection but the count stays true', ()
   assert.equal(rec.samples.length, Ledger.SAMPLE_WINDOW, 'retained window is capped');
   assert.equal(rec.count, N, 'true total count is preserved');
   assert.equal(rec.samples[rec.samples.length - 1].value, N - 1, 'the latest sample is retained');
+});
+
+test('crash-safe load: a torn final record is dropped; mid-file corruption throws', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ledger-'));
+  const good = { t: '2026-07-07T00:00:00.000Z', type: 'run.start', run: 'r1', blueprint: 'bp', agent: 'a', callsign: 'A', trigger: {} };
+
+  // torn final line (crash mid-append) → tolerated, valid events still load
+  const f1 = path.join(dir, 'torn.jsonl');
+  fs.writeFileSync(f1, JSON.stringify(good) + '\n' + '{"type":"run.st');
+  const l1 = new Ledger(f1);
+  assert.equal(l1.events.length, 1);
+  assert.equal(l1.state().runs.size, 1);
+  // and the next append writes cleanly after the torn record
+  l1.append({ type: 'note', run: 'r1', text: 'recovered' });
+  assert.equal(new Ledger(f1).events.length, 2);
+
+  // corruption in the MIDDLE is real damage → must not be silently skipped
+  const f2 = path.join(dir, 'mid.jsonl');
+  fs.writeFileSync(f2, JSON.stringify(good) + '\n' + 'GARBAGE\n' + JSON.stringify(good) + '\n');
+  assert.throws(() => new Ledger(f2), /corrupt at line 2/);
+
+  fs.rmSync(dir, { recursive: true, force: true });
 });
 
 test('repeated state() returns the same live projection maps (no re-derivation)', () => {
