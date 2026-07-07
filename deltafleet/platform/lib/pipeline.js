@@ -18,6 +18,7 @@
 // injected into every infer step's system prompt — this is the "configured
 // to just their brand" layer.
 import { newId } from './ledger.js';
+import { runVerification } from './verify.js';
 
 export function resolveRefs(value, ctx) {
   if (typeof value === 'string' && value.startsWith('$')) {
@@ -37,8 +38,9 @@ export function resolveRefs(value, ctx) {
 }
 
 export class PipelineRun {
-  constructor({ blueprint, ledger, gates, scripts, adapter, profile = {}, context = [], maxTokens = 100_000 }) {
+  constructor({ blueprint, ledger, gates, scripts, adapter, verifier = null, profile = {}, context = [], maxTokens = 100_000 }) {
     this.context = context; // specialization cascade lines: pack + memory
+    this.verifier = verifier; // adversarial verification for gated script steps (optional)
     if (!Array.isArray(blueprint.pipeline) || !blueprint.pipeline.length) {
       throw new Error(`blueprint ${blueprint.blueprint} has no pipeline`);
     }
@@ -98,6 +100,20 @@ export class PipelineRun {
           const input = resolveRefs(step.input || {}, ctx);
           const { action, gate, promise } = this.gates.request(id, bp.blueprint, step.script, input);
           let effective = input;
+          if (gate === 'verify') {
+            // Adversarial self-check on a deterministic step (e.g. a brand-visible
+            // deliver.*). Held → treat like a rejection: optional steps continue,
+            // required steps fail the run. Fail-safe if no verifier is configured.
+            const held = !this.verifier
+              ? { outcome: 'refuted', reasons: 'verification unavailable' }
+              : await runVerification({ verifier: this.verifier, ledger: this.ledger, action, tool: step.script, input, context: this.context, trigger: ctx.trigger, signal: this.abort.signal });
+            this.tokensIn += held.tokensIn || 0; this.tokensOut += held.tokensOut || 0;
+            if (held.outcome === 'refuted') {
+              this.ledger.append({ type: 'action.result', action, ok: false, error: `held by verification: ${held.reasons}` });
+              if (step.optional) { this.ledger.append({ type: 'note', run: id, text: `Step ${idx + 1} (${step.script}) held by verification — optional, continuing.` }); continue; }
+              throw new Error(`required step ${step.script} held by verification: ${held.reasons}`);
+            }
+          }
           if (gate === 'approve') {
             const verdict = await Promise.race([
               promise,

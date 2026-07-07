@@ -155,7 +155,7 @@ td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
     </div>
   </div>
 
-  <div class="sect"><h2>Corridors</h2><p class="hint">One card per installed blueprint: proof vs baseline, gate posture, and the trust stats that justify relaxing a gate.</p></div>
+  <div class="sect"><h2>Corridors</h2><p class="hint">One card per installed blueprint: proof vs baseline, gate posture, and the trust stats that justify relaxing a gate.</p><p class="hint" id="caught-stat" style="color:var(--gold)"></p></div>
   <div class="bps" id="bps"></div>
 </main>
 
@@ -233,15 +233,17 @@ function proofRows(bp){
   const d=p.deltaPct==null?'—':`<span class="${p.improved?'up':'down'}">${p.deltaPct>0?'+':''}${p.deltaPct.toFixed(0)}%</span>`;
   return `<tr><td>${esc(p.label)}</td><td class="r mono">${fmt(p.baseline)}</td><td class="r mono">${fmt(p.current)} ${esc(p.unit)}</td><td class="r">${d}</td></tr>`}).join('');
 }
-function gateRows(bp,trust){
+function gateRows(bp,trust,verif){
  return Object.entries(bp.gates).filter(([t])=>t!=='*').map(([tool,g])=>{
   const tr=trust.find(x=>x.blueprint===bp.id&&x.tool===tool);
-  const stats=tr?`${tr.verdicts} verdicts · ${(tr.interventionRate*100).toFixed(0)}% intervention`:'';
-  const relax=tr&&tr.propose?`<button class="btn warn sm" data-relax="${bp.id}|${tool}">RELAX → LOG</button>`:'';
+  const vf=verif.find(x=>x.blueprint===bp.id&&x.tool===tool);
+  let stats=tr?`${tr.verdicts} verdicts · ${(tr.interventionRate*100).toFixed(0)}% intervention`:'';
+  if(g.effective==='verify'&&vf) stats=`${vf.verifications} checks · ${(vf.cleanRate*100).toFixed(0)}% clean · ${vf.held} held`;
+  const relax=(tr&&tr.propose)||(vf&&vf.propose)?`<button class="btn warn sm" data-relax="${bp.id}|${tool}">RELAX → LOG</button>`:'';
   const overridden=g.effective!==g.declared?` <span class="klabel">(was ${g.declared})</span>`:'';
   return `<tr><td class="mono" style="font-size:.72rem">${esc(tool)}</td><td><span class="gl ${g.effective}">${g.effective.toUpperCase()}</span>${overridden}</td><td style="font-size:.68rem">${stats}</td><td class="r">${relax}</td></tr>`}).join('');
 }
-function bpsHTML(bps,trust,demo){
+function bpsHTML(bps,trust,verif,demo){
  return bps.map(bp=>`
   <div class="bp-card">
    <h4>${esc(bp.title)}</h4>
@@ -249,7 +251,7 @@ function bpsHTML(bps,trust,demo){
    <div class="agents-line">${bp.agents.map(a=>`<b>${esc(a.callsign)}</b> ${esc(a.name)}`).join(' · ')}</div>
    <table><thead><tr><th>Metric</th><th class="r">Baseline</th><th class="r">Current</th><th class="r">Δ</th></tr></thead><tbody>${proofRows(bp)}</tbody></table>
    <div style="height:10px"></div>
-   <table><thead><tr><th>Tool</th><th>Gate</th><th>Trust</th><th></th></tr></thead><tbody>${gateRows(bp,trust)}</tbody></table>
+   <table><thead><tr><th>Tool</th><th>Gate</th><th>Trust / verification</th><th></th></tr></thead><tbody>${gateRows(bp,trust,verif)}</tbody></table>
    <p class="hint">Rollback: ${esc(bp.rollback)}</p>
    ${demo&&bp.hasScenario?`<button class="btn sm" style="margin-top:8px" data-sim-one="${bp.id}">▸ Simulate this corridor</button>`:''}
   </div>`).join('');
@@ -275,7 +277,9 @@ function render(st){
  const ids=st.pendingApprovals.map(a=>a.id).join(',');
  if(!editing||ids!==lastPendingIds){$('#approvals').innerHTML=approvalsHTML(st.pendingApprovals);lastPendingIds=ids}
  $('#runs').innerHTML=runsHTML(st.runs);
- $('#bps').innerHTML=bpsHTML(st.blueprints,st.trust,st.demo);
+ $('#bps').innerHTML=bpsHTML(st.blueprints,st.trust,(st.verification&&st.verification.byTool)||[],st.demo);
+ const caught=st.verification&&st.verification.caught||0;
+ const cs=$('#caught-stat'); if(cs) cs.textContent=caught?`🛡 ${caught} action${caught===1?'':'s'} caught by verification before execution`:'';
  $('#gatelog').innerHTML=gatelogHTML(st.gateChanges);
  const memEditing=document.activeElement&&document.activeElement.id==='mem-text';
  if(!memEditing)$('#memories').innerHTML=memoriesHTML(st.memories||[]);
@@ -301,7 +305,7 @@ document.addEventListener('click',async e=>{
  }
  if(t.dataset.kill)if(confirm('Kill this run? The agent stops at the next safe boundary.'))await post('/api/kill',{run:t.dataset.kill});
  if(t.dataset.relax){const [blueprint,tool]=t.dataset.relax.split('|');
-  if(confirm(`Relax ${tool} from APPROVE to LOG for ${blueprint}? Evidence: clean trust window. Reversible via gate change.`))
+  if(confirm(`Relax ${tool} → LOG for ${blueprint}? Evidence: a clean trust/verification window. Reversible via gate change.`))
    await post('/api/gate',{blueprint,tool,to:'log',reason:'trust window earned relaxation'});
  }
  if(t.dataset.memRetire)await post('/api/memory/retire',{id:t.dataset.memRetire});

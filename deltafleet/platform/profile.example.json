@@ -13,5 +13,8 @@
     { "kind": "preference", "scope": "daily-brief", "text": "Lead the brief with dealer-network threads when any are waiting — they outrank everything else." },
     { "kind": "fact", "scope": "client", "text": "Corvid Studios is a vendor (white-label content); their invoices arrive from billing@corvid.example as PDFs." }
   ],
-  "byok": { "enabled": false, "env": "CLIENT_ANTHROPIC_KEY" }
+  "byok": { "enabled": false, "env": "CLIENT_ANTHROPIC_KEY" },
+  "//verify": "Adversarial Verification Layer (for corridors with a \"verify\" gate). verifyK = number of independent skeptic verifiers per action (default 3). verifyLenses (optional) = perspective-diverse panel; one verifier per lens, overrides verifyK.",
+  "verifyK": 3,
+  "verifyLenses": ["correctness", "brand", "policy"]
 }

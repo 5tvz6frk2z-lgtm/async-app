@@ -86,6 +86,11 @@ export class Ledger {
           if (a) { a.ok = e.ok; a.output = e.output; a.error = e.error; }
           break;
         }
+        case 'verification.result': {
+          const a = actions.get(e.action);
+          if (a) a.verification = { outcome: e.outcome, refuted: e.refuted, clean: e.clean };
+          break;
+        }
         case 'run.end': {
           const r = runs.get(e.run);
           if (r) { r.status = e.status; r.end = e.t; r.tokensIn = e.tokensIn || 0; r.tokensOut = e.tokensOut || 0; }

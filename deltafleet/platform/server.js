@@ -19,6 +19,7 @@ import { GateEngine } from './lib/gates.js';
 import { proofFor, opsSummary } from './lib/metrics.js';
 import { AgentRun, AnthropicAdapter, MockAdapter } from './lib/runtime.js';
 import { PipelineRun } from './lib/pipeline.js';
+import { Verifier } from './lib/verify.js';
 import { demoScriptRegistry, assertScriptsCovered } from './lib/scripts.js';
 import { demoToolRegistry, seedBaselines, launchScenario, SCENARIOS } from './lib/demo.js';
 import { buildMcpRegistry, assertBlueprintsCovered } from './lib/connectors.js';
@@ -106,6 +107,18 @@ function adapterFor(blueprintId, agentName) {
   return new MockAdapter([{ text: `(${agentName}) trigger received and acknowledged — no scripted scenario for this agent in demo mode.` }]);
 }
 
+/** Adversarial verification for `verify`-gated actions. In live mode each
+ *  verifier gets its own fresh Anthropic adapter (independent context — it must
+ *  not share the acting agent's conversation). In demo mode there is no verifier;
+ *  no demo blueprint uses a `verify` gate, and if one did it would fail-safe hold. */
+function verifierFor() {
+  if (DEMO) return null;
+  const key = profile.byok?.enabled ? process.env[profile.byok.env || 'CLIENT_ANTHROPIC_KEY'] : process.env.ANTHROPIC_API_KEY;
+  if (!key) return null;
+  const lenses = profile.verifyLenses || null; // e.g. ["correctness","brand","policy"]
+  return new Verifier({ adapter: new AnthropicAdapter({ apiKey: key }), k: profile.verifyK || 3, lenses });
+}
+
 /** Single entry point every intake path uses: simulate, webhook, schedule.
  *  Pipeline blueprints run the hybrid executor; the rest run the agent loop. */
 function launchRun(blueprintId, triggerInput, { agentName } = {}) {
@@ -113,12 +126,13 @@ function launchRun(blueprintId, triggerInput, { agentName } = {}) {
   if (!bp) throw new Error(`unknown blueprint ${blueprintId}`);
   let run;
   const context = contextFor(blueprintId);
+  const verifier = verifierFor();
   if (bp.pipeline) {
     const inferAgent = bp.pipeline.find((s) => s.infer)?.infer || bp.agents[0].name;
-    run = new PipelineRun({ blueprint: bp, ledger, gates, scripts, adapter: adapterFor(blueprintId, inferAgent), profile, context });
+    run = new PipelineRun({ blueprint: bp, ledger, gates, scripts, adapter: adapterFor(blueprintId, inferAgent), verifier, profile, context });
   } else {
     const agent = agentName || bp.entry || bp.agents[0].name;
-    run = new AgentRun({ blueprint: bp, agentName: agent, ledger, gates, adapter: adapterFor(blueprintId, agent), tools, context });
+    run = new AgentRun({ blueprint: bp, agentName: agent, ledger, gates, adapter: adapterFor(blueprintId, agent), tools, verifier, context });
   }
   activeRuns.set(run.id, run);
   run.run(triggerInput).finally(() => activeRuns.delete(run.id));
@@ -158,6 +172,7 @@ function apiState() {
     pendingApprovals: pending,
     runs,
     trust: gates.trustStats(),
+    verification: gates.verificationStats(),
     gateChanges: s.gateChanges.slice(-20).reverse(),
     blueprints: bps,
     demo: DEMO,

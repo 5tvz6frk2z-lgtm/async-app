@@ -11,9 +11,10 @@
 // - Budgets are hard: exceeding maxSteps or maxTokens ends the run as 'error'
 //   with the reason ledgered. Agents don't get to run away quietly.
 import { newId } from './ledger.js';
+import { runVerification } from './verify.js';
 
 export class AgentRun {
-  constructor({ blueprint, agentName, ledger, gates, adapter, tools, context = [], maxSteps = 24, maxTokens = 200_000 }) {
+  constructor({ blueprint, agentName, ledger, gates, adapter, tools, verifier = null, context = [], maxSteps = 24, maxTokens = 200_000 }) {
     this.context = context; // specialization cascade lines: pack + profile + memory
     this.bp = blueprint;
     this.agent = blueprint.agents.find((a) => a.name === agentName);
@@ -22,6 +23,7 @@ export class AgentRun {
     this.gates = gates;
     this.adapter = adapter;
     this.tools = tools;                       // ToolRegistry
+    this.verifier = verifier;                 // adversarial verification (optional)
     this.maxSteps = maxSteps;
     this.maxTokens = maxTokens;
     this.id = newId('run');
@@ -47,6 +49,7 @@ export class AgentRun {
 
   async run(triggerInput) {
     const { id } = this;
+    this._trigger = triggerInput; // available to verifiers as "what warranted this action"
     this.ledger.append({ type: 'run.start', run: id, blueprint: this.bp.blueprint, agent: this.agent.name, callsign: this.agent.callsign, trigger: triggerInput });
     const toolDefs = this.tools.defsFor(this.agent.tools);
     const messages = [{ role: 'user', content: `Trigger: ${JSON.stringify(triggerInput)}` }];
@@ -89,6 +92,22 @@ export class AgentRun {
   async #executeGated(call) {
     const { action, gate, promise } = this.gates.request(this.id, this.bp.blueprint, call.tool, call.input);
     let input = call.input;
+    if (gate === 'verify') {
+      // Adversarial self-check. A held action is NOT executed; the acting agent
+      // gets the refutation back and may revise (self-repair). Fail-safe: with
+      // no verifier configured, hold rather than execute unverified.
+      if (!this.verifier) {
+        this.ledger.append({ type: 'verification.result', action, outcome: 'refuted', refuted: 0, clean: 0, error: 'no verifier configured' });
+        this.ledger.append({ type: 'action.result', action, ok: false, error: 'held: verification unavailable' });
+        return { callId: call.id, tool: call.tool, ok: false, output: 'Action held: adversarial verification is unavailable. Revise or finish with a note; do not retry identically.' };
+      }
+      const v = await runVerification({ verifier: this.verifier, ledger: this.ledger, action, tool: call.tool, input, context: this.context, trigger: this._trigger, signal: this.abort.signal });
+      this.tokensIn += v.tokensIn || 0; this.tokensOut += v.tokensOut || 0;
+      if (v.outcome === 'refuted') {
+        this.ledger.append({ type: 'action.result', action, ok: false, error: `held by verification: ${v.reasons}` });
+        return { callId: call.id, tool: call.tool, ok: false, output: `Action held by adversarial verification: ${v.reasons || 'verifiers refused it'}. Revise the action to address these objections, or finish with a note.` };
+      }
+    }
     if (gate === 'approve') {
       const verdictEvent = await Promise.race([
         promise,

@@ -7,7 +7,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-export const GATE_LEVELS = ['auto', 'log', 'approve'];
+// Gate tiers, least to most supervision. `verify` (adversarial self-check by N
+// verifier agents) sits between `log` and `approve`: it can HOLD a bad action
+// with no human, and clean actions proceed without one. See lib/verify.js.
+export const GATE_LEVELS = ['auto', 'log', 'verify', 'approve'];
 
 const REQUIRED = ['blueprint', 'title', 'trigger', 'agents', 'gates', 'connectors', 'metrics', 'rollback'];
 
