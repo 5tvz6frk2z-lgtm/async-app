@@ -59,6 +59,8 @@ export function structuredScorer(outcome, groundTruth) {
     let ok;
     if (expected && typeof expected === 'object' && 'approx' in expected) {
       ok = typeof actual === 'number' && Math.abs(actual - expected.approx) <= (expected.tol || 0);
+    } else if (expected && typeof expected === 'object' && 'contains' in expected) {
+      ok = typeof actual === 'string' && actual.includes(expected.contains); // grade model-generated text
     } else if (expected && typeof expected === 'object') {
       ok = JSON.stringify(actual) === JSON.stringify(expected);
     } else {

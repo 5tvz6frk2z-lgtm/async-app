@@ -148,6 +148,11 @@ td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
         <div class="phead"><h3>Gate changes</h3><span class="spacer"></span><span class="klabel">TRUST CURVE LOG</span></div>
         <div id="gatelog"><p class="hint">No gate changes yet. Relaxation proposals appear on corridor cards when a gated tool earns them.</p></div>
       </div>
+      <div class="panel">
+        <div class="phead"><h3>Curated instructions</h3><span class="spacer"></span><span class="klabel">MEASURED SELF-IMPROVEMENT</span></div>
+        <div id="instructions"></div>
+        <p class="hint">The Curator distills repeated corrections into a proposed instruction, A/B-tests it on eval scenarios, and only proposes it if it measurably wins. You approve; accepted overlays inject into future runs and are reversible.</p>
+      </div>
     </div>
     <div class="panel">
       <div class="phead"><h3>Run feed</h3><span class="spacer"></span><span class="klabel">EVERY ACTION LEDGERED</span></div>
@@ -265,6 +270,21 @@ function memoriesHTML(list){
    <span style="font-size:.78rem;flex:1">${esc(m.text)} <span class="klabel">${m.scope==='client'?'':'· '+esc(m.scope)} · ${Math.round((m.confidence||0)*100)}%${m.confirms>1?' · ×'+m.confirms:''} · ${esc(m.source?.type||'')}</span></span>
    <button class="btn bad sm" data-mem-retire="${m.id}" title="Retire">✕</button></div>`).join('');
 }
+function instructionsHTML(list){
+ if(!list||!list.length)return '<p class="hint">No instruction proposals yet. When the Curator runs, measured proposals appear here for your approval.</p>';
+ const badge={proposed:'var(--gold)',accepted:'var(--ok)',rejected:'var(--faint)',reverted:'var(--faint)'};
+ return list.map(p=>{
+  const d=typeof p.delta==='number'?`${p.delta>=0?'+':''}${(p.delta*100).toFixed(0)}% acc`:'';
+  const rec=p.status==='proposed'?(p.recommend?'<span class="klabel" style="color:var(--ok)">A/B: RECOMMEND</span>':'<span class="klabel" style="color:var(--faint)">A/B: hold</span>'):'';
+  const controls=p.status==='proposed'
+   ?`<button class="btn sm" data-instr-accept="${p.id}">Accept</button> <button class="btn bad sm" data-instr-reject="${p.id}">Reject</button>`
+   :p.status==='accepted'?`<span class="klabel" style="color:var(--ok)">ACTIVE v${p.version||1}</span> <button class="btn bad sm" data-instr-revert="${p.id}">Revert</button>`
+   :`<span class="klabel">${p.status.toUpperCase()}</span>`;
+  return `<div class="tr" style="margin-bottom:8px;flex-wrap:wrap">
+   <span class="g" style="color:${badge[p.status]||'var(--faint)'};border-color:${(badge[p.status]||'var(--faint)')}40">${(p.blueprint||'').toUpperCase()}</span>
+   <span style="font-size:.78rem;flex:1;min-width:180px">${esc(p.overlay)} <span class="klabel">${d} ${esc(p.reason||'')}</span></span>
+   ${rec} <span style="display:flex;gap:6px">${controls}</span></div>`}).join('');
+}
 function gatelogHTML(list){
  if(!list.length)return '<p class="hint">No gate changes yet. Relaxation proposals appear on corridor cards when a gated tool earns them.</p>';
  return list.map(e=>`<div class="tr" style="margin-bottom:6px"><span class="g log">${new Date(e.t).toLocaleDateString()}</span><span class="tool">${esc(e.blueprint)} · ${esc(e.tool)}</span><span style="font-size:.74rem">${esc(e.from)} → <b style="color:var(--gold)">${esc(e.to)}</b> by ${esc(e.by)}${e.reason?' — '+esc(e.reason):''}</span></div>`).join('');
@@ -282,6 +302,7 @@ function render(st){
  const caught=st.verification&&st.verification.caught||0;
  const cs=$('#caught-stat'); if(cs) cs.textContent=caught?`🛡 ${caught} action${caught===1?'':'s'} caught by verification before execution`:'';
  $('#gatelog').innerHTML=gatelogHTML(st.gateChanges);
+ $('#instructions').innerHTML=instructionsHTML(st.instructions);
  const memEditing=document.activeElement&&document.activeElement.id==='mem-text';
  if(!memEditing)$('#memories').innerHTML=memoriesHTML(st.memories||[]);
  $('#mem-count').textContent=(st.memories||[]).length;
@@ -310,13 +331,16 @@ document.addEventListener('click',async e=>{
    await post('/api/gate',{blueprint,tool,to:'log',reason:'trust window earned relaxation'});
  }
  if(t.dataset.memRetire)await post('/api/memory/retire',{id:t.dataset.memRetire});
+ if(t.dataset.instrAccept&&confirm('Accept this curated instruction? It will inject into future runs (reversible).'))await post('/api/instruction',{action:'accept',id:t.dataset.instrAccept});
+ if(t.dataset.instrReject)await post('/api/instruction',{action:'reject',id:t.dataset.instrReject,reason:prompt('Reason (optional):')||''});
+ if(t.dataset.instrRevert&&confirm('Revert this active instruction overlay?'))await post('/api/instruction',{action:'revert',id:t.dataset.instrRevert});
  if(t.id==='mem-add'){
   const text=$('#mem-text').value.trim();
   if(text){await post('/api/memory',{kind:$('#mem-kind').value,text});$('#mem-text').value=''}
  }
  if(t.id==='btn-sim')await post('/api/simulate',{});
  if(t.dataset.simOne)await post('/api/simulate',{scenario:t.dataset.simOne});
- if(t.dataset.approve||t.dataset.edit||t.dataset.reject||t.dataset.kill||t.dataset.relax||t.id==='btn-sim'||t.dataset.simOne||t.dataset.memRetire||t.id==='mem-add')tick();
+ if(t.dataset.approve||t.dataset.edit||t.dataset.reject||t.dataset.kill||t.dataset.relax||t.id==='btn-sim'||t.dataset.simOne||t.dataset.memRetire||t.id==='mem-add'||t.dataset.instrAccept||t.dataset.instrReject||t.dataset.instrRevert)tick();
 });
 
 let inflight=false;

@@ -26,6 +26,7 @@ import { demoToolRegistry, seedBaselines, launchScenario, SCENARIOS } from './li
 import { buildMcpRegistry, assertBlueprintsCovered } from './lib/connectors.js';
 import { TriggerEngine, makeHookHandler } from './lib/triggers.js';
 import { MemoryEngine } from './lib/memory.js';
+import { Curator } from './lib/curator.js';
 import { loadPackDir, packContext } from './lib/packs.js';
 import { reportData, renderReportHTML } from './lib/report.js';
 import { benchmarkExport } from './lib/benchmark.js';
@@ -77,6 +78,7 @@ const pack = packs.get(profile.pack || 'generic');
 if (!pack) throw new Error(`profile.pack "${profile.pack}" not found in packs/`);
 
 const memory = new MemoryEngine(ledger).enableCorrectionCapture();
+const curator = new Curator(ledger); // accepted instruction overlays (Bet 4)
 for (const [i, seed] of (profile.seedMemories || []).entries()) {
   const key = seed.key || `onboarding:${i}`;
   if (!memory.active().some((m) => m.key === key)) {
@@ -84,11 +86,13 @@ for (const [i, seed] of (profile.seedMemories || []).entries()) {
   }
 }
 
-/** Layered prompt context for a run: industry pack, then learned memory. */
+/** Layered prompt context for a run: industry pack, learned memory, then any
+ *  curated instruction overlays a human has accepted (the cascade's top layer). */
 function contextFor(blueprintId) {
   const lines = packContext(pack, blueprintId);
   const mem = memory.contextBlock({ blueprint: blueprintId });
   if (mem) lines.push(mem);
+  lines.push(...curator.contextLines({ blueprint: blueprintId }));
   return lines;
 }
 
@@ -189,6 +193,7 @@ function apiState() {
     intake: { triggers: TRIGGERS, webhooks: !!HOOK_SECRET, connectors: !!CONNECTORS },
     pack: { id: pack.pack, title: pack.title },
     memories: memory.active().sort((a, b) => (a.updated < b.updated ? 1 : -1)).slice(0, 100),
+    instructions: curator.proposals().slice(0, 40),
   };
 }
 const pick = (r) => r && { id: r.id, blueprint: r.blueprint, agent: r.agent, callsign: r.callsign, status: r.status };
@@ -270,6 +275,14 @@ const server = http.createServer(async (req, res) => {
     }
     if (req.method === 'POST' && url.pathname === '/api/memory/consolidate') {
       return json(res, 200, { ok: true, ...memory.consolidate() });
+    }
+    if (req.method === 'POST' && url.pathname === '/api/instruction') {
+      // Human decision on a curated instruction proposal (Bet 4): accept / reject / revert.
+      const b = await readBody(req);
+      const fn = { accept: 'accept', reject: 'reject', revert: 'revert' }[b.action];
+      if (!fn) return json(res, 400, { ok: false, error: 'action must be accept|reject|revert' });
+      const p = curator[fn](b.id, { by: b.by || 'operator', reason: b.reason || '' });
+      return json(res, 200, { ok: true, proposal: p });
     }
     if (req.method === 'POST' && url.pathname === '/api/gate') {
       const b = await readBody(req);
