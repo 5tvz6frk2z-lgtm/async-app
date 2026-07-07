@@ -20,6 +20,7 @@ import { proofFor, opsSummary } from './lib/metrics.js';
 import { AgentRun, AnthropicAdapter, MockAdapter } from './lib/runtime.js';
 import { PipelineRun } from './lib/pipeline.js';
 import { Verifier } from './lib/verify.js';
+import { Coordinator } from './lib/orchestrate.js';
 import { demoScriptRegistry, assertScriptsCovered } from './lib/scripts.js';
 import { demoToolRegistry, seedBaselines, launchScenario, SCENARIOS } from './lib/demo.js';
 import { buildMcpRegistry, assertBlueprintsCovered } from './lib/connectors.js';
@@ -127,6 +128,14 @@ function launchRun(blueprintId, triggerInput, { agentName } = {}) {
   let run;
   const context = contextFor(blueprintId);
   const verifier = verifierFor();
+  if (bp.orchestration) {
+    // Multi-agent crew: run the blueprint's agents as a graph. The Coordinator
+    // exposes .run() (thread id + results) but not .kill(); crew sub-runs are
+    // individually killable from the console.
+    const coord = new Coordinator({ blueprint: bp, ledger, gates, adapterFor: (name) => adapterFor(blueprintId, name), tools, verifier, context });
+    coord.run(triggerInput);
+    return coord.bp.blueprint; // orchestration threads are surfaced via /api/state.threads
+  }
   if (bp.pipeline) {
     const inferAgent = bp.pipeline.find((s) => s.infer)?.infer || bp.agents[0].name;
     run = new PipelineRun({ blueprint: bp, ledger, gates, scripts, adapter: adapterFor(blueprintId, inferAgent), verifier, profile, context });
@@ -173,6 +182,7 @@ function apiState() {
     runs,
     trust: gates.trustStats(),
     verification: gates.verificationStats(),
+    threads: [...s.threads.values()].sort((a, b) => (a.start < b.start ? 1 : -1)).slice(0, 20),
     gateChanges: s.gateChanges.slice(-20).reverse(),
     blueprints: bps,
     demo: DEMO,

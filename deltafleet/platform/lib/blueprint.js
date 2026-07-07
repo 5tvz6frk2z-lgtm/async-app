@@ -31,7 +31,7 @@ export function validateBlueprint(bp) {
     if (!a.name || !/^[a-z0-9-]+$/.test(a.name)) err(`agents[${i}].name must be kebab-case`);
     if (!a.role) err(`agents[${i}].role required`);
     if (!Array.isArray(a.tools)) err(`agents[${i}].tools must be an array`);
-    else if (a.tools.length === 0 && !bp.pipeline) err(`agents[${i}].tools must be non-empty (empty allowed only in pipeline blueprints)`);
+    else if (a.tools.length === 0 && !bp.pipeline && !bp.orchestration) err(`agents[${i}].tools must be non-empty (empty allowed only in pipeline/orchestration blueprints)`);
     if (a.model !== undefined && typeof a.model !== 'string') err(`agents[${i}].model must be a string`);
   });
 
@@ -45,6 +45,27 @@ export function validateBlueprint(bp) {
       if (s.infer && !(bp.agents || []).some((a) => a.name === s.infer)) err(`pipeline[${i}].infer references unknown agent "${s.infer}"`);
       if (s.save !== undefined && !/^[a-zA-Z][a-zA-Z0-9_]*$/.test(s.save)) err(`pipeline[${i}].save must be an identifier`);
     });
+  }
+
+  // Multi-agent orchestration: execute the blueprint's agents as a graph rather
+  // than a single run. See lib/orchestrate.js.
+  if (bp.orchestration !== undefined) {
+    const o = bp.orchestration;
+    const types = ['sequential', 'parallel', 'delegate', 'judge'];
+    const names = new Set((bp.agents || []).map((a) => a.name));
+    const chk = (n, where) => { if (!names.has(n)) err(`orchestration.${where} references unknown agent "${n}"`); };
+    if (typeof o !== 'object' || o === null || !types.includes(o.type)) err(`orchestration.type must be one of ${types.join('/')}`);
+    else if (o.type === 'sequential' || o.type === 'parallel') {
+      if (!Array.isArray(o.agents) || o.agents.length < 1) err(`orchestration.agents must be a non-empty array for ${o.type}`);
+      else o.agents.forEach((n) => chk(n, 'agents'));
+    } else if (o.type === 'judge') {
+      if (!Array.isArray(o.attempts) || o.attempts.length < 2) err('orchestration.attempts must list ≥2 agents for judge');
+      else o.attempts.forEach((n) => chk(n, 'attempts'));
+      if (!o.judge) err('orchestration.judge (an agent name) is required for judge'); else chk(o.judge, 'judge');
+    } else if (o.type === 'delegate') {
+      if (!o.parent) err('orchestration.parent is required for delegate'); else chk(o.parent, 'parent');
+      if (!o.child) err('orchestration.child is required for delegate'); else chk(o.child, 'child');
+    }
   }
 
   if (typeof bp.gates !== 'object') err('gates must be an object');

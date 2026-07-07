@@ -51,12 +51,22 @@ export class Ledger {
     const metrics = new Map();   // blueprint -> key -> {baseline?, samples: [{t, value}]}
     const overrides = new Map(); // blueprint -> {tool: level}
     const gateChanges = [];
+    const threads = new Map();   // orchestration thread id -> {type, blueprint, children:[runId], start, end}
 
     for (const e of this.events) {
       switch (e.type) {
         case 'run.start':
-          runs.set(e.run, { id: e.run, blueprint: e.blueprint, agent: e.agent, callsign: e.callsign, trigger: e.trigger, status: 'running', start: e.t, actions: [], notes: [], tokensIn: 0, tokensOut: 0 });
+          runs.set(e.run, { id: e.run, blueprint: e.blueprint, agent: e.agent, callsign: e.callsign, trigger: e.trigger, status: 'running', start: e.t, actions: [], notes: [], tokensIn: 0, tokensOut: 0, thread: e.thread || null });
+          if (e.thread && threads.has(e.thread)) threads.get(e.thread).children.push(e.run);
           break;
+        case 'orchestration.start':
+          threads.set(e.thread, { thread: e.thread, type: e.otype, blueprint: e.blueprint, children: [], start: e.t });
+          break;
+        case 'orchestration.end': {
+          const th = threads.get(e.thread);
+          if (th) th.end = e.t;
+          break;
+        }
         case 'note': {
           const r = runs.get(e.run);
           if (r) r.notes.push({ t: e.t, text: e.text });
@@ -128,6 +138,6 @@ export class Ledger {
     // not pending — it must not linger in the operator's queue.
     const alive = (id) => { const r = runs.get(id); return r && !r.end; };
     const pendingApprovals = [...actions.values()].filter((a) => a.gate === 'approve' && !a.verdict && alive(a.run));
-    return { runs, actions, metrics, overrides, gateChanges, pendingApprovals };
+    return { runs, actions, metrics, overrides, gateChanges, threads, pendingApprovals };
   }
 }

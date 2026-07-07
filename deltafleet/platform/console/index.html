@@ -218,6 +218,7 @@ function runsHTML(runs){
    <div class="top" data-toggle="${r.id}">
     <span class="cs">${esc(r.callsign)}</span>
     <span class="bp">${esc(r.blueprint)} · ${esc(r.agent)}</span>
+    ${r.thread?`<span class="klabel" title="Crew member (multi-agent orchestration)" style="color:var(--ion)">⛓ CREW</span>`:''}
     <span class="st ${r.status}">${r.status.toUpperCase()}</span>
     <span class="spacer"></span>
     <span class="klabel">${r.actions.length} ACTIONS</span>

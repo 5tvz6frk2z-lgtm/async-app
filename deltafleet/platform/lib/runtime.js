@@ -14,8 +14,9 @@ import { newId } from './ledger.js';
 import { runVerification } from './verify.js';
 
 export class AgentRun {
-  constructor({ blueprint, agentName, ledger, gates, adapter, tools, verifier = null, context = [], maxSteps = 24, maxTokens = 200_000 }) {
+  constructor({ blueprint, agentName, ledger, gates, adapter, tools, verifier = null, thread = null, context = [], maxSteps = 24, maxTokens = 200_000 }) {
     this.context = context; // specialization cascade lines: pack + profile + memory
+    this.thread = thread;   // orchestration thread id when this run is a crew member
     this.bp = blueprint;
     this.agent = blueprint.agents.find((a) => a.name === agentName);
     if (!this.agent) throw new Error(`agent ${agentName} not in blueprint ${blueprint.blueprint}`);
@@ -50,10 +51,11 @@ export class AgentRun {
   async run(triggerInput) {
     const { id } = this;
     this._trigger = triggerInput; // available to verifiers as "what warranted this action"
-    this.ledger.append({ type: 'run.start', run: id, blueprint: this.bp.blueprint, agent: this.agent.name, callsign: this.agent.callsign, trigger: triggerInput });
+    this.ledger.append({ type: 'run.start', run: id, blueprint: this.bp.blueprint, agent: this.agent.name, callsign: this.agent.callsign, trigger: triggerInput, thread: this.thread });
     const toolDefs = this.tools.defsFor(this.agent.tools);
     const messages = [{ role: 'user', content: `Trigger: ${JSON.stringify(triggerInput)}` }];
     let status = 'done';
+    let finalText = ''; // the agent's last completion note IS its return value to a coordinator
     try {
       for (let step = 0; ; step++) {
         if (this.abort.signal.aborted) { status = 'killed'; break; }
@@ -65,7 +67,7 @@ export class AgentRun {
         });
         this.tokensIn += res.usage?.in || 0;
         this.tokensOut += res.usage?.out || 0;
-        if (res.text) this.ledger.append({ type: 'note', run: id, text: res.text });
+        if (res.text) { finalText = res.text; this.ledger.append({ type: 'note', run: id, text: res.text }); }
 
         if (!res.toolCalls?.length) break; // agent is done
 
@@ -86,7 +88,7 @@ export class AgentRun {
       }
     }
     this.ledger.append({ type: 'run.end', run: id, status, tokensIn: this.tokensIn, tokensOut: this.tokensOut });
-    return { run: id, status, tokensIn: this.tokensIn, tokensOut: this.tokensOut };
+    return { run: id, status, tokensIn: this.tokensIn, tokensOut: this.tokensOut, output: finalText };
   }
 
   async #executeGated(call) {
