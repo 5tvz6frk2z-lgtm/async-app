@@ -3,8 +3,9 @@
 The real thing behind the Delta Fleet pitch: per-client agent runtime + gate engine + append-only run ledger + the client console. Zero dependencies, Node ≥ 22.
 
 ```bash
-npm test          # 13 tests, node:test, no deps
+npm test          # 54 tests, node:test, no deps
 npm run demo      # console with simulated connectors → http://localhost:4600
+node bin/shadow.js daily-brief scenarios/daily-brief.example.json   # grade a corridor before launch
 ```
 
 In demo mode, hit **▸ Run demo sortie** — four corridor runs (HERMOD speed-to-lead, BRAGI reporting, TYR document intake, ECHO review response) execute through the real runtime and park at their human gates. Approve, edit, reject, or kill from the console; watch the trust stats accrue on the corridor cards.
@@ -25,6 +26,7 @@ In demo mode, hit **▸ Run demo sortie** — four corridor runs (HERMOD speed-t
 | `lib/metrics.js` | Delta Proof math (baseline vs current) + ops rollups |
 | `lib/report.js` | Delta Proof monthly client report (data + printable HTML); served at `GET /report` |
 | `lib/benchmark.js` + `bin/aggregate.js` | Data moat: anonymized per-install export (`GET /api/benchmark-export`) + cross-install aggregator with an honesty-gated claim generator |
+| `lib/shadow.js` + `bin/shadow.js` | **Shadow Eval Harness:** grade a corridor against known-good scenarios in an isolated sandbox (nothing written, approve-gates downgraded), producing a readiness report — accuracy, named failures, and the guarded-vs-silent safety signal. CLI exits non-zero when a corridor isn't ready |
 | `lib/demo.js` | Simulated connectors + scripted scenarios (what Install #0 dry-runs look like) |
 | `server.js` | node:http — console + JSON API (`/api/state`, `/api/verdict`, `/api/kill`, `/api/gate`, `/api/simulate`) + `POST /hooks/{blueprint}` |
 | `console/index.html` | The Agentloop console (five MVP features, house HUD style) |
