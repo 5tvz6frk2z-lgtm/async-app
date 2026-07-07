@@ -12,7 +12,7 @@
 // surfaced in the console; a human applies them (gate.change) — never automatic.
 import { gateFor } from './blueprint.js';
 import { newId } from './ledger.js';
-import { calibrate, shouldEscalate, calibrationOf } from './confidence.js';
+import { calibrate, shouldEscalate } from './confidence.js';
 
 export const RELAX_POLICY = { MIN_VERDICTS: 20, MAX_INTERVENTION: 0.05, WINDOW: 100 };
 
@@ -21,6 +21,32 @@ export class GateEngine {
     this.ledger = ledger;
     this.blueprints = blueprints;           // Map id -> blueprint
     this.waiters = new Map();               // action id -> resolve(verdictEvent)
+    // Incremental confidence calibration per `${blueprint} ${tool}`, folded on
+    // each decided confidence-bearing action. Keeps confidenceStats() and the
+    // per-action calibration lookup in request() off the O(all-actions) scan
+    // that would otherwise run inside the live agent loop.
+    this._calib = new Map();
+    for (const e of ledger.events) this.#foldConfidence(e);
+    ledger.onEvent((e) => this.#foldConfidence(e));
+  }
+
+  #foldConfidence(e) {
+    if (e.type !== 'gate.verdict') return;
+    const s = this.ledger.state();
+    const a = s.actions.get(e.action);
+    if (!a || typeof a.confidence !== 'number') return;
+    const run = s.runs.get(a.run);
+    if (!run) return;
+    const key = `${run.blueprint} ${a.tool}`;
+    let c = this._calib.get(key);
+    if (!c) { c = { samples: 0, agree: 0, confSum: 0, brier: 0 }; this._calib.set(key, c); }
+    const ok = a.verdict === 'approved' ? 1 : 0; // edited/rejected = disagreement
+    c.samples++; c.agree += ok; c.confSum += a.confidence; c.brier += (a.confidence - ok) ** 2;
+  }
+
+  #calibFor(blueprintId, tool) {
+    const c = this._calib.get(`${blueprintId} ${tool}`);
+    return c && c.samples ? { samples: c.samples, agreementRate: c.agree / c.samples } : undefined;
   }
 
   levelFor(blueprintId, tool) {
@@ -39,8 +65,7 @@ export class GateEngine {
     let escalated = false;
     let calibrated;
     if (typeof confidence === 'number' && gate !== 'approve') {
-      const stats = this.confidenceStats().find((s) => s.blueprint === blueprintId && s.tool === tool);
-      calibrated = calibrate(confidence, stats);
+      calibrated = calibrate(confidence, this.#calibFor(blueprintId, tool)); // O(1), not a full scan
       if (shouldEscalate(gate, calibrated)) { gate = 'approve'; escalated = true; }
     }
     const action = newId('act');
@@ -54,22 +79,20 @@ export class GateEngine {
   }
 
   /** Per blueprint+tool calibration of self-reported confidence vs human
-   *  agreement — how well the agent knows what it doesn't know. */
+   *  agreement — how well the agent knows what it doesn't know. Served from the
+   *  incrementally-folded aggregate (O(keys)), not a scan over all actions. */
   confidenceStats() {
-    const { actions, runs } = this.ledger.state();
-    const byKey = new Map();
-    for (const a of actions.values()) {
-      if (typeof a.confidence !== 'number' || !a.verdict) continue;
-      const run = runs.get(a.run);
-      if (!run) continue;
-      const key = `${run.blueprint} ${a.tool}`;
-      if (!byKey.has(key)) byKey.set(key, []);
-      byKey.get(key).push(a);
-    }
     const out = [];
-    for (const [key, list] of byKey) {
+    for (const [key, c] of this._calib) {
       const [blueprint, tool] = key.split(' ');
-      out.push({ blueprint, tool, ...calibrationOf(list) });
+      const n = c.samples;
+      out.push({
+        blueprint, tool, samples: n,
+        agreementRate: +(c.agree / n).toFixed(3),
+        meanConfidence: +(c.confSum / n).toFixed(3),
+        brier: +(c.brier / n).toFixed(3),
+        gap: +((c.confSum / n) - (c.agree / n)).toFixed(3),
+      });
     }
     return out.sort((a, b) => b.samples - a.samples);
   }

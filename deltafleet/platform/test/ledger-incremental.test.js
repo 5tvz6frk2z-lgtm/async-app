@@ -80,6 +80,22 @@ test('pendingApprovals voids when a parked run ends', () => {
   assert.equal(l.state().pendingApprovals.length, 0, 'an ended run leaves nothing pending');
 });
 
+test('pendingApprovals independently matches the canonical filter over all actions', () => {
+  // Guards against the incremental `pending` map diverging from the original
+  // semantics (approve-gated, unverdicted, run still alive) — computed here from
+  // scratch over the full actions map, not via #applyOne.
+  const l = new Ledger(null);
+  script(l); // includes a kill-while-parked run (r2) whose approval must be void
+  // add a live parked approval that should remain pending
+  l.append({ type: 'run.start', run: 'r3', blueprint: 'bp1', agent: 'a', callsign: 'A', trigger: {} });
+  l.append({ type: 'action.request', run: 'r3', action: 'act9', tool: 'email.send', input: {}, gate: 'approve' });
+  const s = l.state();
+  const alive = (id) => { const r = s.runs.get(id); return r && !r.end; };
+  const reference = [...s.actions.values()].filter((a) => a.gate === 'approve' && !a.verdict && alive(a.run)).map((a) => a.id).sort();
+  assert.deepEqual([...s.pendingApprovals].map((a) => a.id).sort(), reference);
+  assert.deepEqual(reference, ['act9'], 'only the live parked approval is pending');
+});
+
 test('repeated state() returns the same live projection maps (no re-derivation)', () => {
   const l = new Ledger(null);
   script(l);
