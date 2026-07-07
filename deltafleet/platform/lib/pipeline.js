@@ -19,6 +19,7 @@
 // to just their brand" layer.
 import { newId } from './ledger.js';
 import { runVerification } from './verify.js';
+import { routeModel } from './routing.js';
 
 export function resolveRefs(value, ctx) {
   if (typeof value === 'string' && value.startsWith('$')) {
@@ -145,12 +146,16 @@ export class PipelineRun {
           // validator on the output (one retry with the failure fed back).
           const skill = step.skill && this.skills?.get(step.skill);
           const guidance = skill ? [`Skill — ${skill.name}: ${skill.guidance}`, ...(skill.examples.length ? [`Examples: ${skill.examples.join(' | ')}`] : [])] : [];
+          // Optional dynamic routing: pick the model tier from task difficulty
+          // (opt-in per step; safety floor keeps high-stakes work off the cheap tier).
+          const routed = step.route ? routeModel({ taskContext: input, task: step.task || agent.role, pinned: agent.model }) : { model: agent.model, routed: false };
+          if (routed.routed) this.ledger.append({ type: 'note', run: id, text: `[${agent.callsign}] routed to ${routed.model} (${routed.tier}, difficulty ${routed.score})` });
           const attempts = skill && skill.validator ? 2 : 1;
           let text = null, lastErr = '';
           for (let a = 0; a < attempts; a++) {
             const extra = a > 0 ? [...guidance, `Your previous output failed the ${skill.name} check: ${lastErr}. Produce a corrected version.`] : guidance;
             const res = await this.adapter.complete({
-              model: agent.model,
+              model: routed.model,
               system: this.#inferSystem(agent, step.task || agent.role, extra),
               messages: [{ role: 'user', content: `Structured input:\n${JSON.stringify(input, null, 1)}` }],
               tools: [],

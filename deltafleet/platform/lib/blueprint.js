@@ -48,6 +48,10 @@ export function validateBlueprint(bp) {
         if (!/^[a-z0-9-]+$/.test(s.skill)) err(`pipeline[${i}].skill must be a kebab-case skill name`);
         else if (!('infer' in s)) err(`pipeline[${i}].skill applies only to infer steps`);
       }
+      if (s.route !== undefined) {
+        if (typeof s.route !== 'boolean') err(`pipeline[${i}].route must be a boolean`);
+        else if (s.route && !('infer' in s)) err(`pipeline[${i}].route applies only to infer steps`);
+      }
     });
   }
 
