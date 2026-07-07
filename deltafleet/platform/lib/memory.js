@@ -95,6 +95,26 @@ export class MemoryEngine {
     return [...this.mems.values()].filter((m) => m.status === 'active' && (scope === undefined || m.scope === scope));
   }
 
+  /** Active memory by its dedupe key (used by the version-controlled sources
+   *  sync to update in place rather than duplicate). */
+  findByKey(key) {
+    const id = this.byKey.get(key);
+    const m = id && this.mems.get(id);
+    return m && m.status === 'active' ? m : undefined;
+  }
+
+  /** Observability for clean scaling: counts by kind / scope / provenance, plus
+   *  active vs retired. Bloat shows up here before it shows up in a prompt. */
+  stats() {
+    const all = [...this.mems.values()];
+    const active = all.filter((m) => m.status === 'active');
+    const tally = (fn) => active.reduce((o, m) => { const k = fn(m); o[k] = (o[k] || 0) + 1; return o; }, {});
+    return {
+      total: all.length, active: active.length, retired: all.length - active.length,
+      byKind: tally((m) => m.kind), byScope: tally((m) => m.scope), bySource: tally((m) => m.source?.type || 'unknown'),
+    };
+  }
+
   /** Ranked, budgeted retrieval for a run: client-wide + this corridor.
    *  Rank = kind authority, then confidence, then recency. charBudget ≈ 4×tokens. */
   retrieve({ blueprint, charBudget = 3200 } = {}) {

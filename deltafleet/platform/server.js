@@ -28,6 +28,7 @@ import { TriggerEngine, makeHookHandler } from './lib/triggers.js';
 import { MemoryEngine } from './lib/memory.js';
 import { Curator } from './lib/curator.js';
 import { starterSkillRegistry } from './lib/skills.js';
+import { loadSourceDir, syncSources, retireStale } from './lib/sources.js';
 import { loadPackDir, packContext } from './lib/packs.js';
 import { reportData, renderReportHTML } from './lib/report.js';
 import { benchmarkExport } from './lib/benchmark.js';
@@ -42,6 +43,7 @@ const PORT = Number(arg('port', 4600));
 const DATA = arg('data', path.join(here, 'data', 'ledger.jsonl'));
 const DEMO = process.argv.includes('--demo');
 const CONNECTORS = arg('connectors', null);
+const SOURCES = arg('sources', null); // dir of version-controlled source files → semantic memory
 const TRIGGERS = process.argv.includes('--triggers');
 const HOOK_SECRET = arg('hook-secret', process.env.FLEET_HOOK_SECRET || null);
 const PROFILE_PATH = arg('profile', null);
@@ -86,6 +88,18 @@ for (const [i, seed] of (profile.seedMemories || []).entries()) {
   if (!memory.active().some((m) => m.key === key)) {
     memory.add({ ...seed, key, source: { type: 'onboarding' } });
   }
+}
+
+// Version-controlled sources → semantic memory. Idempotent sync (dedupe by key,
+// update on version bump, retire removed), then retire anything past its
+// freshness window so a prompt never quotes an out-of-date source.
+let sources = new Map();
+if (SOURCES) {
+  sources = loadSourceDir(SOURCES);
+  const results = syncSources(sources, memory);
+  const sum = (k) => results.reduce((n, r) => n + r[k], 0);
+  const stale = retireStale(memory, sources);
+  console.log(`sources: ${sources.size} file(s) synced — +${sum('added')} added, ${sum('updated')} updated, ${sum('restamped')} re-stamped, ${sum('retired') + stale} retired (${stale} stale)`);
 }
 
 /** Layered prompt context for a run: industry pack, learned memory, then any
@@ -198,6 +212,8 @@ function apiState() {
     intake: { triggers: TRIGGERS, webhooks: !!HOOK_SECRET, connectors: !!CONNECTORS },
     pack: { id: pack.pack, title: pack.title },
     memories: memory.active().sort((a, b) => (a.updated < b.updated ? 1 : -1)).slice(0, 100),
+    memoryStats: memory.stats(),
+    sources: [...sources.values()].map((s) => ({ id: s.id, version: s.version, updated: s.updated, ttlDays: s.ttlDays, facts: s.facts.length })),
     instructions: curator.proposals().slice(0, 40),
   };
 }

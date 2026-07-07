@@ -3,7 +3,7 @@
 The real thing behind the Delta Fleet pitch: per-client agent runtime + gate engine + append-only run ledger + the client console. Zero dependencies, Node ≥ 22.
 
 ```bash
-npm test          # 82 tests, node:test, no deps
+npm test          # 91 tests, node:test, no deps
 npm run demo      # console with simulated connectors → http://localhost:4600
 node bin/shadow.js daily-brief scenarios/daily-brief.example.json   # grade a corridor before launch
 ```
@@ -27,6 +27,7 @@ In demo mode, hit **▸ Run demo sortie** — four corridor runs (HERMOD speed-t
 | `lib/curator.js` | **The Curator:** distills corrections into a proposed instruction overlay, A/B-tests it on the Shadow Eval Harness, accepts only on measured lift with no new silent failure; versioned, reversible, human-approved overlays injected into future runs |
 | `lib/skills.js` | **Agent Skills:** reusable `{name, description, guidance, examples, validator}` modules, progressively disclosed (guidance loads only on a task match), deterministic output validators; starter library; pipeline steps can pin a skill (validate + one retry) |
 | `lib/packs.js` + `packs/` | Industry packs — terminology, standing rules, compliance per industry; one JSON file per industry |
+| `lib/sources.js` + `sources/` | **Version-controlled sources:** durable client truth in diffable files → live semantic memory; idempotent sync (dedupe/update/retire), freshness (`ttlDays`) retires stale facts, `memory.stats()` for scale observability. `--sources <dir>` |
 | `lib/metrics.js` | Delta Proof math (baseline vs current) + ops rollups |
 | `lib/report.js` | Delta Proof monthly client report (data + printable HTML); served at `GET /report` |
 | `lib/benchmark.js` + `bin/aggregate.js` | Data moat: anonymized per-install export (`GET /api/benchmark-export`) + cross-install aggregator with an honesty-gated claim generator |

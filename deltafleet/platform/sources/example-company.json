@@ -1,0 +1,15 @@
+{
+  "//": "A version-controlled source of durable client truth. Edit facts, bump `version`, refresh `updated`, and re-sync: memory updates in place (no duplication). Remove a fact and re-sync: it is retired. `ttlDays` sets a freshness window — facts from a source older than that are flagged stale.",
+  "id": "ironvale-company",
+  "version": 3,
+  "updated": "2026-07-01",
+  "ttlDays": 180,
+  "scope": "client",
+  "kind": "fact",
+  "facts": [
+    { "key": "vendor-corvid", "text": "Corvid Studios is a white-label content vendor; their invoices arrive from billing@corvid.example as PDFs, always referencing a PO number." },
+    { "key": "approver-dana", "kind": "rule", "text": "Dana Reyes (VP Ops) is the sole approver for anything involving money, contracts, or press." },
+    { "key": "dealer-network", "text": "Ironvale sells through a dealer network, not direct; dealer-facing threads outrank end-customer threads." },
+    { "key": "quiet-hours", "kind": "preference", "text": "No outbound client communication before 07:00 local; the morning brief is the first thing that goes out." }
+  ]
+}
