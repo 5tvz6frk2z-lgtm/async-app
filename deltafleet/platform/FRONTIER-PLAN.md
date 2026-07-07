@@ -76,11 +76,15 @@ Today the runtime runs **one agent per run**; the "crew" in a blueprint is descr
 
 ---
 
-## Reach ideas (park until 1–5 land)
+## Reach ideas — NOW BUILT (v0.11–v0.13)
 
-- **Squadron Composer** — an agent that *designs* corridors from a business description (writes the blueprint: which agents, gates, connectors, metrics), validated against the blueprint schema. Meta-level; ambitious; the original tool-queue idea.
-- **Dynamic model routing** — a cheap difficulty classifier picks the model tier per step (Haiku vs Opus) instead of the static per-agent choice. Efficiency frontier.
-- **Calibrated-confidence autonomy** — agents emit a calibrated confidence; gate thresholds adapt to it. Powerful but the riskiest; only after verification (Bet 1) is proven.
+- **Dynamic model routing** ✅ — `lib/routing.js` (ADR #22). Deterministic difficulty classifier picks the model tier per step; high-stakes work never routes to the cheap tier (safety floor). Opt-in `route: true`.
+- **Calibrated-confidence autonomy** ✅ — `lib/confidence.js` (ADR #23). Self-reported confidence can only *escalate* oversight, never relax it; calibrated against the agent's track record. Built once verification (Bet 1) was proven.
+- **Squadron Composer** ✅ — `lib/composer.js` + `bin/compose.js` (ADR #24). An agent that designs a corridor from a plain-language description, accepted only if it passes the blueprint schema (validate + repair loop). The model proposes; the schema disposes.
+
+## Also shipped alongside — universal memory hardening (v0.10)
+
+- **Version-controlled sources** ✅ — `lib/sources.js` + `sources/*.json` (ADR #21). Durable client truth in reviewable, diffable files → live semantic memory; idempotent sync (dedupe/update/retire), freshness window retires stale facts, `memory.stats()` for scale observability. The "version-controlled files for up-to-date sources, nothing built to bloat" contract.
 
 ---
 

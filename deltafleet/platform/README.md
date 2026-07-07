@@ -3,7 +3,7 @@
 The real thing behind the Delta Fleet pitch: per-client agent runtime + gate engine + append-only run ledger + the client console. Zero dependencies, Node ≥ 22.
 
 ```bash
-npm test          # 105 tests, node:test, no deps
+npm test          # 112 tests, node:test, no deps
 npm run demo      # console with simulated connectors → http://localhost:4600
 node bin/shadow.js daily-brief scenarios/daily-brief.example.json   # grade a corridor before launch
 ```
@@ -27,6 +27,8 @@ In demo mode, hit **▸ Run demo sortie** — four corridor runs (HERMOD speed-t
 | `lib/curator.js` | **The Curator:** distills corrections into a proposed instruction overlay, A/B-tests it on the Shadow Eval Harness, accepts only on measured lift with no new silent failure; versioned, reversible, human-approved overlays injected into future runs |
 | `lib/skills.js` | **Agent Skills:** reusable `{name, description, guidance, examples, validator}` modules, progressively disclosed (guidance loads only on a task match), deterministic output validators; starter library; pipeline steps can pin a skill (validate + one retry) |
 | `lib/routing.js` | **Dynamic model routing:** deterministic difficulty classifier picks the model tier per step (fast/mid/deep); high-stakes work never routes to the cheap tier (safety floor); opt-in per infer step (`route: true`) |
+| `lib/confidence.js` | **Calibrated-confidence autonomy:** a self-reported confidence can only escalate a gate to human approval, never relax it; calibrated against the agent's track record; agreement/Brier/gap stats |
+| `lib/composer.js` + `bin/compose.js` | **Squadron Composer:** an agent that designs a corridor from a plain-language description, accepted only if it passes the blueprint schema (validate + repair loop); CLI writes validated blueprints |
 | `lib/packs.js` + `packs/` | Industry packs — terminology, standing rules, compliance per industry; one JSON file per industry |
 | `lib/sources.js` + `sources/` | **Version-controlled sources:** durable client truth in diffable files → live semantic memory; idempotent sync (dedupe/update/retire), freshness (`ttlDays`) retires stale facts, `memory.stats()` for scale observability. `--sources <dir>` |
 | `lib/metrics.js` | Delta Proof math (baseline vs current) + ops rollups |
