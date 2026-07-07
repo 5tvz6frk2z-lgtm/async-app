@@ -38,9 +38,10 @@ export function resolveRefs(value, ctx) {
 }
 
 export class PipelineRun {
-  constructor({ blueprint, ledger, gates, scripts, adapter, verifier = null, profile = {}, context = [], maxTokens = 100_000 }) {
+  constructor({ blueprint, ledger, gates, scripts, adapter, verifier = null, skills = null, profile = {}, context = [], maxTokens = 100_000 }) {
     this.context = context; // specialization cascade lines: pack + memory
     this.verifier = verifier; // adversarial verification for gated script steps (optional)
+    this.skills = skills;   // SkillRegistry for step-level `skill` guidance + validation (optional)
     if (!Array.isArray(blueprint.pipeline) || !blueprint.pipeline.length) {
       throw new Error(`blueprint ${blueprint.blueprint} has no pipeline`);
     }
@@ -73,12 +74,13 @@ export class PipelineRun {
     return lines;
   }
 
-  #inferSystem(agent, task) {
+  #inferSystem(agent, task, extra = []) {
     return [
       `You are ${agent.callsign} (${agent.name}), a specialist step inside the "${this.bp.title}" pipeline operated by Delta Fleet.`,
       `Role: ${agent.role}`,
       ...this.#profileLines(),
       ...this.context,
+      ...extra,
       `Task: ${task}`,
       `Rules: every number you state must come verbatim from the structured input — never invent or adjust figures. Output only the deliverable text: no preamble, no meta-commentary, no markdown fences.`,
     ].join('\n');
@@ -139,17 +141,32 @@ export class PipelineRun {
           const agent = bp.agents.find((a) => a.name === step.infer);
           if (!agent) throw new Error(`infer step references unknown agent ${step.infer}`);
           const input = resolveRefs(step.input || {}, ctx);
-          const res = await this.adapter.complete({
-            model: agent.model,
-            system: this.#inferSystem(agent, step.task || agent.role),
-            messages: [{ role: 'user', content: `Structured input:\n${JSON.stringify(input, null, 1)}` }],
-            tools: [],
-            signal: this.abort.signal,
-          });
-          this.tokensIn += res.usage?.in || 0;
-          this.tokensOut += res.usage?.out || 0;
-          const text = (res.text || '').trim();
-          if (!text) throw new Error(`infer step ${step.infer} produced no output`);
+          // Optional skill: load its guidance into this step and enforce its
+          // validator on the output (one retry with the failure fed back).
+          const skill = step.skill && this.skills?.get(step.skill);
+          const guidance = skill ? [`Skill — ${skill.name}: ${skill.guidance}`, ...(skill.examples.length ? [`Examples: ${skill.examples.join(' | ')}`] : [])] : [];
+          const attempts = skill && skill.validator ? 2 : 1;
+          let text = null, lastErr = '';
+          for (let a = 0; a < attempts; a++) {
+            const extra = a > 0 ? [...guidance, `Your previous output failed the ${skill.name} check: ${lastErr}. Produce a corrected version.`] : guidance;
+            const res = await this.adapter.complete({
+              model: agent.model,
+              system: this.#inferSystem(agent, step.task || agent.role, extra),
+              messages: [{ role: 'user', content: `Structured input:\n${JSON.stringify(input, null, 1)}` }],
+              tools: [],
+              signal: this.abort.signal,
+            });
+            this.tokensIn += res.usage?.in || 0;
+            this.tokensOut += res.usage?.out || 0;
+            const out = (res.text || '').trim();
+            if (!out) throw new Error(`infer step ${step.infer} produced no output`);
+            if (!skill || !skill.validator) { text = out; break; }
+            const v = skill.validate(out);
+            if (v.ok) { text = out; break; }
+            lastErr = v.error;
+            this.ledger.append({ type: 'note', run: id, text: `[${agent.callsign}] skill ${skill.name} rejected the draft: ${lastErr}${a + 1 < attempts ? ' — retrying' : ''}` });
+          }
+          if (text === null) throw new Error(`infer step ${step.infer} failed skill ${step.skill} validation: ${lastErr}`);
           this.ledger.append({ type: 'note', run: id, text: `[${agent.callsign}] ${text.length > 400 ? text.slice(0, 400) + '…' : text}` });
           if (step.save) ctx.results[step.save] = text;
         } else {

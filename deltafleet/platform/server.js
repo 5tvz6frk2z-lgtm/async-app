@@ -27,6 +27,7 @@ import { buildMcpRegistry, assertBlueprintsCovered } from './lib/connectors.js';
 import { TriggerEngine, makeHookHandler } from './lib/triggers.js';
 import { MemoryEngine } from './lib/memory.js';
 import { Curator } from './lib/curator.js';
+import { starterSkillRegistry } from './lib/skills.js';
 import { loadPackDir, packContext } from './lib/packs.js';
 import { reportData, renderReportHTML } from './lib/report.js';
 import { benchmarkExport } from './lib/benchmark.js';
@@ -79,6 +80,7 @@ if (!pack) throw new Error(`profile.pack "${profile.pack}" not found in packs/`)
 
 const memory = new MemoryEngine(ledger).enableCorrectionCapture();
 const curator = new Curator(ledger); // accepted instruction overlays (Bet 4)
+const skills = starterSkillRegistry(); // reusable capability modules (Bet 5)
 for (const [i, seed] of (profile.seedMemories || []).entries()) {
   const key = seed.key || `onboarding:${i}`;
   if (!memory.active().some((m) => m.key === key)) {
@@ -131,6 +133,9 @@ function launchRun(blueprintId, triggerInput, { agentName } = {}) {
   if (!bp) throw new Error(`unknown blueprint ${blueprintId}`);
   let run;
   const context = contextFor(blueprintId);
+  // Progressive-disclosure skills catalog for this run (guidance loads only for
+  // skills the trigger matches). Pipeline steps can additionally pin a `skill`.
+  context.push(...skills.contextLines(triggerInput));
   const verifier = verifierFor();
   if (bp.orchestration) {
     // Multi-agent crew: run the blueprint's agents as a graph. The Coordinator
@@ -142,7 +147,7 @@ function launchRun(blueprintId, triggerInput, { agentName } = {}) {
   }
   if (bp.pipeline) {
     const inferAgent = bp.pipeline.find((s) => s.infer)?.infer || bp.agents[0].name;
-    run = new PipelineRun({ blueprint: bp, ledger, gates, scripts, adapter: adapterFor(blueprintId, inferAgent), verifier, profile, context });
+    run = new PipelineRun({ blueprint: bp, ledger, gates, scripts, adapter: adapterFor(blueprintId, inferAgent), verifier, skills, profile, context });
   } else {
     const agent = agentName || bp.entry || bp.agents[0].name;
     run = new AgentRun({ blueprint: bp, agentName: agent, ledger, gates, adapter: adapterFor(blueprintId, agent), tools, verifier, context });

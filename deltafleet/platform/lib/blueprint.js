@@ -44,6 +44,10 @@ export function validateBlueprint(bp) {
       if (s.script && !/^[a-z0-9_.-]+$/.test(s.script)) err(`pipeline[${i}].script has an invalid name`);
       if (s.infer && !(bp.agents || []).some((a) => a.name === s.infer)) err(`pipeline[${i}].infer references unknown agent "${s.infer}"`);
       if (s.save !== undefined && !/^[a-zA-Z][a-zA-Z0-9_]*$/.test(s.save)) err(`pipeline[${i}].save must be an identifier`);
+      if (s.skill !== undefined) {
+        if (!/^[a-z0-9-]+$/.test(s.skill)) err(`pipeline[${i}].skill must be a kebab-case skill name`);
+        else if (!('infer' in s)) err(`pipeline[${i}].skill applies only to infer steps`);
+      }
     });
   }
 
