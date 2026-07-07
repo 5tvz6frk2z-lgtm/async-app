@@ -87,6 +87,26 @@ test('runtime: a low-confidence gated action parks the run for approval', async 
   assert.equal(sends.length, 1);
 });
 
+test('calibration parity: agreementRate is rounded before calibrate (no borderline escalation flip)', () => {
+  // Regression for v0.16: the incremental aggregate must feed calibrate() the
+  // same 3dp-rounded agreementRate the old scan path did, or a borderline case
+  // flips across the 0.5 escalation threshold.
+  const b = bp(); // email.send gate is 'log'
+  const ledger = new Ledger(null);
+  const gates = new GateEngine(ledger, new Map([[b.blueprint, b]]));
+  // 6 decided confidence-bearing actions on email.send: 4 approved, 2 rejected → agreementRate 4/6
+  for (let i = 0; i < 6; i++) {
+    ledger.append({ type: 'run.start', run: `r${i}`, blueprint: 'outreach', agent: 'writer', callsign: 'CALLIOPE', trigger: {} });
+    ledger.append({ type: 'action.request', run: `r${i}`, action: `a${i}`, tool: 'email.send', input: {}, gate: 'approve', confidence: 0.9 });
+    ledger.append({ type: 'gate.verdict', action: `a${i}`, verdict: i < 4 ? 'approved' : 'rejected', by: 'kv' });
+  }
+  // 0.749 * round(4/6,3)=0.667 = 0.4996 → 0.500, NOT < 0.5 → not escalated (parity with pre-v0.16).
+  // With an unrounded 0.66667 it would be 0.499 → escalated — the bug this pins.
+  const r = gates.request('rq', 'outreach', 'email.send', {}, { confidence: 0.749 });
+  assert.equal(r.escalated, false);
+  assert.equal(r.gate, 'log');
+});
+
 test('confidenceStats accumulates calibration once actions are decided', async () => {
   const b = bp();
   b.gates['email.send'] = 'approve'; // approve so every action gets a verdict

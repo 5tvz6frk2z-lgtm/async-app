@@ -46,7 +46,12 @@ export class GateEngine {
 
   #calibFor(blueprintId, tool) {
     const c = this._calib.get(`${blueprintId} ${tool}`);
-    return c && c.samples ? { samples: c.samples, agreementRate: c.agree / c.samples } : undefined;
+    // Round agreementRate to 3dp to EXACTLY match the value the old
+    // scan-based path (confidenceStats().find()) fed into calibrate(); an
+    // unrounded rate can flip a borderline escalation decision across the 0.5
+    // threshold — and one direction would silently reduce oversight, which the
+    // one-directional confidence design forbids.
+    return c && c.samples ? { samples: c.samples, agreementRate: +(c.agree / c.samples).toFixed(3) } : undefined;
   }
 
   levelFor(blueprintId, tool) {
