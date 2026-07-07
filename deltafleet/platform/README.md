@@ -3,7 +3,7 @@
 The real thing behind the Delta Fleet pitch: per-client agent runtime + gate engine + append-only run ledger + the client console. Zero dependencies, Node ≥ 22.
 
 ```bash
-npm test          # 112 tests, node:test, no deps
+npm test          # 116 tests, node:test, no deps
 npm run demo      # console with simulated connectors → http://localhost:4600
 node bin/shadow.js daily-brief scenarios/daily-brief.example.json   # grade a corridor before launch
 ```
@@ -13,7 +13,7 @@ In demo mode, hit **▸ Run demo sortie** — four corridor runs (HERMOD speed-t
 | Path | What |
 |---|---|
 | `blueprints/*.json` | The six launch blueprints (spec + validator in `lib/blueprint.js`) |
-| `lib/ledger.js` | Append-only JSONL event log; all state derived by replay |
+| `lib/ledger.js` | Append-only JSONL event log; state is an incrementally-maintained materialized view (O(1) amortized reads), built once then kept current on append |
 | `lib/gates.js` | auto/log/approve classification, verdicts, trust curve, relaxation proposals |
 | `lib/runtime.js` | Agent loop: park-on-approval, resume-with-edit, kill switch, hard budgets; Anthropic + Mock adapters |
 | `lib/verify.js` | **Adversarial Verification Layer:** `verify` gate tier — N skeptic verifier agents refute an action before it executes; strict-majority-clean to pass, else held + self-repair; fail-safe; `caught` counter + verify→log trust curve |

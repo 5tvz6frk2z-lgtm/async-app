@@ -38,108 +38,135 @@ export class Ledger {
     const e = { t: new Date().toISOString(), ...event };
     this.events.push(e);
     if (this.file) fs.appendFileSync(this.file, JSON.stringify(e) + '\n');
+    // Keep the materialized view current so state() is O(1) amortized rather
+    // than an O(events) replay on every call. Applied BEFORE listeners fire so a
+    // listener (e.g. correction capture) that calls state() sees this event.
+    if (this._proj) this.#applyOne(this._proj, e);
     for (const fn of this.listeners) fn(e);
     return e;
   }
 
   onEvent(fn) { this.listeners.add(fn); return () => this.listeners.delete(fn); }
 
-  /** Replay all events into a queryable state snapshot. */
-  state() {
-    const runs = new Map();      // run id -> {id, blueprint, agent, callsign, trigger, status, start, end, tokensIn, tokensOut, actions: [], notes: []}
-    const actions = new Map();   // action id -> {id, run, tool, input, gate, verdict?, verdictBy?, editedInput?, reason?, ok?, output?, error?, t, vt?}
-    const metrics = new Map();   // blueprint -> key -> {baseline?, samples: [{t, value}]}
-    const overrides = new Map(); // blueprint -> {tool: level}
-    const gateChanges = [];
-    const threads = new Map();   // orchestration thread id -> {type, blueprint, children:[runId], start, end}
+  #emptyProjection() {
+    return {
+      runs: new Map(),       // run id -> {id, blueprint, agent, callsign, trigger, status, start, end, tokensIn, tokensOut, actions:[], notes:[], thread}
+      actions: new Map(),    // action id -> {id, run, tool, input, gate, verdict?, ..., verification?}
+      metrics: new Map(),    // blueprint -> key -> {baseline?, samples:[{t,value}]}
+      overrides: new Map(),  // blueprint -> {tool: level}
+      gateChanges: [],
+      threads: new Map(),    // orchestration thread id -> {type, blueprint, children:[runId], start, end}
+      pending: new Map(),    // action id -> action, for approve-gated actions still awaiting a verdict (incremental)
+      len: 0,
+    };
+  }
 
-    for (const e of this.events) {
-      switch (e.type) {
-        case 'run.start':
-          runs.set(e.run, { id: e.run, blueprint: e.blueprint, agent: e.agent, callsign: e.callsign, trigger: e.trigger, status: 'running', start: e.t, actions: [], notes: [], tokensIn: 0, tokensOut: 0, thread: e.thread || null });
-          if (e.thread && threads.has(e.thread)) threads.get(e.thread).children.push(e.run);
-          break;
-        case 'orchestration.start':
-          threads.set(e.thread, { thread: e.thread, type: e.otype, blueprint: e.blueprint, children: [], start: e.t });
-          break;
-        case 'orchestration.end': {
-          const th = threads.get(e.thread);
-          if (th) th.end = e.t;
-          break;
+  /** Apply one event to the projection in place. This is the single source of
+   *  the derivation rules; the full-replay build and the incremental append both
+   *  route through it, so they can never diverge. */
+  #applyOne(p, e) {
+    const { runs, actions, metrics, overrides, gateChanges, threads, pending } = p;
+    switch (e.type) {
+      case 'run.start':
+        runs.set(e.run, { id: e.run, blueprint: e.blueprint, agent: e.agent, callsign: e.callsign, trigger: e.trigger, status: 'running', start: e.t, actions: [], notes: [], tokensIn: 0, tokensOut: 0, thread: e.thread || null });
+        if (e.thread && threads.has(e.thread)) threads.get(e.thread).children.push(e.run);
+        break;
+      case 'orchestration.start':
+        threads.set(e.thread, { thread: e.thread, type: e.otype, blueprint: e.blueprint, children: [], start: e.t });
+        break;
+      case 'orchestration.end': {
+        const th = threads.get(e.thread);
+        if (th) th.end = e.t;
+        break;
+      }
+      case 'note': {
+        const r = runs.get(e.run);
+        if (r) r.notes.push({ t: e.t, text: e.text });
+        break;
+      }
+      case 'action.request': {
+        const a = { id: e.action, run: e.run, tool: e.tool, input: e.input, gate: e.gate, t: e.t };
+        if (typeof e.confidence === 'number') { a.confidence = e.confidence; a.calibrated = e.calibrated; }
+        if (e.escalated) a.escalated = true;
+        actions.set(e.action, a);
+        const r = runs.get(e.run);
+        if (r) r.actions.push(e.action);
+        if (e.gate === 'approve') { if (r) r.status = 'awaiting-approval'; pending.set(e.action, a); }
+        break;
+      }
+      case 'gate.verdict': {
+        const a = actions.get(e.action);
+        if (a) {
+          a.verdict = e.verdict; a.verdictBy = e.by; a.vt = e.t;
+          if (e.editedInput !== undefined) a.editedInput = e.editedInput;
+          if (e.reason) a.reason = e.reason;
+          const r = runs.get(a.run);
+          if (r && r.status === 'awaiting-approval') r.status = 'running';
         }
-        case 'note': {
-          const r = runs.get(e.run);
-          if (r) r.notes.push({ t: e.t, text: e.text });
-          break;
-        }
-        case 'action.request': {
-          const a = { id: e.action, run: e.run, tool: e.tool, input: e.input, gate: e.gate, t: e.t };
-          if (typeof e.confidence === 'number') { a.confidence = e.confidence; a.calibrated = e.calibrated; }
-          if (e.escalated) a.escalated = true;
-          actions.set(e.action, a);
-          const r = runs.get(e.run);
-          if (r) r.actions.push(e.action);
-          if (e.gate === 'approve' && r) r.status = 'awaiting-approval';
-          break;
-        }
-        case 'gate.verdict': {
-          const a = actions.get(e.action);
-          if (a) {
-            a.verdict = e.verdict; a.verdictBy = e.by; a.vt = e.t;
-            if (e.editedInput !== undefined) a.editedInput = e.editedInput;
-            if (e.reason) a.reason = e.reason;
-            const r = runs.get(a.run);
-            if (r && r.status === 'awaiting-approval') r.status = 'running';
-          }
-          break;
-        }
-        case 'action.result': {
-          const a = actions.get(e.action);
-          if (a) { a.ok = e.ok; a.output = e.output; a.error = e.error; }
-          break;
-        }
-        case 'verification.result': {
-          const a = actions.get(e.action);
-          if (a) a.verification = { outcome: e.outcome, refuted: e.refuted, clean: e.clean };
-          break;
-        }
-        case 'run.end': {
-          const r = runs.get(e.run);
-          if (r) { r.status = e.status; r.end = e.t; r.tokensIn = e.tokensIn || 0; r.tokensOut = e.tokensOut || 0; }
-          break;
-        }
-        case 'kill': {
-          const r = runs.get(e.run);
-          if (r && !r.end) r.status = 'killing';
-          break;
-        }
-        case 'baseline': {
-          if (!metrics.has(e.blueprint)) metrics.set(e.blueprint, new Map());
-          const m = metrics.get(e.blueprint);
-          if (!m.has(e.key)) m.set(e.key, { baseline: undefined, samples: [] });
-          m.get(e.key).baseline = e.value;
-          break;
-        }
-        case 'sample': {
-          if (!metrics.has(e.blueprint)) metrics.set(e.blueprint, new Map());
-          const m = metrics.get(e.blueprint);
-          if (!m.has(e.key)) m.set(e.key, { baseline: undefined, samples: [] });
-          m.get(e.key).samples.push({ t: e.t, value: e.value });
-          break;
-        }
-        case 'gate.change': {
-          if (!overrides.has(e.blueprint)) overrides.set(e.blueprint, {});
-          overrides.get(e.blueprint)[e.tool] = e.to;
-          gateChanges.push(e);
-          break;
-        }
+        pending.delete(e.action);
+        break;
+      }
+      case 'action.result': {
+        const a = actions.get(e.action);
+        if (a) { a.ok = e.ok; a.output = e.output; a.error = e.error; }
+        break;
+      }
+      case 'verification.result': {
+        const a = actions.get(e.action);
+        if (a) a.verification = { outcome: e.outcome, refuted: e.refuted, clean: e.clean };
+        break;
+      }
+      case 'run.end': {
+        const r = runs.get(e.run);
+        if (r) { r.status = e.status; r.end = e.t; r.tokensIn = e.tokensIn || 0; r.tokensOut = e.tokensOut || 0; }
+        for (const [id, a] of pending) if (a.run === e.run) pending.delete(id); // ended run's approvals are void
+        break;
+      }
+      case 'kill': {
+        const r = runs.get(e.run);
+        if (r && !r.end) r.status = 'killing';
+        break;
+      }
+      case 'baseline': {
+        if (!metrics.has(e.blueprint)) metrics.set(e.blueprint, new Map());
+        const m = metrics.get(e.blueprint);
+        if (!m.has(e.key)) m.set(e.key, { baseline: undefined, samples: [] });
+        m.get(e.key).baseline = e.value;
+        break;
+      }
+      case 'sample': {
+        if (!metrics.has(e.blueprint)) metrics.set(e.blueprint, new Map());
+        const m = metrics.get(e.blueprint);
+        if (!m.has(e.key)) m.set(e.key, { baseline: undefined, samples: [] });
+        m.get(e.key).samples.push({ t: e.t, value: e.value });
+        break;
+      }
+      case 'gate.change': {
+        if (!overrides.has(e.blueprint)) overrides.set(e.blueprint, {});
+        overrides.get(e.blueprint)[e.tool] = e.to;
+        gateChanges.push(e);
+        break;
       }
     }
+    p.len++;
+  }
 
-    // An undecided approval whose run has already ended (killed/errored) is void,
-    // not pending — it must not linger in the operator's queue.
-    const alive = (id) => { const r = runs.get(id); return r && !r.end; };
-    const pendingApprovals = [...actions.values()].filter((a) => a.gate === 'approve' && !a.verdict && alive(a.run));
-    return { runs, actions, metrics, overrides, gateChanges, threads, pendingApprovals };
+  /** Queryable state. Backed by an incrementally-maintained materialized view:
+   *  built once (full replay) on first call, then kept current by append(), so
+   *  repeated reads on the request hot path don't re-replay the whole log.
+   *  The returned Maps/arrays are the LIVE projection — callers must treat them
+   *  as read-only. */
+  state() {
+    if (!this._proj) {
+      this._proj = this.#emptyProjection();
+      for (const e of this.events) this.#applyOne(this._proj, e);
+    }
+    const p = this._proj;
+    // An undecided approval whose run has already ended is void, not pending.
+    // `pending` already tracks approve-gated, unverdicted actions incrementally
+    // and drops them at run.end; the alive filter is a belt-and-suspenders check.
+    const alive = (id) => { const r = p.runs.get(id); return r && !r.end; };
+    const pendingApprovals = [...p.pending.values()].filter((a) => !a.verdict && alive(a.run));
+    return { runs: p.runs, actions: p.actions, metrics: p.metrics, overrides: p.overrides, gateChanges: p.gateChanges, threads: p.threads, pendingApprovals };
   }
 }
