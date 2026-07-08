@@ -42,7 +42,10 @@ export function commonPrefix(a, b) {
 export function matches(a, b) {
   if (a === b) return true;
   const cp = commonPrefix(a, b);
-  return cp >= 5 && cp >= Math.min(a.length, b.length) - 2;
+  // Require a 4+ char shared prefix that covers all but the last char of the
+  // shorter token. Catches pricing~price, integrate~integration, relax~
+  // relaxation, approval~approve, without merging trust~truth or test~text.
+  return cp >= 4 && cp >= Math.min(a.length, b.length) - 1;
 }
 
 /** Lowercase, split on non-alphanumerics, drop stopwords/tiny tokens, stem.

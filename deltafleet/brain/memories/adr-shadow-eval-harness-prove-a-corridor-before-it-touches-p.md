@@ -1,0 +1,12 @@
+---
+name: Shadow Eval Harness: prove a corridor before it touches production (v0.6, FRONTIER-PLAN Bet 2)
+summary: **16. Shadow Eval Harness: prove a corridor before it touches production (v0.6, FRONTIER-PLAN Bet 2).** A corridor is graded against — — with known-good outcome
+tags: adr, corridor, ready, real, gate, before
+pointers: 
+updated: 2026-07-08T00:00:00.000Z
+---
+# Shadow Eval Harness: prove a corridor before it touches production (v0.6, FRONTIER-PLAN Bet 2)
+
+**16. Shadow Eval Harness: prove a corridor before it touches production (v0.6, FRONTIER-PLAN Bet 2).** A corridor is graded against `scenarios` — `{id, trigger, groundTruth, note?}` — with known-good outcomes, and nothing is written to any real system. Isolation is structural: every scenario runs against a **fresh in-memory ledger** (`file=null`), and approve-gates are **downgraded to `log` in the sandbox only** (via `gate.change` events on the throwaway ledger) so a headless run never parks waiting for a human who isn't there — the real blueprint and real ledger are never mutated. `structuredScorer` reads dotted paths out of the run outcome (`results.stats.replyDebt`), supporting exact, deep-object, and `{approx, tol}` numeric matches; the scorer is pluggable. `readinessReport` aggregates accuracy + names the specific failing cases, and computes the honest safety signal: the **production** gate for each action is remembered before downgrading, so of the failures we report how many a real approval gate would have parked for a human (`guarded`) vs how many would have shipped silently (`unguarded` — wrong AND ungated, the dangerous set). Verdict ladder: `ready` (all pass) → `gated-ready` (≥ bar, failures all guarded) → `not-ready` (below bar, nothing unguarded) → `unsafe` (any unguarded failure) — a corridor with even one silent wrong output is never "ready" regardless of accuracy. This is the platform-level form of the company's "proof over faith" promise, it lets a gate **start** relaxed on evidence instead of crawling the trust curve from zero, and it is the measurement substrate the Verification Layer and Curator (FRONTIER-PLAN Bets 1 & 4) are proven on. `bin/shadow.js <corridor> scenarios.json` prints the report and exits non-zero when not ready, so CI can refuse to promote a regressed corridor. Model access for infer steps is the same adapter seam (real key → `AnthropicAdapter`; offline → labeled stub so pure-script checks still grade).
+
+_source: platform/ADR.md_

@@ -1,0 +1,12 @@
+---
+name: Multi-Agent Orchestration: make the crew real (v0.7, FRONTIER-PLAN Bet 3)
+summary: **18. Multi-Agent Orchestration: make the crew real (v0.7, FRONTIER-PLAN Bet 3).** The runtime runs one agent per run; a blueprint's "crew" was descriptive.
+tags: adr, agent, run, crew, judge, child
+pointers: 
+updated: 2026-07-08T00:00:00.000Z
+---
+# Multi-Agent Orchestration: make the crew real (v0.7, FRONTIER-PLAN Bet 3)
+
+**18. Multi-Agent Orchestration: make the crew real (v0.7, FRONTIER-PLAN Bet 3).** The runtime runs one agent per run; a blueprint's "crew" was descriptive. A `Coordinator` (`lib/orchestrate.js`) executes a blueprint's agents as an actual graph, declared in an optional `orchestration` block, with four composable primitives: **sequential** (agents run in order, each handed the prior agents' returned results), **parallel** (independent agents run concurrently via `Promise.all`, gathered — wall-clock is the slowest branch, not the sum), **judge** (N attempt-agents draft in parallel, a judge agent picks the best or synthesizes from them — for high-stakes steps), and **delegate** (a parent agent scopes a sub-task, a child executes it in isolation, the coordinator returns both). **Context hygiene is the whole point:** every sub-agent is a fresh `AgentRun` with its own adapter and its own context, receiving only the results explicitly handed to it — never a sibling's or the coordinator's full conversation (this is what keeps a crew reliable where one sprawling context degrades). Each sub-run is first-class: gated, killable, budgeted, adversarially verifiable (Bet 1), and tagged with a shared `thread` id. `AgentRun.run()` now returns its final completion note as `output` (its return value to a coordinator); `Ledger.state()` derives a `threads` map (type + child run ids); the console badges crew sub-runs and `/api/state` surfaces `threads`. Validation rejects malformed graphs (unknown agent, <2 judge attempts, missing judge/parent/child) at load. Demo unchanged (no demo blueprint declares orchestration). Honest scope: `delegate` here is the static parent→child form; parent-driven *dynamic* delegation (an agent deciding at runtime whom to spawn) is a reach item. This is what unlocks corridors a single agent can't do well — a document-intake crew where extraction and validation run in parallel and a judge reconciles, a content corridor where drafters compete and a judge picks.
+
+_source: platform/ADR.md_
