@@ -93,11 +93,23 @@ export const SCENARIOS = {
     crew: {
       researcher: [
         { text: 'Assembling sources and the question set for "AI invoice processing".', toolCalls: [{ tool: 'web.lookup', input: { topic: 'AI invoice processing' } }] },
-        { text: 'Research pack ready: 6 questions, 4 stats, Direct Answer drafted. Handing to CALLIOPE.', toolCalls: [{ tool: 'docs.write', input: { doc: 'research-pack' } }] },
+        { text: 'Research pack ready: 6 questions, 4 stats, Direct Answer drafted. Three drafters will now compete.', toolCalls: [{ tool: 'docs.write', input: { doc: 'research-pack' } }] },
       ],
-      drafter: [
-        { text: 'Reading the research pack; writing the answer-first draft in the client voice.', toolCalls: [{ tool: 'docs.read', input: { doc: 'research-pack' } }] },
-        { text: 'Draft complete — 900 words, Direct Answer up top. Handing to APOLLO.', toolCalls: [{ tool: 'docs.write', input: { doc: 'draft-v1' } }] },
+      'drafter-answer': [
+        { text: 'Answer-first angle: Direct Answer up top, question-shaped headings.', toolCalls: [{ tool: 'docs.write', input: { doc: 'draft-answer' } }] },
+        done('Answer-first draft submitted for judging.'),
+      ],
+      'drafter-example': [
+        { text: 'Example-led angle: two concrete AP scenarios with real numbers carry it.', toolCalls: [{ tool: 'docs.write', input: { doc: 'draft-example' } }] },
+        done('Example-led draft submitted for judging.'),
+      ],
+      'drafter-concise': [
+        { text: 'Concise angle: shortest path from question to a citable answer.', toolCalls: [{ tool: 'docs.write', input: { doc: 'draft-concise' } }] },
+        done('Concise draft submitted for judging.'),
+      ],
+      editor: [
+        { text: 'Judging the three drafts against the citability checklist.', toolCalls: [{ tool: 'docs.read', input: { docs: ['draft-answer', 'draft-example', 'draft-concise'] } }] },
+        { text: 'Answer-first wins on extractability; grafting the example-led numbers block in. Handing to APOLLO.', toolCalls: [{ tool: 'docs.write', input: { doc: 'draft-chosen' } }] },
       ],
       optimizer: [
         { text: 'Applying AEO structure and running the citability checklist.', toolCalls: [{ tool: 'seo.audit', input: { doc: 'draft-v1' } }] },

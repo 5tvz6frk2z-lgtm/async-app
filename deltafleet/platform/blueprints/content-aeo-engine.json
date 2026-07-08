@@ -18,9 +18,36 @@
       ]
     },
     {
-      "name": "drafter",
+      "name": "drafter-answer",
       "callsign": "CALLIOPE",
-      "role": "Writes the full answer-first draft in the client's voice against the research pack.",
+      "role": "Writes an answer-first draft: the Direct Answer up top, question-shaped headings, extractable blocks.",
+      "tools": [
+        "docs.read",
+        "docs.write"
+      ]
+    },
+    {
+      "name": "drafter-example",
+      "callsign": "BRAGI",
+      "role": "Writes an example-led draft: concrete client scenarios and specific numbers carry the argument.",
+      "tools": [
+        "docs.read",
+        "docs.write"
+      ]
+    },
+    {
+      "name": "drafter-concise",
+      "callsign": "SAGA",
+      "role": "Writes the tightest possible draft: the shortest path from question to a citable answer.",
+      "tools": [
+        "docs.read",
+        "docs.write"
+      ]
+    },
+    {
+      "name": "editor",
+      "callsign": "THEMIS",
+      "role": "Judges the three competing drafts against the citability checklist and picks or synthesizes the most citable, on-brand version.",
       "tools": [
         "docs.read",
         "docs.write"
@@ -91,7 +118,14 @@
     "type": "sequential",
     "agents": [
       "researcher",
-      "drafter",
+      {
+        "judge": [
+          "drafter-answer",
+          "drafter-example",
+          "drafter-concise"
+        ],
+        "by": "editor"
+      },
       "optimizer",
       "publisher"
     ]

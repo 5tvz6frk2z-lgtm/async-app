@@ -63,9 +63,21 @@ export function validateBlueprint(bp) {
     const names = new Set((bp.agents || []).map((a) => a.name));
     const chk = (n, where) => { if (!names.has(n)) err(`orchestration.${where} references unknown agent "${n}"`); };
     if (typeof o !== 'object' || o === null || !types.includes(o.type)) err(`orchestration.type must be one of ${types.join('/')}`);
-    else if (o.type === 'sequential' || o.type === 'parallel') {
-      if (!Array.isArray(o.agents) || o.agents.length < 1) err(`orchestration.agents must be a non-empty array for ${o.type}`);
+    else if (o.type === 'parallel') {
+      if (!Array.isArray(o.agents) || o.agents.length < 1) err('orchestration.agents must be a non-empty array for parallel');
       else o.agents.forEach((n) => chk(n, 'agents'));
+    } else if (o.type === 'sequential') {
+      if (!Array.isArray(o.agents) || o.agents.length < 1) err('orchestration.agents must be a non-empty array for sequential');
+      else o.agents.forEach((a, i) => {
+        if (typeof a === 'string') chk(a, 'agents');
+        else if (a && Array.isArray(a.judge)) {
+          if (a.judge.length < 2) err(`orchestration.agents[${i}].judge needs ≥2 attempt agents`);
+          else a.judge.forEach((n) => chk(n, `agents[${i}].judge`));
+          if (!a.by) err(`orchestration.agents[${i}].by (the judge agent) is required`); else chk(a.by, `agents[${i}].by`);
+        } else if (a && Array.isArray(a.parallel)) {
+          a.parallel.forEach((n) => chk(n, `agents[${i}].parallel`));
+        } else err(`orchestration.agents[${i}] must be an agent name or a {judge,by} / {parallel} group`);
+      });
     } else if (o.type === 'judge') {
       if (!Array.isArray(o.attempts) || o.attempts.length < 2) err('orchestration.attempts must list ≥2 agents for judge');
       else o.attempts.forEach((n) => chk(n, 'attempts'));

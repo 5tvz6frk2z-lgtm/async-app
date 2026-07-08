@@ -58,13 +58,27 @@ export class Coordinator {
     return this.#node(childName, task, ['You are executing a scoped, delegated sub-task. Use only what is in this message; return only your result.'], thread);
   }
 
-  async sequential(agentNames, trigger, thread) {
+  /** A sequential step is either an agent name, or a nested group that composes
+   *  another primitive into the chain: `{judge: [a,b,c], by: editor}` (competing
+   *  attempts, a judge picks) or `{parallel: [a,b]}` (fan out, gather). The
+   *  group's result flows to the next step as a normal handoff. */
+  async sequential(steps, trigger, thread) {
     const results = [];
-    for (const name of agentNames) {
-      const handoff = results.length
-        ? ['Results handed to you by earlier agents in this workflow:', ...results.map((r) => `- ${r.agent}: ${r.output}`)]
-        : [];
-      const res = await this.#node(name, { trigger, prior: results.map((r) => ({ agent: r.agent, output: r.output })) }, handoff, thread);
+    for (const step of steps) {
+      const prior = results.map((r) => ({ agent: r.agent, output: r.output }));
+      const handoff = results.length ? ['Results handed to you by earlier agents in this workflow:', ...results.map((r) => `- ${r.agent}: ${r.output}`)] : [];
+      let res;
+      if (typeof step === 'string') {
+        res = await this.#node(step, { trigger, prior }, handoff, thread);
+      } else if (Array.isArray(step.judge)) {
+        const j = await this.judge({ attempts: step.judge, judge: step.by }, { trigger, prior }, thread);
+        res = { agent: step.by, output: j.judge.output, run: j.judge.run, status: j.judge.status, judged: step.judge, attempts: j.attempts };
+      } else if (Array.isArray(step.parallel)) {
+        const branches = await this.parallel(step.parallel, { trigger, prior }, thread);
+        res = { agent: `[${step.parallel.join('+')}]`, output: branches.map((b) => b.output).filter(Boolean).join(' | '), branches };
+      } else {
+        throw new Error('a sequential step must be an agent name or a {judge,by}/{parallel} group');
+      }
       results.push(res);
     }
     return results;

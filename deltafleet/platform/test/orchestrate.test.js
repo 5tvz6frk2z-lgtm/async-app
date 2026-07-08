@@ -107,6 +107,26 @@ test('delegate: parent scopes a sub-task, child executes it in isolation', async
   assert.match(caps.specialist.calls[0].system, /scoped, delegated sub-task/);
 });
 
+test('composable: a sequential chain can contain a judge sub-step', async () => {
+  const { ledger, coord } = setup(
+    { type: 'sequential', agents: ['prep', { judge: ['d1', 'd2', 'd3'], by: 'editor' }, 'finish'] },
+    { prep: 'prepped', d1: 'draft one', d2: 'draft two', d3: 'draft three', editor: 'chose draft two', finish: 'finished' },
+  );
+  const res = await coord.run({ job: 'go' });
+  assert.equal(res.steps.length, 3);
+  assert.equal(res.steps[0].output, 'prepped');
+  assert.equal(res.steps[1].output, 'chose draft two', 'the judge\'s pick flows to the next step');
+  assert.deepEqual(res.steps[1].judged, ['d1', 'd2', 'd3']);
+  assert.equal(res.steps[2].output, 'finished');
+  // prep + 3 drafters + editor + finish = 6 sub-runs on one thread
+  assert.equal([...ledger.state().threads.values()][0].children.length, 6);
+});
+
+test('validation rejects a malformed judge sub-step', () => {
+  assert.ok(validateBlueprint(bp({ type: 'sequential', agents: ['a', { judge: ['b'], by: 'a' }] }, ['a', 'b'])).some((e) => /≥2 attempt/.test(e)));
+  assert.ok(validateBlueprint(bp({ type: 'sequential', agents: ['a', { judge: ['a', 'b'] }] }, ['a', 'b'])).some((e) => /by.*is required/.test(e)));
+});
+
 test('sub-runs are tagged with the shared thread id', async () => {
   const { ledger, coord } = setup({ type: 'sequential', agents: ['a1', 'a2'] }, { a1: 'X', a2: 'Y' });
   const res = await coord.run({});
