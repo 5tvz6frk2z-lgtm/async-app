@@ -26,6 +26,7 @@ This document is sufficient to continue in a fresh session with zero prior conte
 | `deltafleet/index.html` | The whole site (~486KB, single file, zero deps): 24 routes, 20 posts, WebGL Earth + raymarched ship, Workflow Grader, Daily Brief page, AEO stack. |
 | `deltafleet/platform/` | **The real product.** Agentloop platform v0.4+: Node ≥22, zero npm deps. See §3. |
 | `deltafleet/tools/` | Internal single-file tools: `audit-cockpit.html` (Recon ROI cases), `citation-deck.html` (AEO audits), `fleet-ledger.html` (client book/MRR/NRR). |
+| `deltafleet/brain/` | **Cortex** — a zero-dep second brain for our own Claude usage (built from the "Second Brain" principles). Deterministic index-first retrieval (score the one-line index → open the best file → pull one section → follow one pointer → hand the model evidence), atomic `save`, workspace `seed` (scan + curated concept layer), a fair-test harness, and a clean interactive UI (`node brain/server.js`). Fair test: 12/12 primary + 15/17 independent, **~90× fewer tokens** than dumping context, ~0.8ms retrieval, 11 tests. Add the routing note (README) to CLAUDE.md: check the index first, open files second. |
 | `deltafleet/PIVOT-PLAN.md` | The v9 strategy + phased execution plan. |
 | `deltafleet/platform/AGENTS.md` | Field manual for all 22 agents (missions, gates, KPIs, escalation). |
 | `deltafleet/platform/ADR.md` | **Read before changing the platform.** 14 numbered decisions incl. memory (§13) and packs (§14) with research basis. |
