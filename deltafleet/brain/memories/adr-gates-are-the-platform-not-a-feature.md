@@ -1,7 +1,7 @@
 ---
 name: Gates are the platform, not a feature
-summary: **4. Gates are the platform, not a feature.** Every tool call is classified / / from the blueprint plus ledgered overrides.
-tags: adr, gat, alway, call, feature, gate
+summary: **4. Gates are the platform, not a feature.** Every tool call is classified / / from the blueprint plus ledgered overrides. Approval-gated calls PARK the run mi
+tags: adr, feature, platform, call, verdict, human
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

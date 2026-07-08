@@ -1,7 +1,7 @@
 ---
 name: Benchmark ledger: the data moat (v0.5)
-summary: **15. Benchmark ledger: the data moat (v0.5).** Clients run isolated deployments, so no process sees cross-client data.
-tags: adr, install, benchmark, client, data, deployment
+summary: **15. Benchmark ledger: the data moat (v0.5).** Clients run isolated deployments, so no process sees cross-client data. Each deployment emits an **anonymized**
+tags: adr, install, benchmark, data, v0.5, improv
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

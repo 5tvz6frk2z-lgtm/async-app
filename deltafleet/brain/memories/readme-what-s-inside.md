@@ -1,7 +1,7 @@
 ---
 name: What's inside
 summary: - **20 pages:** Home · Services hub · Custom Agent Fleets · Agentloop · The Swarm · Delta Fleet Marketing · **Answer Engine Optimization** · White-Label Partner
-tags: readme, agent, answer, hub, aeo, block
+tags: readme, answer, agent, faqpage, direct, webgl
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

@@ -22,16 +22,35 @@ function walk(dir) {
   return out;
 }
 
-function firstSentence(body) {
-  const clean = body.replace(/^#+.*$/gm, '').replace(/`[^`]*`/g, '').replace(/\s+/g, ' ').trim();
-  const m = /^(.{20,180}?[.!?])(\s|$)/.exec(clean);
-  return (m ? m[1] : clean.slice(0, 160)).trim();
+// A descriptive summary: the first PROSE sentence — skip headings, table rows,
+// list bullets, and mostly-markup lines, so the one-line index carries real
+// query vocabulary instead of "| Stage | Price |".
+function descriptiveSummary(body) {
+  for (const line of body.split('\n')) {
+    const l = line.trim();
+    if (!l || l.startsWith('#') || l.startsWith('|') || l.startsWith('-') || l.startsWith('*') || l.startsWith('>') || l.startsWith('_source')) continue;
+    const clean = l.replace(/`[^`]*`/g, '').replace(/\*\*|\*|\[|\]|\(#[^)]*\)/g, '').replace(/\s+/g, ' ').trim();
+    if (clean.length < 25) continue;
+    const m = /^(.{25,180}?[.!?])(\s|$)/.exec(clean);
+    return (m ? m[1] : clean.slice(0, 170)).trim();
+  }
+  const flat = body.replace(/^#+.*$/gm, '').replace(/`[^`]*`/g, '').replace(/\s+/g, ' ').trim();
+  return flat.slice(0, 160).trim();
 }
 
-function topTerms(text, n) {
+// Filler words that survive stopword-stripping and pollute frequency-based tags.
+const FILLER = new Set(['always', 'alway', 'every', 'across', 'within', 'also', 'without', 'because', 'before', 'after', 'again', 'still', 'even', 'much', 'many', 'like', 'well', 'both', 'either', 'neither', 'rather', 'quite', 'thing', 'things', 'stuff', 'etc', 'e.g', 'i.e', 'onto', 'unto', 'await', 'automatic']);
+
+// Tags rank by frequency IN THIS memory (a memory about gates SHOULD be tagged
+// "gate", even though gates recur across the corpus — IDF is the wrong signal
+// for tag selection here, it suppresses the core recurring concepts). Ties broken
+// by rarity. Filler words are dropped.
+function topTerms(text, n, idf) {
   const tf = new Map();
-  for (const t of tokenize(text)) tf.set(t, (tf.get(t) || 0) + 1);
-  return [...tf.entries()].filter(([t]) => t.length >= 3).sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1)).slice(0, n).map(([t]) => t);
+  for (const t of tokenize(text)) if (!FILLER.has(t) && t.length >= 4) tf.set(t, (tf.get(t) || 0) + 1);
+  return [...tf.entries()]
+    .sort((a, b) => b[1] - a[1] || (idf ? idf(b[0]) - idf(a[0]) : 0) || (a[0] < b[0] ? -1 : 1))
+    .slice(0, n).map(([t]) => t);
 }
 
 /** Split a markdown doc into focused chunks: group by H1/H2, and explode a
@@ -70,27 +89,37 @@ export function chunkDoc(md) {
 
 export function scanWorkspace(dir, { root = dir } = {}) {
   const files = walk(dir).filter((f) => /\.(md|txt)$/.test(f));
+  // Pass 1: collect every chunk + its token set, to compute corpus IDF.
+  const items = [];
+  for (const f of files.sort()) {
+    const md = fs.readFileSync(f, 'utf8');
+    const base = path.basename(f).replace(/\.[^.]+$/, '');
+    const chunks = chunkDoc(md);
+    for (const c of chunks) items.push({ f, rel: path.relative(root, f), base, c, multi: chunks.length > 1, tokens: new Set(tokenize(`${c.name} ${c.body}`)) });
+  }
+  const dfMap = new Map();
+  for (const it of items) for (const t of it.tokens) dfMap.set(t, (dfMap.get(t) || 0) + 1);
+  const N = items.length || 1;
+  const idf = (t) => Math.log(1 + N / (1 + (dfMap.get(t) || 0)));
+
+  // Pass 2: build proposals with distinctive (IDF-weighted) tags + prose summaries.
   const proposals = [];
   const used = new Set();
-  for (const f of files.sort()) {
-    const rel = path.relative(root, f);
-    const base = path.basename(f).replace(/\.[^.]+$/, '');
-    const md = fs.readFileSync(f, 'utf8');
-    const chunks = chunkDoc(md);
-    for (const c of chunks) {
-      let id = slug(chunks.length > 1 ? `${base}-${c.name}` : base);
-      while (used.has(id)) id = `${id}-${used.size}`;
-      used.add(id);
-      proposals.push({
-        id,
-        name: c.name === '(intro)' ? base : c.name,
-        summary: firstSentence(c.body),
-        tags: [...new Set([base.toLowerCase().replace(/[^a-z0-9]+/g, '-'), ...topTerms(`${c.name} ${c.body}`, 5)])].slice(0, 6),
-        content: `# ${c.name === '(intro)' ? base : c.name}\n\n${c.body.trim()}\n\n_source: ${rel}_`,
-        pointers: [],
-        updated: '2026-07-08T00:00:00.000Z',
-      });
-    }
+  for (const it of items) {
+    let id = slug(it.multi ? `${it.base}-${it.c.name}` : it.base);
+    while (used.has(id)) id = `${id}-${used.size}`;
+    used.add(id);
+    const nameSlugTerms = it.base.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    proposals.push({
+      id,
+      name: it.c.name === '(intro)' ? it.base : it.c.name,
+      summary: descriptiveSummary(it.c.body),
+      // name terms weighted higher (repeated) so the memory's own title concepts rank as tags
+      tags: [...new Set([nameSlugTerms, ...topTerms(`${it.c.name} ${it.c.name} ${it.c.body}`, 5, idf)])].slice(0, 6),
+      content: `# ${it.c.name === '(intro)' ? it.base : it.c.name}\n\n${it.c.body.trim()}\n\n_source: ${it.rel}_`,
+      pointers: [],
+      updated: '2026-07-08T00:00:00.000Z',
+    });
   }
   return proposals;
 }

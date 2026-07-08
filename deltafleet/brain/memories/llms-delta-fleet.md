@@ -1,7 +1,7 @@
 ---
 name: Delta Fleet
-summary: > Delta Fleet is an AI workflow integration studio: we install supervised agent fleets into the tools a business already uses — gated where it matters, measured
-tags: llms, corridor, brand, agent, every, fleet
+summary: This site is a single-page application with hash routing; all page and article content ships in the initial HTML source (inert <template> elements), so full text is avail
+tags: llms, corridor, brand, fleet, install, delta
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

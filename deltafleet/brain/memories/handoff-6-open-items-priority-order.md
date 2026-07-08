@@ -1,7 +1,7 @@
 ---
 name: 6 · Open items (priority order)
-summary: 1. **Real read-only connectors for Daily Brief** (Gmail/GCal MCP w/ read-only scopes) — needs owner-created OAuth credentials; the bridge already accepts them via connectors.json.
-tags: handoff, real, repo, corridor, daily, only
+summary: 1. Real read-only connectors for Daily Brief (Gmail/GCal MCP w/ read-only scopes) — needs owner-created OAuth credentials; the bridge already accepts them via connectors.json.
+tags: handoff, real, repo, priority, page, daily
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

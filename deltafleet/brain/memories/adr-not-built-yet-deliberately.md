@@ -1,7 +1,7 @@
 ---
 name: Not built yet (deliberately)
-summary: Auth on the console (deployments sit behind a client-scoped tunnel/VPN until this lands), Delta Proof PDF export (data is already computed by ), snapshot/compac
-tags: adr, already, auth, behind, blueprint, built
+summary: Auth on the console (deployments sit behind a client-scoped tunnel/VPN until this lands), Delta Proof PDF export (data is already computed by ), snapshot/compaction of lo
+tags: adr, deliberately, built, concern, refresh, tunnel
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

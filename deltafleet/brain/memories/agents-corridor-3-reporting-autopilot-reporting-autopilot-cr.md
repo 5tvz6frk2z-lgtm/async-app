@@ -1,7 +1,7 @@
 ---
 name: Corridor 3 · Reporting Autopilot (`reporting-autopilot`) — cron: Monday 07:00
-summary: | # | Callsign | Job in one line | |---|---|---| | 9 | HUGINN | Pull the numbers and refuse to proceed if they don't cross-foot | | 10 | MUNINN | Assemble table
-tags: agents, report, mov, muninn, read, week
+summary: Pulls the week from CRM, ad platforms and sheets (all reads ·).
+tags: agents, report, muninn, autopilot, week, read
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

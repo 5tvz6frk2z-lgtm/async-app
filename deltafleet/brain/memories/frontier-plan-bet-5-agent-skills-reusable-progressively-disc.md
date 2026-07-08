@@ -1,7 +1,7 @@
 ---
 name: Bet 5 · Agent Skills — *reusable, progressively-disclosed capability modules*
-summary: **What:** a = a named capability pack — — that an agent loads **on demand** when a task matches, rather than carrying every instruction all the time.
-tags: frontier-plan, skill, agent, guidance, load, validator
+summary: **What:** a = a named capability pack — — that an agent loads **on demand** when a task matches, rather than carrying every instruction all the time. The agent
+tags: frontier-plan, skill, agent, capability, guidance, validator
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

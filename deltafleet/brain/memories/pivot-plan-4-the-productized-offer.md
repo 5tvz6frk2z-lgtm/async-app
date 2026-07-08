@@ -1,7 +1,7 @@
 ---
 name: 4 · The productized offer
-summary: | Stage | Price | Duration | Deliverable | |---|---|---|---| | **Recon** | $1,500–3,000 (credited into Install) | 1 week | Workflow audit → scored corridor map,
-tags: pivot-plan, corridor, install, 000, report, 500
+summary: 1. Speed-to-lead — intake → qualification → follow-up → booking (minutes matter, easy baseline)
+tags: pivot-plan, install, corridor, report, monitor, productiz
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

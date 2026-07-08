@@ -1,7 +1,7 @@
 ---
 name: Calibrated-confidence autonomy — one-directional (v0.12, FRONTIER-PLAN reach idea)
-summary: **23. Calibrated-confidence autonomy — one-directional (v0.12, FRONTIER-PLAN reach idea).** An agent may attach a self-reported (0–1) to a gated action ( or an field).
-tags: adr, confidence, agent, action, agreement, approve
+summary: **23. Calibrated-confidence autonomy — one-directional (v0.12, FRONTIER-PLAN reach idea).** An agent may attach a self-reported (0–1) to a gated action ( or an
+tags: adr, confidence, calibrat, autonomy, agent, directional
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

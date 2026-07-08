@@ -1,7 +1,7 @@
 ---
 name: Quick start
-summary: - **Open it:** double-click in any modern browser.
-tags: readme, html, index, index.html, pag, app
+summary: - **Open it:** double-click in any modern browser. That's the whole app. - **Deploy it:** drop on any static host (Netlify, Vercel, Cloudflare Pages, GitHub Pag
+tags: readme, quick, index.html, index, html, start
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

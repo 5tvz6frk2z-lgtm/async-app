@@ -1,7 +1,7 @@
 ---
 name: 4 · Site (index.html) essentials
 summary: Same conventions as ever: hash router (/ maps + init dispatch in ), inert pages, teardowns, archive-don't-delete, zero deps, anchored-Python-patch workflow.
-tags: handoff, artifact, brief, font, headless, html
+tags: handoff, html, essential, swiftshader, font, headless
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

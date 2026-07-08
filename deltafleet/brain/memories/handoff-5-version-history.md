@@ -1,7 +1,7 @@
 ---
 name: 5 · Version history
-summary: Site: v1 handoff → v2 corporate → v3 pantheon+20 posts → v4 WebGL Earth/dossiers → v5 AEO stack → v6 mobile → v7 raymarched ship → v8 marketing-niche + archives
-tags: handoff, corridor, bet, ledger, lib, agent
+summary: Site: v1 handoff → v2 corporate → v3 pantheon+20 posts → v4 WebGL Earth/dossiers → v5 AEO stack → v6 mobile → v7 raymarched ship → v8 marketing-niche + archives → v8.5 Wo
+tags: handoff, corridor, ledger, agent, version, test
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

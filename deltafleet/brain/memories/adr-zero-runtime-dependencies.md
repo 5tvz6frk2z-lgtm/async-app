@@ -1,7 +1,7 @@
 ---
 name: Zero runtime dependencies
-summary: **2. Zero runtime dependencies.** Node ≥22 stdlib only: , , , global .
-tags: adr, node, dependency, runtime, zero
+summary: **2. Zero runtime dependencies.** Node ≥22 stdlib only: , , , global . Rationale: nothing to audit or patch downstream, trivially deployable to any VPS, and the
+tags: adr, dependency, node, runtime, zero, deployable
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

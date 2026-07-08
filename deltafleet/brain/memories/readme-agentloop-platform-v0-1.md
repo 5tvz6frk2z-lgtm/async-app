@@ -1,7 +1,7 @@
 ---
 name: Agentloop Platform (v0.1)
 summary: The real thing behind the Delta Fleet pitch: per-client agent runtime + gate engine + append-only run ledger + the client console.
-tags: readme, lib, agent, api, client, json
+tags: readme, agent, json, client, blueprint, report
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

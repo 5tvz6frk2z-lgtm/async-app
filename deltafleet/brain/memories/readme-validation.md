@@ -1,7 +1,7 @@
 ---
 name: Validation
-summary: - on the extracted engine — passing.
-tags: readme, 404, across, check, checker, chromium
+summary: - on the extracted engine — passing. - 27 templates; every route and post slug wired; zero dead internal links (see note in repo history for the checker). - Ren
+tags: readme, validation, checker, chromium, dead, headlessly
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

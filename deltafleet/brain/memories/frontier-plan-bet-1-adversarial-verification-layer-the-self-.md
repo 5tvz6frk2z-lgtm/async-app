@@ -1,7 +1,7 @@
 ---
 name: Bet 1 · Adversarial Verification Layer — *the self-checking fleet*
-summary: **What:** a new gate tier, , that sits between and .
-tags: frontier-plan, action, refute, adversarial, before, human
+summary: **What:** a new gate tier, , that sits between and . Before a gated action executes, the engine spawns **N independent verifier agents** with fresh context and
+tags: frontier-plan, action, refute, adversarial, self, verification
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

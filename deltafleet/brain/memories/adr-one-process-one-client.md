@@ -1,7 +1,7 @@
 ---
 name: One process, one client
-summary: **1. One process, one client.** Each client deployment is a single Node process with its own ledger file and console.
-tags: adr, client, one, process, blast, console
+summary: **1. One process, one client.** Each client deployment is a single Node process with its own ledger file and console. No multi-tenancy until ≥10 clients justify
+tags: adr, client, process, blast, radiu, table
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

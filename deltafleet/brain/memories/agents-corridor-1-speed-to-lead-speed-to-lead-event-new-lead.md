@@ -1,7 +1,7 @@
 ---
 name: Corridor 1 · Speed-to-Lead (`speed-to-lead`) — event: new lead
-summary: | # | Callsign | Job in one line | |---|---|---| | 1 | HERMES | Score and route every new lead in under a minute | | 2 | MIMIR | Enrich the lead so the first to
-tags: agents, lead, send, book, first, reply
+summary: Runs on . Reads the lead and account history ( ·), scores against the client's ICP definition from the profile, writes segment + score + one-line reason to the CRM ( L).
+tags: agents, lead, send, reply, book, first
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

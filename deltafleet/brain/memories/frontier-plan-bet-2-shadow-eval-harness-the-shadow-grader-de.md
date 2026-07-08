@@ -1,7 +1,7 @@
 ---
 name: Bet 2 · Shadow Eval Harness — *the Shadow Grader; de-risk before real traffic*
 summary: **What:** run a corridor against a set of **scenarios with known-good outcomes** (synthetic now; a client's historical data at install) with *nothing written* t
-tags: frontier-plan, corridor, scenario, shadow, before, bet
+tags: frontier-plan, scenario, shadow, corridor, risk, report
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

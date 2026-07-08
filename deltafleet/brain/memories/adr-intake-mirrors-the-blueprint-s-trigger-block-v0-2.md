@@ -1,7 +1,7 @@
 ---
 name: Intake mirrors the blueprint's trigger block (v0.2)
 summary: **10. Intake mirrors the blueprint's trigger block (v0.2).** Schedule blueprints () fire from an in-process 5-field cron scheduler (with the classic dom/dow OR
-tags: adr, blueprint, intake, trigger, block, cron
+tags: adr, blueprint, intake, trigger, v0.2, mirror
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

@@ -1,7 +1,7 @@
 ---
 name: 1 · What this business is now (it evolved — follow the arc)
 summary: **Delta Fleet (deltafleet.ai)** started as an AI *marketing* agency site (v1–v8), then pivoted (see ) into an **AI workflow integration studio**: we install sup
-tags: handoff, client, agent, fleet, gat, memory
+tags: handoff, client, pivot, fleet, memory, agent
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

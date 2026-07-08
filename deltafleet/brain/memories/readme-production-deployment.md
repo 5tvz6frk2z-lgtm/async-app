@@ -1,7 +1,7 @@
 ---
 name: Production deployment
-summary: - **Tools:** binds fleet tool names (, , …) to the client's MCP servers; startup fails loudly if any blueprint tool is unmapped.
-tags: readme, blueprint, fleet, agent, connector, hook
+summary: ANTHROPIC_API_KEY=… FLEET_HOOK_SECRET=… \
+tags: readme, blueprint, fleet, secret, hook, connector
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

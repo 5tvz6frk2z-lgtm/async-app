@@ -1,7 +1,7 @@
 ---
 name: DELTA FLEET · deltafleet.ai
-summary: A futuristic, highly interactive single-file site for **Delta Fleet** — an AI **workflow integration studio** that installs supervised agent fleets into the too
-tags: readme, fleet, only, platform, zero, brief
+summary: A futuristic, highly interactive single-file site for Delta Fleet — an AI workflow integration studio that installs supervised agent fleets into the tools a business alre
+tags: readme, fleet, delta, zero, platform, only
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

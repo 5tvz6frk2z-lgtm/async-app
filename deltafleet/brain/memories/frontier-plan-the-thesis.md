@@ -1,7 +1,7 @@
 ---
 name: The thesis
 summary: We've built the safe, proven layer: gated tool-use, hybrid pipelines, a trust curve, per-client memory, Delta Proof, a benchmark ledger.
-tags: frontier-plan, every, agent, before, crew, frontier
+tags: frontier-plan, themselv, thesi, crew, frontier, memory
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

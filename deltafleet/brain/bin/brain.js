@@ -77,6 +77,24 @@ async function main() {
 
   if (cmd === 'reindex') { const n = reindex(index); console.log(`reindexed ${n} memories from files`); return; }
 
+  if (cmd === 'seed') {
+    // Rebuild the whole brain: scan the workspace, then overlay the curated
+    // concept memories (curated.json) — the precise reference notes for the
+    // things we actually look up, which auto-scan can't extract from doc bodies.
+    const target = positionals[0];
+    if (target) {
+      const { scanWorkspace } = await import('../lib/scan.js');
+      for (const p of scanWorkspace(target, { root: flag('root') || target })) save(index, { ...p, now: p.updated });
+    }
+    const curatedPath = path.join(dir, 'curated.json');
+    let curated = 0;
+    if (fs.existsSync(curatedPath)) {
+      for (const m of JSON.parse(fs.readFileSync(curatedPath, 'utf8'))) { save(index, { ...m, now: '2026-07-08T00:00:00.000Z' }); curated++; }
+    }
+    console.log(`seeded ${index.all().length} memories (${curated} curated)`);
+    return;
+  }
+
   if (cmd === 'index') {
     if (flag('json')) { console.log(JSON.stringify(index.all().map((e) => ({ id: e.id, name: e.name, tags: e.tags, summary: e.summary })), null, 2)); return; }
     console.log(`${index.all().length} memories:`);

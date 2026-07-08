@@ -1,7 +1,7 @@
 ---
 name: 2 · The moat, in four layers (ordered by durability)
-summary: 1. **Blueprint library (IP moat).** Every install is captured as a reusable blueprint: trigger → agent chain → gates → connectors → metrics → rollback.
-tags: pivot-plan, install, moat, client, data, every
+summary: 1. Blueprint library (IP moat).
+tags: pivot-plan, moat, install, client, data, consultant
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

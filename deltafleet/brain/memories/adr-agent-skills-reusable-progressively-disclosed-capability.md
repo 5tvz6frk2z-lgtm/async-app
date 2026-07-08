@@ -1,6 +1,6 @@
 ---
 name: Agent Skills: reusable, progressively-disclosed capability modules (v0.9, FRONTIER-PLAN Bet 5)
-summary: **20. Agent Skills: reusable, progressively-disclosed capability modules (v0.9, FRONTIER-PLAN Bet 5).** A () is a named capability pack — .
+summary: **20. Agent Skills: reusable, progressively-disclosed capability modules (v0.9, FRONTIER-PLAN Bet 5).** A () is a named capability pack — . It is the **reuse la
 tags: adr, skill, capability, match, agent, guidance
 pointers: 
 updated: 2026-07-08T00:00:00.000Z

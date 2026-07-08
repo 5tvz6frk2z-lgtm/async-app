@@ -1,7 +1,7 @@
 ---
 name: Recommended sequence
-summary: **2 → 1 → 3 → 4 → 5.** The Shadow Eval Harness (Bet 2) is the measurement substrate everything else is proven on, and it's independently valuable (de-risks inst
-tags: frontier-plan, bet, before, here, 200, answer
+summary: Fastest path to a demoable frontier story: Bet 2 + Bet 1 together — "here's a corridor graded on 200 scenarios before launch, and here's the fleet catching its own bad ou
+tags: frontier-plan, recommend, sequence, here, demoable, fastest
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

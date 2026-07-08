@@ -1,7 +1,7 @@
 ---
 name: Before going to production
 summary: 1. Replace illustrative statistics with real data (charts are labelled "illustrative").
-tags: readme, illustrative, real, 500, add, against
+tags: readme, going, illustrative, production, real, endpoint
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

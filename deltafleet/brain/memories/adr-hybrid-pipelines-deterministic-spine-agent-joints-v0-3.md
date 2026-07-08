@@ -1,7 +1,7 @@
 ---
 name: Hybrid pipelines: deterministic spine, agent joints (v0.3)
 summary: **11. Hybrid pipelines: deterministic spine, agent joints (v0.3).** Blueprints may declare a — ordered steps that are either (plain code from the ScriptRegistry
-tags: adr, script, step, agent, deterministic, pipelin
+tags: adr, script, step, pipelin, deterministic, agent
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

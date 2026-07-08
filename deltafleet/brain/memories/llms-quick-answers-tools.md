@@ -1,7 +1,7 @@
 ---
 name: Quick answers & tools
 summary: - The Answer Hub (buyer questions answered in one citable block each): https://deltafleet.ai/#/answers - Free AEO Grader (client-side citability scoring): https
-tags: llms, answer, deltafleet, deltafleet.ai, grader, http
+tags: llms, answer, deltafleet.ai, grader, deltafleet, http
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

@@ -1,7 +1,7 @@
 ---
 name: 2 · Repo layout
-summary: | Path | What | |---|---| | | The whole site (~486KB, single file, zero deps): 24 routes, 20 posts, WebGL Earth + raymarched ship, Workflow Grader, Daily Brief page, AEO stack.
-tags: handoff, deltafleet, platform, html, audit, file
+summary: | Path | What | |---|---| | | The whole site (~486KB, single file, zero deps): 24 routes, 20 posts, WebGL Earth + raymarched ship, Workflow Grader, Daily Brief
+tags: handoff, deltafleet, platform, html, site, file
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

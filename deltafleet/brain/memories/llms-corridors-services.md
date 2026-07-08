@@ -1,7 +1,7 @@
 ---
 name: Corridors & services
 summary: - The Corridors (catalog of all six installable workflows): https://deltafleet.ai/#/corridors - Speed-to-Lead corridor (deep-dive): https://deltafleet.ai/#/serv
-tags: llms, deltafleet, deltafleet.ai, http, servic, corridor
+tags: llms, deltafleet.ai, servic, deltafleet, http, corridor
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

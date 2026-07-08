@@ -1,7 +1,7 @@
 ---
 name: Test coverage
-summary: — 118 cases. Ledger incremental (6): full-replay-vs-incremental equivalence, post-build appends visible, pendingApprovals voids on run end, canonical-filter cro
-tags: adr, validation, blueprint, confidence, fail, gate
+summary: — 118 cases. Ledger incremental (6): full-replay-vs-incremental equivalence, post-build appends visible, pendingApprovals voids on run end, canonical-filter cross-check,
+tags: adr, validation, confidence, fail, verdict, step
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

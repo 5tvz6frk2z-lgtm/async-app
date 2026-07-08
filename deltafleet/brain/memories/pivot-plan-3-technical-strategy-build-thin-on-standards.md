@@ -1,7 +1,7 @@
 ---
 name: 3 · Technical strategy — build thin, on standards
-summary: **The unlock: build on MCP (Model Context Protocol).** "Integratable" is already solved by the ecosystem — mature MCP servers exist for CRMs, email, calendars,
-tags: pivot-plan, mcp, build, client, engine, agent
+summary: by the ecosystem — mature MCP servers exist for CRMs, email, calendars, Slack, sheets,
+tags: pivot-plan, build, engine, client, connector, proof
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

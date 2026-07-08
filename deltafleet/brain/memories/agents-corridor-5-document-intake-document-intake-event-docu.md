@@ -1,7 +1,7 @@
 ---
 name: Corridor 5 · Document Intake (`document-intake`) — event: document received
-summary: | # | Callsign | Job in one line | |---|---|---| | 16 | THOTH | Extract the structured record from the document | | 17 | THEMIS | Validate it against source sys
-tags: agents, record, check, document, exception, post
+summary: Reads invoices/POs/applications ( ·) into structured records ( L): parties, line items, totals, dates, each field with a confidence mark.
+tags: agents, document, record, check, themi, exception
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

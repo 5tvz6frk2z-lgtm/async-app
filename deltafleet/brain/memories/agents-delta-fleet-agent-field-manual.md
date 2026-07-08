@@ -1,7 +1,7 @@
 ---
 name: Delta Fleet — Agent Field Manual
 summary: The operational spec for every agent we deploy.
-tags: agents, agent, human, ledger, blueprint, number
+tags: agents, agent, human, ledger, field, verdict
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

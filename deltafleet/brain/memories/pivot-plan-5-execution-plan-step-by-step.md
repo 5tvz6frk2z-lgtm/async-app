@@ -1,7 +1,7 @@
 ---
 name: 5 · Execution plan — step by step
 summary: 1. Freeze positioning one-liner + ICP (owner-led, 10–200 employees, $1M–50M revenue, services/commerce).
-tags: pivot-plan, blueprint, client, ledger, recon, week
+tags: pivot-plan, blueprint, week, recon, ledger, client
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

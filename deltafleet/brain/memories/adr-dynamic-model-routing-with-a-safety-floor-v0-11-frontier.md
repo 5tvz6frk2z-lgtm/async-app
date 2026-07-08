@@ -1,7 +1,7 @@
 ---
 name: Dynamic model routing, with a safety floor (v0.11, FRONTIER-PLAN reach idea)
-summary: **22. Dynamic model routing, with a safety floor (v0.11, FRONTIER-PLAN reach idea).** A static per-agent model wastes capability on easy work and under-powers hard work.
-tags: adr, model, rout, tier, floor, claude
+summary: **22. Dynamic model routing, with a safety floor (v0.11, FRONTIER-PLAN reach idea).** A static per-agent model wastes capability on easy work and under-powers h
+tags: adr, rout, model, floor, tier, safety
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

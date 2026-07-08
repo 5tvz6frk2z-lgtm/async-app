@@ -1,7 +1,7 @@
 ---
 name: Architecture (single file, four zones)
-summary: 1. **Head** — meta/OG/Twitter tags, Organization JSON-LD, inline SVG favicon, fonts.
-tags: readme, system, agent, every, page, agentloop
+summary: 1. Head — meta/OG/Twitter tags, Organization JSON-LD, inline SVG favicon, fonts.
+tags: readme, system, four, page, architecture, single
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

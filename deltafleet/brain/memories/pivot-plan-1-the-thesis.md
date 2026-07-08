@@ -1,7 +1,7 @@
 ---
 name: 1 · The thesis
-summary: **What we sell:** *We install supervised AI agent fleets inside the tools a business already uses — live in 30 days, with approval gates, an audit trail, and me
-tags: pivot-plan, business, market, tool, agent, approval
+summary: uses — live in 30 days, with approval gates, an audit trail, and measurable before/after proof —
+tags: pivot-plan, business, market, tool, thesi, buyer
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

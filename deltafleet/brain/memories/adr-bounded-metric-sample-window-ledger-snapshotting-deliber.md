@@ -1,7 +1,7 @@
 ---
 name: Bounded metric-sample window; ledger snapshotting deliberately deferred (v0.17, scalability)
 summary: **28. Bounded metric-sample window; ledger snapshotting deliberately deferred (v0.17, scalability).** The projection retained every event forever in , even thou
-tags: adr, ledger, sample, bound, count, event
+tags: adr, ledger, sample, bound, window, projection
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

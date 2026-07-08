@@ -1,7 +1,7 @@
 ---
 name: Ledger state is a materialized view, not a per-call replay (v0.14, scalability)
 summary: **25. Ledger state is a materialized view, not a per-call replay (v0.14, scalability).** was O(events) — a full replay of the entire log — and it is called many
-tags: adr, event, state, call, ledger, replay
+tags: adr, state, replay, call, event, ledger
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

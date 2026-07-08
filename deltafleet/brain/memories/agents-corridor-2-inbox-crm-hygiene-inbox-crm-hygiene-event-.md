@@ -1,7 +1,7 @@
 ---
 name: Corridor 2 · Inbox & CRM Hygiene (`inbox-crm-hygiene`) — event: message received
-summary: | # | Callsign | Job in one line | |---|---|---| | 5 | HEIMDALL | Classify and label every inbound message | | 6 | MNEMOSYNE | Log every conversation against th
-tags: agents, crm, label, urgent, deal, measur
+summary: First eyes on everything. Classifies (lead / client / vendor / spam / urgent), applies labels ( ·).
+tags: agents, label, urgent, inbox, deal, message
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

@@ -1,7 +1,7 @@
 ---
 name: Reach ideas — NOW BUILT (v0.11–v0.13)
-summary: - **Dynamic model routing** ✅ — (ADR #22).
-tags: frontier-plan, adr, confidence, lib, model, rout
+summary: - **Dynamic model routing** ✅ — (ADR #22). Deterministic difficulty classifier picks the model tier per step; high-stakes work never routes to the cheap tier (s
+tags: frontier-plan, confidence, built, rout, model, v0.11
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

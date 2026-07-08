@@ -1,7 +1,7 @@
 ---
 name: Confidence calibration off the run hot path (v0.16, scalability)
 summary: **27. Confidence calibration off the run hot path (v0.16, scalability).** — called for every gated action inside the live agent/pipeline loop — computed calibra
-tags: adr, calibration, confidence, path, run, action
+tags: adr, calibration, confidence, path, scan, test
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

@@ -1,7 +1,7 @@
 ---
 name: The Curator: self-improving instructions, MEASURED (v0.8, FRONTIER-PLAN Bet 4; depends on Bet 2)
-summary: **19. The Curator: self-improving instructions, MEASURED (v0.8, FRONTIER-PLAN Bet 4; depends on Bet 2).** The memory flywheel already captures every human correction as context.
-tags: adr, instruction, accept, curator, measur, bet
+summary: **19. The Curator: self-improving instructions, MEASURED (v0.8, FRONTIER-PLAN Bet 4; depends on Bet 2).** The memory flywheel already captures every human corre
+tags: adr, instruction, curator, accept, measur, overlay
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

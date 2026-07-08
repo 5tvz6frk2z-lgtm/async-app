@@ -1,7 +1,7 @@
 ---
 name: FRONTIER PLAN — the unproven bets
-summary: > **STATUS UPDATE (July 2026): ALL FIVE BETS BUILT, TESTED, AND WIRED.** Platform v0.6–v0.9, 82 tests green, zero dependencies.
-tags: frontier-plan, bet, adr, lib, agent, shadow
+summary: > **STATUS UPDATE (July 2026): ALL FIVE BETS BUILT, TESTED, AND WIRED.** Platform v0.6–v0.9, 82 tests green, zero dependencies. Bet 2 Shadow Eval Harness ( + ,
+tags: frontier-plan, shadow, test, plan, agent, unproven
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

@@ -1,7 +1,7 @@
 ---
 name: Corridor 6 · Review & Reputation (`review-response`) — event: review posted
-summary: | # | Callsign | Job in one line | |---|---|---| | 19 | ARGUS | See every review the moment it lands; classify and detect patterns | | 20 | ECHO | Draft in-voic
-tags: agents, review, draft, rate, response, eir
+summary: Watches all platforms ( ·), classifies sentiment and severity, detects review-bombing patterns (velocity + similarity) and alerts immediately ( L).
+tags: agents, review, response, draft, rate, recovery
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

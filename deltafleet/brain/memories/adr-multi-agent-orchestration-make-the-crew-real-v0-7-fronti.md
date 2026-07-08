@@ -1,7 +1,7 @@
 ---
 name: Multi-Agent Orchestration: make the crew real (v0.7, FRONTIER-PLAN Bet 3)
-summary: **18. Multi-Agent Orchestration: make the crew real (v0.7, FRONTIER-PLAN Bet 3).** The runtime runs one agent per run; a blueprint's "crew" was descriptive.
-tags: adr, agent, run, crew, judge, child
+summary: **18. Multi-Agent Orchestration: make the crew real (v0.7, FRONTIER-PLAN Bet 3).** The runtime runs one agent per run; a blueprint's "crew" was descriptive. A (
+tags: adr, agent, crew, judge, orchestration, child
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

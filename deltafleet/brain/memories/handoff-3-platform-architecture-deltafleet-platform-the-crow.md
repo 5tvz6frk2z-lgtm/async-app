@@ -1,7 +1,7 @@
 ---
 name: 3 · Platform architecture (deltafleet/platform — the crown jewels)
 summary: One Node process per client.
-tags: handoff, lib, tool, json, client, pack
+tags: handoff, tool, json, pack, proof, client
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

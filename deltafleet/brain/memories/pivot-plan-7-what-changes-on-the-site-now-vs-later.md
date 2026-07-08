@@ -1,7 +1,7 @@
 ---
 name: 7 · What changes on the site now vs later
-summary: **Now (cheap, we own the machine):** v9 positioning, Workflow Grader, offer/pricing pages, 5 integration pillar posts, llms.txt rewrite.
-tags: pivot-plan, later, now, real, alway, benchmark
+summary: 5 integration pillar posts, llms.txt rewrite.
+tags: pivot-plan, later, chang, site, real, present
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

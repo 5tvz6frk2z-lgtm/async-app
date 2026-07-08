@@ -1,7 +1,7 @@
 ---
 name: Editing cheatsheet
-summary: - **Add a page:** add , register it in and , link it in the nav/footer.
-tags: readme, add, post, page, template, pric
+summary: - **Add a page:** add , register it in and , link it in the nav/footer. - **Add a post:** add (no /meta/CTA — the router adds article chrome, TOC, related posts
+tags: readme, post, page, template, cheatsheet, pric
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---
