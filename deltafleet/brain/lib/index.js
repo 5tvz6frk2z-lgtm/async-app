@@ -51,7 +51,8 @@ export class BrainIndex {
     e._name = tokenize(e.name || '');
     e._tags = tokenize((e.tags || []).join(' '));
     e._sum = tokenize(e.summary || '');
-    e._all = new Set([...e._name, ...e._tags, ...e._sum]);
+    e._id = tokenize(String(e.id).replace(/[-_]/g, ' ')); // the slug carries concept signal
+    e._all = new Set([...e._name, ...e._tags, ...e._sum, ...e._id]);
     return e;
   }
 

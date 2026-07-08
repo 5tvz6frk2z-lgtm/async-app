@@ -53,8 +53,10 @@ export function matches(a, b) {
 export function tokenize(text) {
   const out = [];
   const raw = String(text || '').toLowerCase();
-  // preserve tool-ish identifiers (word.word, word-word) as single tokens too
-  for (const m of raw.matchAll(/[a-z0-9]+(?:[._-][a-z0-9]+)+/g)) out.push(m[0]);
+  // preserve DOTTED tool identifiers (email.send, crm.read) as single tokens;
+  // hyphenated words are just split into parts below (so "auto-relax" doesn't
+  // become a noise token that matches nothing and dilutes coverage scoring).
+  for (const m of raw.matchAll(/[a-z0-9]+(?:\.[a-z0-9]+)+/g)) out.push(m[0]);
   for (const w of raw.split(/[^a-z0-9]+/)) {
     if (!w || w.length < 2 || STOPWORDS.has(w)) continue;
     out.push(stem(w));

@@ -18,25 +18,31 @@ import { keywords, tokenize, matches } from './tokenize.js';
 import { splitSections, inlinePointers } from './sections.js';
 import { estTokens } from './tokens.js';
 
-const FIELD = { name: 3, tags: 3, summary: 1.5 };
-const TF_CAP = { name: 2, tags: 2, summary: 3 };
+const FIELD = { name: 3, tags: 3, summary: 1.5, id: 2.5 };
+const TF_CAP = { name: 2, tags: 2, summary: 3, id: 1 };
 
 // Fuzzy count: how many tokens in `arr` match query term `t` (exact or long
 // shared prefix), so "integrate" scores against a memory tagged "integration".
 const count = (arr, t) => { let n = 0; for (const x of arr) if (matches(x, t)) n++; return n; };
 
 /** Score one index entry against the query terms. Reads only the cached tokens
- *  on the entry — never touches disk. */
+ *  on the entry — never touches disk. A coverage factor rewards matching more of
+ *  the DISTINCT query terms, so a focused memory that answers the whole question
+ *  beats a sprawling one that merely repeats a single term. */
 export function scoreEntry(index, qterms, e) {
-  let s = 0;
+  let s = 0, hit = 0;
   for (const t of qterms) {
     const w = index.idf(t);
     if (!w) continue;
-    s += w * (FIELD.name * Math.min(count(e._name, t), TF_CAP.name)
+    const f = FIELD.name * Math.min(count(e._name, t), TF_CAP.name)
       + FIELD.tags * Math.min(count(e._tags, t), TF_CAP.tags)
-      + FIELD.summary * Math.min(count(e._sum, t), TF_CAP.summary));
+      + FIELD.summary * Math.min(count(e._sum, t), TF_CAP.summary)
+      + FIELD.id * Math.min(count(e._id, t), TF_CAP.id);
+    if (f > 0) { s += w * f; hit++; }
   }
-  return s;
+  if (!qterms.length) return 0;
+  const coverage = hit / qterms.length; // 0..1 fraction of query terms this memory touches
+  return s * (0.55 + 0.45 * coverage);
 }
 
 /** Rank the whole catalogue for a question — index-only, no files opened. */
