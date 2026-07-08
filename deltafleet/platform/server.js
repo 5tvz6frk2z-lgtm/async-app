@@ -102,11 +102,13 @@ if (SOURCES) {
   console.log(`sources: ${sources.size} file(s) synced — +${sum('added')} added, ${sum('updated')} updated, ${sum('restamped')} re-stamped, ${sum('retired') + stale} retired (${stale} stale)`);
 }
 
-/** Layered prompt context for a run: industry pack, learned memory, then any
+/** Layered prompt context for a run: industry pack, learned memory (retrieved
+ *  RELEVANT to this run's trigger via the index-first technique), then any
  *  curated instruction overlays a human has accepted (the cascade's top layer). */
-function contextFor(blueprintId) {
+function contextFor(blueprintId, triggerInput) {
   const lines = packContext(pack, blueprintId);
-  const mem = memory.contextBlock({ blueprint: blueprintId });
+  const query = triggerInput ? JSON.stringify(triggerInput) : undefined;
+  const mem = memory.contextBlock({ blueprint: blueprintId, query });
   if (mem) lines.push(mem);
   lines.push(...curator.contextLines({ blueprint: blueprintId }));
   return lines;
@@ -146,7 +148,7 @@ function launchRun(blueprintId, triggerInput, { agentName } = {}) {
   const bp = blueprints.get(blueprintId);
   if (!bp) throw new Error(`unknown blueprint ${blueprintId}`);
   let run;
-  const context = contextFor(blueprintId);
+  const context = contextFor(blueprintId, triggerInput);
   // Progressive-disclosure skills catalog for this run (guidance loads only for
   // skills the trigger matches). Pipeline steps can additionally pin a `skill`.
   context.push(...skills.contextLines(triggerInput));

@@ -27,6 +27,31 @@ export const KINDS = ['rule', 'preference', 'fact', 'pattern'];
 const KIND_RANK = { rule: 0, preference: 1, fact: 2, pattern: 3 };
 const DEFAULTS = { maxPerScope: 200, decayAfterDays: 60, retireBelow: 0.3, decayStep: 0.1 };
 
+// Query-relevance scoring for retrieval — the same index-first technique Cortex
+// uses (keyword overlap with fuzzy common-prefix matching), kept self-contained
+// so the platform stays zero-dependency.
+const MEM_STOP = new Set('a an and are as at be by for from has have how in into is it of on or the to with you your we our us not do does can will'.split(' '));
+function memTokens(s) {
+  const out = [];
+  for (const w of String(s || '').toLowerCase().split(/[^a-z0-9]+/)) {
+    if (w.length >= 3 && !MEM_STOP.has(w)) out.push(w.replace(/(ings?|ed|es|s)$/, ''));
+  }
+  return out;
+}
+function memMatch(a, b) {
+  if (a === b) return true;
+  const n = Math.min(a.length, b.length);
+  let i = 0;
+  while (i < n && a[i] === b[i]) i++;
+  return i >= 4 && i >= n - 1;
+}
+function relevance(qtokens, text) {
+  const tt = memTokens(text);
+  let s = 0;
+  for (const q of qtokens) if (tt.some((t) => memMatch(t, q))) s++;
+  return s;
+}
+
 const norm = (s) => String(s || '').toLowerCase().replace(/\s+/g, ' ').trim();
 const short = (v) => { const s = typeof v === 'string' ? v : JSON.stringify(v); return s.length > 90 ? s.slice(0, 90) + '…' : s; };
 
@@ -116,14 +141,18 @@ export class MemoryEngine {
   }
 
   /** Ranked, budgeted retrieval for a run: client-wide + this corridor.
-   *  Rank = kind authority, then confidence, then recency. charBudget ≈ 4×tokens. */
-  retrieve({ blueprint, charBudget = 3200 } = {}) {
+   *  When a `query` (the run's trigger) is given, retrieval becomes RELEVANCE-
+   *  first — the deterministic index-first technique from Cortex applied to
+   *  memory: the memories that actually bear on THIS task rank ahead of merely
+   *  high-authority ones, while standing rules/preferences keep an authority
+   *  boost so they're never dropped. No query → pure authority ranking (as
+   *  before). charBudget ≈ 4×tokens. */
+  retrieve({ blueprint, query, charBudget = 3200 } = {}) {
     const pool = [...this.mems.values()].filter((m) =>
       m.status === 'active' && (m.scope === 'client' || m.scope === blueprint));
-    pool.sort((a, b) =>
-      (KIND_RANK[a.kind] - KIND_RANK[b.kind])
-      || ((b.confidence ?? 0) - (a.confidence ?? 0))
-      || (a.updated < b.updated ? 1 : -1));
+    const qt = query ? [...new Set(memTokens(query))] : null;
+    const score = (m) => (qt ? 2 * relevance(qt, m.text) : 0) + (3 - KIND_RANK[m.kind]) + (m.confidence ?? 0);
+    pool.sort((a, b) => (score(b) - score(a)) || (a.updated < b.updated ? 1 : -1));
     const out = [];
     let used = 0;
     for (const m of pool) {
@@ -136,8 +165,8 @@ export class MemoryEngine {
   }
 
   /** Prompt block for a run; empty string when nothing is known yet. */
-  contextBlock({ blueprint, charBudget } = {}) {
-    const mems = this.retrieve({ blueprint, charBudget });
+  contextBlock({ blueprint, query, charBudget } = {}) {
+    const mems = this.retrieve({ blueprint, query, charBudget });
     if (!mems.length) return '';
     return [
       'Client memory (rules and preferences are standing instructions; facts are ground truth unless fresh data contradicts them; patterns are hints, not commitments):',

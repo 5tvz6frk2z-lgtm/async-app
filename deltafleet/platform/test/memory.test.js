@@ -163,3 +163,18 @@ test('AgentRun and PipelineRun inject pack + memory context into system prompts'
   await new PipelineRun({ blueprint: bps.get('daily-brief'), ledger: led, gates, scripts: demoScriptRegistry(), adapter: adapter2, profile: { brand: 'X' }, context: dbCtx }).run({});
   assert.ok(sys2.includes('Referrals get thanked by name'), 'client-wide memory reaches pipeline infer steps');
 });
+
+test('retrieval is query-relevant: the trigger surfaces the on-topic memory first', () => {
+  const m = new MemoryEngine(new Ledger(null));
+  m.add({ kind: 'fact', text: 'Corvid Studios invoices arrive from billing@corvid.example as PDFs referencing a PO.' });
+  m.add({ kind: 'fact', text: 'The Atlas Legal renewal is up in Q3; Dana owns it.' });
+  m.add({ kind: 'preference', text: 'Lead the morning brief with dealer-network threads first.' });
+  // no query → authority ranking (a preference outranks facts)
+  assert.match(m.retrieve({})[0].text, /dealer-network/);
+  // with the run's trigger as query → the relevant fact ranks first
+  const q = m.retrieve({ query: 'invoice from Corvid with a PO for document intake' });
+  assert.match(q[0].text, /Corvid Studios invoices/);
+  // standing rules keep their authority boost even under a query
+  m.add({ kind: 'rule', text: 'Dana is the only approver for anything involving money or press.' });
+  assert.ok(m.retrieve({ query: 'unrelated weather question' }).some((x) => x.kind === 'rule'), 'a standing rule is never dropped by relevance');
+});
