@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cortex — Second Brain</title>
+<style>
+  :root{
+    --bg:#fbfbfa; --panel:#fff; --ink:#1c1d21; --dim:#6b6d76; --faint:#9a9ca3;
+    --line:#e9e9e6; --line2:#dcdcd7; --accent:#2f6f4f; --accent2:#e8f2ec;
+    --warn:#b4541a; --mono:"SF Mono",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;
+  }
+  @media (prefers-color-scheme:dark){:root{
+    --bg:#0f1113; --panel:#16181b; --ink:#e7e8ea; --dim:#9a9da3; --faint:#6a6d73;
+    --line:#24272b; --line2:#2f3338; --accent:#5fb98a; --accent2:#16241d; --warn:#e0864f;
+  }}
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{background:var(--bg);color:var(--ink);font:14px/1.55 var(--sans);-webkit-font-smoothing:antialiased}
+  a{color:var(--accent);text-decoration:none}
+  .app{display:grid;grid-template-columns:210px 1fr;height:100vh}
+  /* rail */
+  .rail{border-right:1px solid var(--line);padding:18px 14px;display:flex;flex-direction:column;gap:4px;background:var(--panel)}
+  .brand{display:flex;align-items:center;gap:9px;font-weight:650;letter-spacing:.02em;margin:2px 4px 16px}
+  .brand .dot{width:16px;height:16px;border-radius:5px;background:var(--accent);box-shadow:0 0 0 4px var(--accent2)}
+  .brand small{color:var(--faint);font-weight:500;font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+  .nav{display:flex;flex-direction:column;gap:1px}
+  .nav button{all:unset;cursor:pointer;padding:7px 10px;border-radius:8px;color:var(--dim);font-weight:500;display:flex;justify-content:space-between;align-items:center}
+  .nav button:hover{background:var(--bg);color:var(--ink)}
+  .nav button.on{background:var(--accent2);color:var(--accent);font-weight:600}
+  .nav .kbd{font:11px var(--mono);color:var(--faint)}
+  .railfoot{margin-top:auto;color:var(--faint);font-size:11px;line-height:1.5;padding:0 4px}
+  .railfoot b{color:var(--dim)}
+  /* main */
+  .main{overflow:auto;padding:26px 30px}
+  .wrap{max-width:820px;margin:0 auto}
+  h1{font-size:19px;margin:0 0 3px;font-weight:650}
+  .sub{color:var(--dim);margin:0 0 20px;font-size:13px}
+  /* search */
+  .searchbar{position:relative;margin-bottom:14px}
+  .searchbar input{width:100%;padding:13px 15px 13px 40px;font-size:15px;background:var(--panel);border:1px solid var(--line2);border-radius:11px;color:var(--ink);outline:none}
+  .searchbar input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent2)}
+  .searchbar .mag{position:absolute;left:14px;top:13px;color:var(--faint)}
+  .cands{display:flex;flex-direction:column;gap:2px;margin-bottom:8px}
+  .cand{display:flex;gap:11px;align-items:baseline;padding:9px 11px;border-radius:9px;cursor:pointer;border:1px solid transparent}
+  .cand:hover,.cand.sel{background:var(--panel);border-color:var(--line)}
+  .cand .sc{font:11px var(--mono);color:var(--accent);min-width:42px;text-align:right}
+  .cand .nm{font-weight:560}
+  .cand .sm{color:var(--dim);font-size:12.5px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .cand .tag{font:10px var(--mono);color:var(--faint);border:1px solid var(--line);border-radius:5px;padding:1px 5px}
+  /* evidence */
+  .evidence{background:var(--panel);border:1px solid var(--line);border-radius:12px;margin-top:6px;overflow:hidden}
+  .ev-head{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .ev-head .t{font-weight:620}
+  .ev-head .path{font:11px var(--mono);color:var(--faint)}
+  .chips{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+  .chip{font:11px var(--mono);color:var(--dim);background:var(--bg);border:1px solid var(--line);border-radius:20px;padding:2px 9px}
+  .chip b{color:var(--accent)}
+  .ev-body{padding:4px 18px 16px}
+  .ev-body pre{font:12.5px/1.6 var(--mono);white-space:pre-wrap;word-wrap:break-word;color:var(--ink);margin:12px 0}
+  .ptr{margin-top:6px;padding-top:12px;border-top:1px dashed var(--line2)}
+  .ptr .lbl{font:10px var(--mono);color:var(--warn);text-transform:uppercase;letter-spacing:.06em}
+  .btn{all:unset;cursor:pointer;font-size:12.5px;font-weight:560;color:var(--accent);border:1px solid var(--line2);border-radius:8px;padding:5px 11px}
+  .btn:hover{background:var(--accent2)}
+  .btn.pri{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .empty{color:var(--faint);text-align:center;padding:40px;font-size:13px}
+  /* index list */
+  .filter{width:100%;padding:9px 12px;border:1px solid var(--line2);border-radius:9px;background:var(--panel);color:var(--ink);margin-bottom:12px;outline:none}
+  .filter:focus{border-color:var(--accent)}
+  .row{padding:10px 12px;border-bottom:1px solid var(--line);cursor:pointer}
+  .row:hover{background:var(--panel)}
+  .row .nm{font-weight:560}
+  .row .sm{color:var(--dim);font-size:12.5px}
+  .row .id{font:10.5px var(--mono);color:var(--faint)}
+  /* form */
+  .form{display:flex;flex-direction:column;gap:11px;max-width:640px}
+  .form label{font-size:12px;color:var(--dim);font-weight:560;margin-bottom:-6px}
+  .form input,.form textarea{width:100%;padding:9px 12px;border:1px solid var(--line2);border-radius:9px;background:var(--panel);color:var(--ink);font:13px var(--sans);outline:none}
+  .form textarea{font:12.5px var(--mono);min-height:150px;resize:vertical}
+  .form input:focus,.form textarea:focus{border-color:var(--accent)}
+  /* bench */
+  .stat{display:flex;gap:22px;flex-wrap:wrap;margin:6px 0 18px}
+  .stat .k{font-size:26px;font-weight:680;letter-spacing:-.02em}
+  .stat .k.good{color:var(--accent)} .stat .k.bad{color:var(--warn)}
+  .stat .l{color:var(--dim);font-size:12px}
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line)}
+  th{color:var(--faint);font-weight:560;font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+  td.n{font:12px var(--mono);text-align:right}
+  .ok{color:var(--accent)} .no{color:var(--warn)}
+  .load{color:var(--faint);padding:30px;text-align:center}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="rail">
+    <div class="brand"><span class="dot"></span><span>Cortex<br><small>second brain</small></span></div>
+    <nav class="nav" id="nav">
+      <button data-v="search" class="on">Search <span class="kbd">/</span></button>
+      <button data-v="index">Index <span class="kbd" id="ct">·</span></button>
+      <button data-v="save">Save memory</button>
+      <button data-v="bench">Fair test</button>
+    </nav>
+    <div class="railfoot">
+      <b>Deterministic retrieval.</b> Score the index → open one file → pull one section → follow one pointer. The model only sees the evidence.
+    </div>
+  </aside>
+  <main class="main"><div class="wrap" id="view"></div></main>
+</div>
+<script>
+const $=(s,r=document)=>r.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const api=async(p)=>{const r=await fetch(p);return r.json();};
+let INDEX=[], view='search', sel=-1, lastCands=[], lastQ='';
+
+async function boot(){
+  const d=await api('/api/index'); INDEX=d.entries; $('#ct').textContent=d.count;
+  $('#nav').addEventListener('click',e=>{const b=e.target.closest('button');if(b)go(b.dataset.v);});
+  document.addEventListener('keydown',e=>{
+    if(e.key==='/'&&view!=='search'&&document.activeElement.tagName!=='INPUT'&&document.activeElement.tagName!=='TEXTAREA'){e.preventDefault();go('search');}
+  });
+  const p=new URLSearchParams(location.search);            // deep links: ?q=… (shareable search) or ?view=bench
+  if(p.get('view')&&['search','index','save','bench'].includes(p.get('view')))return go(p.get('view'));
+  if(p.get('q')){lastQ=p.get('q');go('search');rank(lastQ).then(()=>ask(null,lastQ));return;}
+  go('search');
+}
+function go(v){view=v;[...$('#nav').children].forEach(b=>b.classList.toggle('on',b.dataset.v===v));({search:vSearch,index:vIndex,save:vSave,bench:vBench}[v])();}
+
+/* ---------- Search ---------- */
+function vSearch(){
+  $('#view').innerHTML=`<h1>Ask your second brain</h1>
+    <p class="sub">Type a question. Candidates are scored from the one-line index — no files opened until you pick one.</p>
+    <div class="searchbar"><span class="mag">⌕</span><input id="q" placeholder="how does the append-only ledger derive state?" autocomplete="off"></div>
+    <div class="cands" id="cands"></div><div id="ev"></div>`;
+  const q=$('#q'); q.value=lastQ; q.focus();
+  let t;
+  q.addEventListener('input',()=>{clearTimeout(t);t=setTimeout(()=>rank(q.value),80);});
+  q.addEventListener('keydown',e=>{
+    if(e.key==='ArrowDown'){e.preventDefault();move(1);}
+    else if(e.key==='ArrowUp'){e.preventDefault();move(-1);}
+    else if(e.key==='Enter'){e.preventDefault();ask(sel>=0&&lastCands[sel]?lastCands[sel].id:null,q.value);}
+  });
+  if(lastQ)rank(lastQ);
+}
+async function rank(qv){
+  lastQ=qv; if(!qv.trim()){$('#cands').innerHTML='';$('#ev').innerHTML='';return;}
+  const d=await api('/api/rank?q='+encodeURIComponent(qv));
+  lastCands=d.candidates; sel=-1;
+  $('#cands').innerHTML=d.candidates.map((c,i)=>`<div class="cand" data-i="${i}" data-id="${esc(c.id)}">
+     <span class="sc">${c.score.toFixed(1)}</span>
+     <span class="nm">${esc(c.name)}</span>
+     <span class="sm">${esc(c.summary)}</span>
+     ${(c.tags||[]).slice(0,1).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>`).join('')
+     || `<div class="empty">no index match — try broader terms</div>`;
+  $('#cands').querySelectorAll('.cand').forEach(el=>el.onclick=()=>ask(el.dataset.id,qv));
+}
+function move(d){const els=[...$('#cands').querySelectorAll('.cand')];if(!els.length)return;sel=(sel+d+els.length)%els.length;els.forEach((e,i)=>e.classList.toggle('sel',i===sel));els[sel].scrollIntoView({block:'nearest'});}
+async function ask(id,qv){
+  const r=await api('/api/ask?q='+encodeURIComponent(qv));
+  if(!r.chosen){$('#ev').innerHTML=`<div class="empty">no memory answered that.</div>`;return;}
+  const ptr=r.pointer?`<div class="ptr"><span class="lbl">followed pointer → ${esc(r.pointer.name)} · ${esc(r.pointer.heading)}</span><pre>${esc(r.pointer.text)}</pre></div>`:'';
+  $('#ev').innerHTML=`<div class="evidence">
+    <div class="ev-head"><span class="t">${esc(r.chosen.name)}</span><span class="path">${esc(r.chosen.file)} › ${esc(r.section.heading)}</span>
+      <span class="chips"><span class="chip"><b>${r.tokens}</b> tokens</span><span class="chip"><b>${r.filesOpened}</b> file${r.filesOpened>1?'s':''}</span><span class="chip"><b>${r.ms}</b> ms</span><span class="chip">${r.candidates.length} scored</span></span></div>
+    <div class="ev-body"><pre>${esc(r.section.text)}</pre>${ptr}
+      <button class="btn" id="cp">Copy evidence</button> <button class="btn" id="op">Open memory</button></div></div>`;
+  $('#cp').onclick=()=>{navigator.clipboard&&navigator.clipboard.writeText(r.evidence);$('#cp').textContent='Copied ✓';setTimeout(()=>$('#cp').textContent='Copy evidence',1200);};
+  $('#op').onclick=()=>openMemory(r.chosen.id);
+}
+
+/* ---------- Index ---------- */
+function vIndex(){
+  $('#view').innerHTML=`<h1>Index <span style="color:var(--faint);font-weight:400">${INDEX.length}</span></h1>
+    <p class="sub">Every memory in one line. This is what retrieval scores against.</p>
+    <input class="filter" id="flt" placeholder="filter by name, tag, summary…"><div id="rows"></div>`;
+  const draw=(f='')=>{const q=f.toLowerCase();
+    $('#rows').innerHTML=INDEX.filter(e=>!q||(e.name+e.summary+e.id+(e.tags||[]).join(' ')).toLowerCase().includes(q))
+      .map(e=>`<div class="row" data-id="${esc(e.id)}"><div class="nm">${esc(e.name)}</div><div class="sm">${esc(e.summary)}</div><div class="id">${esc(e.id)} · ${(e.tags||[]).map(esc).join(', ')}</div></div>`).join('')
+      ||`<div class="empty">nothing matches “${esc(f)}”</div>`;
+    $('#rows').querySelectorAll('.row').forEach(el=>el.onclick=()=>openMemory(el.dataset.id));};
+  $('#flt').addEventListener('input',e=>draw(e.target.value)); draw(); $('#flt').focus();
+}
+async function openMemory(id){
+  const m=await api('/api/memory?id='+encodeURIComponent(id));
+  $('#view').innerHTML=`<button class="btn" onclick="go('index')">← index</button>
+    <h1 style="margin-top:14px">${esc(m.name)}</h1>
+    <p class="sub">${esc(m.summary)} <br><span style="font:11px var(--mono);color:var(--faint)">${esc(m.file)} · ${(m.tags||[]).map(esc).join(', ')}${m.pointers&&m.pointers.length?' · → '+m.pointers.map(esc).join(', '):''}</span></p>
+    <div class="evidence"><div class="ev-body"><pre>${esc(m.content)}</pre></div></div>`;
+}
+
+/* ---------- Save ---------- */
+function vSave(){
+  $('#view').innerHTML=`<h1>Save a memory</h1><p class="sub">Writes the file and its index line in one step — the catalogue can't drift.</p>
+    <div class="form">
+      <label>Name</label><input id="s-name" placeholder="Gate doctrine">
+      <label>One-line summary (this is what retrieval scores)</label><input id="s-sum" placeholder="Every tool action is gated auto/log/verify/approve.">
+      <label>Tags (comma separated)</label><input id="s-tags" placeholder="gates, approval, trust">
+      <label>Pointers — related memory ids (comma separated)</label><input id="s-ptr" placeholder="trust-curve">
+      <label>Content (markdown; use ## headings so retrieval can pull one section)</label><textarea id="s-body" placeholder="# Gate doctrine&#10;..."></textarea>
+      <div><button class="btn pri" id="s-go">Save memory</button> <span id="s-msg" style="color:var(--dim);font-size:12px"></span></div>
+    </div>`;
+  $('#s-go').onclick=async()=>{
+    const name=$('#s-name').value.trim(); if(!name){$('#s-msg').textContent='name required';return;}
+    const body={name,summary:$('#s-sum').value.trim(),tags:$('#s-tags').value.split(',').map(s=>s.trim()).filter(Boolean),pointers:$('#s-ptr').value.split(',').map(s=>s.trim()).filter(Boolean),content:$('#s-body').value};
+    const r=await(await fetch('/api/save',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)})).json();
+    if(r.ok){INDEX=(await api('/api/index')).entries;$('#ct').textContent=INDEX.length;$('#s-msg').textContent='saved '+r.entry.id+' ✓';['s-name','s-sum','s-tags','s-ptr','s-body'].forEach(i=>$('#'+i).value='');}
+  };
+  $('#s-name').focus();
+}
+
+/* ---------- Fair test ---------- */
+async function vBench(){
+  $('#view').innerHTML=`<h1>Fair test</h1><p class="sub">Brain path vs. loading the whole knowledge base into context. Rerunnable anytime.</p><div class="load" id="b">running the benchmark…</div>`;
+  const r=await api('/api/bench');
+  const cls=r.pass?'good':'bad';
+  $('#b').outerHTML=`<div class="stat">
+      <div><div class="k ${cls}">${r.medianTokenReduction}×</div><div class="l">median fewer tokens vs full store</div></div>
+      <div><div class="k">${r.correct}/${r.total}</div><div class="l">answers correct</div></div>
+      <div><div class="k">${r.medianBrainMs}ms</div><div class="l">median retrieval</div></div>
+      <div><div class="k">~${r.medianBrainTokens}</div><div class="l">median evidence tokens</div></div>
+    </div>
+    <p class="sub">${r.pass?'<b class="ok">PASS</b> — cheaper (≥5×) and every answer correct.':'<b class="no">Not yet</b> — keep optimising until every answer is correct.'} Store: ${r.storeMemories} memories, ~${r.storeTokens} tokens if dumped in.</p>
+    <table><thead><tr><th>Question</th><th>Best memory</th><th class="n">Tokens</th><th class="n">×store</th><th>OK</th></tr></thead><tbody>
+    ${r.rows.map(x=>`<tr><td>${esc(x.question)}</td><td style="font:11.5px var(--mono);color:var(--dim)">${esc(x.chosen||'—')}${x.pointer?' → '+esc(x.pointer):''}</td><td class="n">${x.brainTokens}</td><td class="n">${x.reductionVsStore}×</td><td>${x.correct?'<span class=ok>✓</span>':'<span class=no>✗</span>'}</td></tr>`).join('')}
+    </tbody></table>`;
+}
+boot();
+</script>
+</body>
+</html>

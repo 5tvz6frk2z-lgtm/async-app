@@ -49,9 +49,9 @@ export function runBench(index, scenarios, { dir = index.dir } = {}) {
   return {
     total: rows.length, correct,
     storeTokens, storeMemories: index.all().length,
-    medianBrainTokens: median(rows.map((r) => r.brainTokens)),
-    medianTokenReduction: median(rows.map((r) => r.reductionVsStore)),
-    medianReductionVsFile: median(rows.map((r) => r.reductionVsFile)),
+    medianBrainTokens: Math.round(median(rows.map((r) => r.brainTokens))),
+    medianTokenReduction: +median(rows.map((r) => r.reductionVsStore)).toFixed(1),
+    medianReductionVsFile: +median(rows.map((r) => r.reductionVsFile)).toFixed(1),
     medianBrainMs: +median(rows.map((r) => r.brainMs)).toFixed(3),
     naiveMs, rows,
     pass: correct === rows.length && median(rows.map((r) => r.reductionVsStore)) >= 5,
