@@ -1,7 +1,7 @@
 ---
 name: Per-client profile + BYOK (v0.3)
-summary: **12. Per-client profile + BYOK (v0.3).** carries brand, voice, industry, website, audience — injected into every infer step's system prompt. This is the "confi
-tags: adr, profile, byok, client, v0.3, cost
+summary: 12. Per-client profile + BYOK (v0.3). · byok.enabled BYOK profile.json 12 3 decoupl website audience
+tags: profile, byok, client, v0.3, cost, brand
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

@@ -5,11 +5,11 @@
 // Run `brain scan <dir>` to preview, `--commit` to write.
 import fs from 'node:fs';
 import path from 'node:path';
-import { tokenize } from './tokenize.js';
+import { tokenize, matches } from './tokenize.js';
 import { splitSections } from './sections.js';
 import { slug } from './store.js';
 
-const SKIP = new Set(['node_modules', '.git', 'memories', 'test', 'data', '.tmp', 'coverage']);
+const SKIP = new Set(['node_modules', '.git', 'memories', 'test', 'data', '.tmp', 'coverage', 'brain']);
 
 function walk(dir) {
   const out = [];
@@ -22,20 +22,41 @@ function walk(dir) {
   return out;
 }
 
-// A descriptive summary: the first PROSE sentence — skip headings, table rows,
-// list bullets, and mostly-markup lines, so the one-line index carries real
-// query vocabulary instead of "| Stage | Price |".
-function descriptiveSummary(body) {
+// Distinctive body terms the prose sentence may miss but a query will use:
+// numbers, ALL-CAPS callsigns, dotted tool identifiers, backtick-quoted tokens,
+// and the rarest content words (high corpus IDF — e.g. "embeddings", "retainer").
+function distinctiveTail(body, idf) {
+  const found = new Set();
+  for (const m of body.matchAll(/`([^`]+)`/g)) if (/^[a-z][\w./-]{1,24}$/i.test(m[1])) found.add(m[1]);
+  for (const m of body.matchAll(/\b[A-Z]{3,}\b/g)) found.add(m[0]);            // ATHENA, MCP, PHI
+  for (const m of body.matchAll(/\b[a-z]+\.[a-z][a-z.]+\b/g)) found.add(m[0]); // crm.merge
+  for (const m of body.matchAll(/\b\d+%?\b/g)) if (m[0].length <= 5) found.add(m[0]);
+  const literal = [...found].slice(0, 8);
+  // rarest content words by IDF (distinctive concepts a title/summary can miss)
+  const rare = idf ? [...new Set(tokenize(body))].filter((t) => t.length >= 5).map((t) => [t, idf(t)]).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([t]) => t) : [];
+  return [...new Set([...literal, ...rare])].slice(0, 12).join(' ');
+}
+
+// A descriptive summary: the first PROSE sentence, KEEPING backtick contents
+// (our distinctive identifiers live there) and flattening a table row into its
+// cell values — so the one-line index carries the query vocabulary, not markup.
+// A distinctive-terms tail is appended so body-only answer terms are reachable.
+function descriptiveSummary(body, idf) {
+  let lead = '';
   for (const line of body.split('\n')) {
     const l = line.trim();
-    if (!l || l.startsWith('#') || l.startsWith('|') || l.startsWith('-') || l.startsWith('*') || l.startsWith('>') || l.startsWith('_source')) continue;
-    const clean = l.replace(/`[^`]*`/g, '').replace(/\*\*|\*|\[|\]|\(#[^)]*\)/g, '').replace(/\s+/g, ' ').trim();
-    if (clean.length < 25) continue;
-    const m = /^(.{25,180}?[.!?])(\s|$)/.exec(clean);
-    return (m ? m[1] : clean.slice(0, 170)).trim();
+    if (!l || l.startsWith('#') || l.startsWith('>') || l.startsWith('_source')) continue;
+    let clean;
+    if (l.startsWith('|')) clean = l.replace(/\|/g, ' ').replace(/^[\s-]+|[\s-]+$/g, '').replace(/\s+/g, ' ').trim(); // table row → cell values
+    else clean = l.replace(/`/g, '').replace(/\*\*|\*|^[-*]\s+|\[|\]|\(#[^)]*\)/g, '').replace(/\s+/g, ' ').trim();
+    if (clean.length < 20 || /^[-|\s]+$/.test(clean)) continue;
+    const m = /^(.{20,170}?[.!?])(\s|$)/.exec(clean);
+    lead = (m ? m[1] : clean.slice(0, 170)).trim();
+    break;
   }
-  const flat = body.replace(/^#+.*$/gm, '').replace(/`[^`]*`/g, '').replace(/\s+/g, ' ').trim();
-  return flat.slice(0, 160).trim();
+  if (!lead) lead = body.replace(/^#+.*$/gm, '').replace(/`/g, '').replace(/\s+/g, ' ').trim().slice(0, 150);
+  const tail = distinctiveTail(body, idf);
+  return (tail ? `${lead} · ${tail}` : lead).slice(0, 300);
 }
 
 // Filler words that survive stopword-stripping and pollute frequency-based tags.
@@ -109,17 +130,37 @@ export function scanWorkspace(dir, { root = dir } = {}) {
     let id = slug(it.multi ? `${it.base}-${it.c.name}` : it.base);
     while (used.has(id)) id = `${id}-${used.size}`;
     used.add(id);
-    const nameSlugTerms = it.base.toLowerCase().replace(/[^a-z0-9]+/g, '-');
     proposals.push({
       id,
       name: it.c.name === '(intro)' ? it.base : it.c.name,
-      summary: descriptiveSummary(it.c.body),
-      // name terms weighted higher (repeated) so the memory's own title concepts rank as tags
-      tags: [...new Set([nameSlugTerms, ...topTerms(`${it.c.name} ${it.c.name} ${it.c.body}`, 5, idf)])].slice(0, 6),
+      summary: descriptiveSummary(it.c.body, idf),
+      // tags from the memory's own title + body terms (the filename base was
+      // noise — identical across dozens of memories). Title terms weighted.
+      tags: topTerms(`${it.c.name} ${it.c.name} ${it.c.body}`, 6, idf),
       content: `# ${it.c.name === '(intro)' ? it.base : it.c.name}\n\n${it.c.body.trim()}\n\n_source: ${it.rel}_`,
       pointers: [],
       updated: '2026-07-08T00:00:00.000Z',
     });
   }
+  derivePointers(proposals);
   return proposals;
+}
+
+// Auto-derive pointers so the "follow one pointer" retrieval stage is live: link
+// a memory to any OTHER memory whose full (≥2 significant terms) title appears in
+// this memory's body. Deterministic, and a wrong link is harmless — the follower
+// re-scores candidates and simply won't follow a pointer that doesn't fit the query.
+function derivePointers(proposals) {
+  const named = proposals.map((p) => ({ p, terms: [...new Set(tokenize(p.name))].filter((t) => t.length >= 4) }))
+    .filter((x) => x.terms.length >= 2);
+  for (const p of proposals) {
+    const bodyTokens = [...new Set(tokenize(p.content))];
+    const has = (t) => bodyTokens.some((b) => matches(b, t));
+    const hits = [];
+    for (const { p: o, terms } of named) {
+      if (o.id === p.id) continue;
+      if (terms.every(has)) hits.push([o.id, terms.length]);
+    }
+    p.pointers = hits.sort((a, b) => b[1] - a[1]).slice(0, 3).map(([id]) => id);
+  }
 }

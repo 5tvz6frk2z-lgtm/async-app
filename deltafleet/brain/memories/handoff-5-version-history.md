@@ -1,8 +1,8 @@
 ---
 name: 5 · Version history
-summary: Site: v1 handoff → v2 corporate → v3 pantheon+20 posts → v4 WebGL Earth/dossiers → v5 AEO stack → v6 mobile → v7 raymarched ship → v8 marketing-niche + archives → v8.5 Wo
-tags: handoff, corridor, ledger, agent, version, test
-pointers: 
+summary: Site: v1 handoff → v2 corporate → v3 pantheon+20 posts → v4 WebGL Earth/dossiers → v5 AEO stack → v6 mobile → v7 raymarched ship → v8 marketing-niche + archives → v8.5 Wo · platform/FRONTIER-PLAN.md lib/shadow.js bin/shadow.js verify lib/verify.js Coordinator lib/orchestrate.js orchestration v0.4.1 
+tags: corridor, ledger, agent, version, test, frontier
+pointers: adr-agent-skills-reusable-progressively-disclosed-capability, adr-dynamic-model-routing-with-a-safety-floor-v0-11-frontier, adr-squadron-composer-design-corridors-schema-gated-v0-13-fr
 updated: 2026-07-08T00:00:00.000Z
 ---
 # 5 · Version history

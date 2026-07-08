@@ -1,8 +1,8 @@
 ---
 name: DELTA FLEET · deltafleet.ai
-summary: A futuristic, highly interactive single-file site for Delta Fleet — an AI workflow integration studio that installs supervised agent fleets into the tools a business alre
-tags: readme, fleet, delta, zero, platform, only
-pointers: 
+summary: A futuristic, highly interactive single-file site for Delta Fleet — an AI workflow integration studio that installs supervised agent fleets into the tools a business alre · platform/ platform/README.md PIVOT-PLAN.md HANDOFF.md CRM AEO README PIVOT futuristic highly interactive external
+tags: fleet, delta, zero, platform, only, deltafleet.ai
+pointers: pivot-plan-delta-fleet-v9-the-integration-pivot, llms-delta-fleet
 updated: 2026-07-08T00:00:00.000Z
 ---
 # DELTA FLEET · deltafleet.ai

@@ -79,13 +79,16 @@ export function bestSection(md, qterms, index) {
 
 function readMemory(dir, file) {
   const full = path.isAbsolute(file) ? file : path.join(dir, file);
-  return fs.readFileSync(full, 'utf8');
+  const raw = fs.readFileSync(full, 'utf8');
+  // Strip the frontmatter block — it repeats name/summary/tags, so leaving it in
+  // lets bestSection pick the metadata as the "section" (and pollutes evidence).
+  return raw.replace(/^---\n[\s\S]*?\n---\n?/, '');
 }
 
 /** Full retrieval for a question. Returns candidates (index-only), the chosen
  *  file+section, an optional single followed pointer, the assembled evidence
  *  block, and its estimated token cost + wall time. */
-export function retrieve(index, question, { dir = index.dir, followPointer = true, limit = 8 } = {}) {
+export function retrieve(index, question, { dir = index.dir, followPointer = true, limit = 8, rerankK = 3 } = {}) {
   const t0 = process.hrtime.bigint();
   const { qterms, candidates } = rankCandidates(index, question, { limit });
   const ms = () => Number(process.hrtime.bigint() - t0) / 1e6;
@@ -94,11 +97,25 @@ export function retrieve(index, question, { dir = index.dir, followPointer = tru
     return { question, keywords: qterms, candidates: [], chosen: null, section: null, pointer: null, evidence: '', tokens: 0, filesOpened: 0, ms: +ms().toFixed(3) };
   }
 
-  const top = candidates[0];
-  const entry = index.get(top.id);
-  const md = readMemory(dir, entry.file);
-  const section = bestSection(md, qterms, index);
-  let filesOpened = 1;
+  // Body-aware re-rank. The one-line index picks the shortlist, but when the top
+  // candidates are close the decisive vocabulary is usually in the body, not the
+  // index line — so open the top few and let the best-section score break the
+  // tie. A clear index winner skips this and opens exactly one file (fast path).
+  const clearWinner = candidates.length === 1 || candidates[0].score >= 1.6 * candidates[1].score;
+  const pool = clearWinner ? [candidates[0]] : candidates.slice(0, rerankK);
+  let filesOpened = 0;
+  const scored = pool.map((c) => {
+    const e = index.get(c.id);
+    const text = readMemory(dir, e.file);
+    filesOpened++;
+    const sec = bestSection(text, qterms, index);
+    return { c, entry: e, md: text, sec, combined: c.score + 1.75 * sec.score };
+  }).sort((a, b) => b.combined - a.combined || (a.c.id < b.c.id ? -1 : 1));
+
+  const top = scored[0].c;
+  const entry = scored[0].entry;
+  const md = scored[0].md;
+  const section = scored[0].sec;
 
   // Follow at most ONE pointer: whichever referenced memory best matches the
   // query (explicit entry.pointers ∪ inline [[id]] links in the chosen section).
@@ -128,14 +145,25 @@ export function retrieve(index, question, { dir = index.dir, followPointer = tru
   };
 }
 
+// Keep the evidence a small slice: a very long section is clipped at a sentence
+// boundary near the cap so the model gets the answer, not a whole chapter.
+const CLIP = 1400;
+function clip(text) {
+  const t = String(text || '');
+  if (t.length <= CLIP) return t;
+  const cut = t.slice(0, CLIP);
+  const end = Math.max(cut.lastIndexOf('. '), cut.lastIndexOf('\n'));
+  return (end > CLIP * 0.6 ? cut.slice(0, end + 1) : cut) + ' …';
+}
+
 export function buildEvidence(entry, section, pointer) {
   const parts = [
     `### ${entry.name} — ${section.heading}`,
-    section.text,
+    clip(section.text),
     `[source: ${entry.file}${section.heading !== '(intro)' ? ' › ' + section.heading : ''}]`,
   ];
   if (pointer) {
-    parts.push('', `### ${pointer.name} — ${pointer.heading}  (followed pointer)`, pointer.text, `[source: ${pointer.file}${pointer.heading !== '(intro)' ? ' › ' + pointer.heading : ''}]`);
+    parts.push('', `### ${pointer.name} — ${pointer.heading}  (followed pointer)`, clip(pointer.text), `[source: ${pointer.file}${pointer.heading !== '(intro)' ? ' › ' + pointer.heading : ''}]`);
   }
   return parts.join('\n');
 }

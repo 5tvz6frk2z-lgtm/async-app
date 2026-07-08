@@ -1,8 +1,8 @@
 ---
 name: 5 · Execution plan — step by step
-summary: 1. Freeze positioning one-liner + ICP (owner-led, 10–200 employees, $1M–50M revenue, services/commerce).
-tags: pivot-plan, blueprint, week, recon, ledger, client
-pointers: 
+summary: 1. Freeze positioning one-liner + ICP (owner-led, 10–200 employees, $1M–50M revenue, services/commerce). · ICP SLA ROI AEO CTA MCP VPC MVP freeze liner commerce exclusion
+tags: blueprint, week, recon, ledger, client, phase
+pointers: adr-agentloop-platform-architecture-decision-record, pivot-plan-delta-fleet-v9-the-integration-pivot, readme-delta-fleet-deltafleet-ai
 updated: 2026-07-08T00:00:00.000Z
 ---
 # 5 · Execution plan — step by step

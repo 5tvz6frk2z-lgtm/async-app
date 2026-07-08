@@ -1,8 +1,8 @@
 ---
 name: Poll-path memoization by ledger version (v0.15, scalability)
-summary: **26. Poll-path memoization by ledger version (v0.15, scalability).** With now O(1), the dominant steady-state cost is the console polling ~every 1.5s: each pol
-tags: adr, ledger, poll, state, version, path
-pointers: 
+summary: 26. Poll-path memoization by ledger version (v0.15, scalability). · trustStats verificationStats confidenceStats opsSummary version append GET NUL v0.15 memoization dominant steady
+tags: ledger, poll, state, version, path, memoization
+pointers: handoff-5-version-history
 updated: 2026-07-08T00:00:00.000Z
 ---
 # Poll-path memoization by ledger version (v0.15, scalability)

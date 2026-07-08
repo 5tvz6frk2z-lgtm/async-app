@@ -1,8 +1,8 @@
 ---
 name: 2 · Repo layout
-summary: | Path | What | |---|---| | | The whole site (~486KB, single file, zero deps): 24 routes, 20 posts, WebGL Earth + raymarched ship, Workflow Grader, Daily Brief
-tags: handoff, deltafleet, platform, html, site, file
-pointers: 
+summary: `deltafleet/index.html` The whole site (~486KB, single file, zero deps): 24 routes, 20 posts, WebGL Earth + raymarched ship, Workflow Grader, Daily Brief page, AEO stack. · deltafleet/index.html deltafleet/platform/ deltafleet/tools/ audit-cockpit.html citation-deck.html fleet-ledger.html deltafleet
+tags: deltafleet, platform, html, site, file, audit
+pointers: agents-delta-fleet-agent-field-manual, readme-delta-fleet-deltafleet-ai, llms-delta-fleet
 updated: 2026-07-08T00:00:00.000Z
 ---
 # 2 · Repo layout

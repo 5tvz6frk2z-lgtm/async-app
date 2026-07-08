@@ -1,7 +1,7 @@
 ---
 name: Industry packs: the specialization cascade (v0.4)
-summary: **14. Industry packs: the specialization cascade (v0.4).** Plug-and-play across industries is a four-layer resolution, not per-industry agent forks: **Blueprint
-tags: adr, pack, industry, specialization, v0.4, cascade
+summary: 14. Industry packs: the specialization cascade (v0.4). · packs/ JSON PHI 14 4 resolution higher lower sensitive relationship
+tags: pack, industry, specialization, v0.4, cascade, compliance
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

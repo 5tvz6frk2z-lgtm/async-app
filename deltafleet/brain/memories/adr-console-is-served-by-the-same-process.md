@@ -1,8 +1,8 @@
 ---
 name: Console is served by the same process
-summary: **7. Console is served by the same process.** One HTML file, polls . The five MVP features and nothing else: approvals queue (approve / approve-edited / reject
-tags: adr, serv, kill, process, same, console
-pointers: 
+summary: 7. Console is served by the same process. · HTML MVP 7 trace viewer abortcontroller request featur
+tags: serv, kill, process, same, console, approval
+pointers: adr-gates-are-the-platform-not-a-feature
 updated: 2026-07-08T00:00:00.000Z
 ---
 # Console is served by the same process

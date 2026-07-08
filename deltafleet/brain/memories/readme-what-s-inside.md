@@ -1,8 +1,8 @@
 ---
 name: What's inside
-summary: - **20 pages:** Home · Services hub · Custom Agent Fleets · Agentloop · The Swarm · Delta Fleet Marketing · **Answer Engine Optimization** · White-Label Partner
-tags: readme, answer, agent, faqpage, direct, webgl
-pointers: 
+summary: 20 pages: Home · Services hub · Custom Agent Fleets · Agentloop · The Swarm · Delta Fleet Marketing · Answer Engine Optimization · White-Label Partnerships · Industries h · llms.txt aria-live prefers-reduced-motion AEO SVG JSON ODIN ATHENA three.js partnership technology professional
+tags: answer, agent, faqpage, direct, webgl, servic
+pointers: readme-delta-fleet-deltafleet-ai, llms-delta-fleet
 updated: 2026-07-08T00:00:00.000Z
 ---
 # What's inside

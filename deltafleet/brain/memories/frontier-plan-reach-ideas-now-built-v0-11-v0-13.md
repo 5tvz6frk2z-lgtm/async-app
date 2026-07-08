@@ -1,8 +1,8 @@
 ---
 name: Reach ideas — NOW BUILT (v0.11–v0.13)
-summary: - **Dynamic model routing** ✅ — (ADR #22). Deterministic difficulty classifier picks the model tier per step; high-stakes work never routes to the cheap tier (s
-tags: frontier-plan, confidence, built, rout, model, v0.11
-pointers: 
+summary: Dynamic model routing ✅ — lib/routing.js (ADR #22). · lib/routing.js lib/confidence.js lib/composer.js bin/compose.js ADR routing.js confidence.js composer.js dispos classifier oversight language
+tags: confidence, built, rout, model, v0.11, v0.13
+pointers: adr-dynamic-model-routing-with-a-safety-floor-v0-11-frontier, adr-squadron-composer-design-corridors-schema-gated-v0-13-fr, readme-agentloop-platform-v0-1
 updated: 2026-07-08T00:00:00.000Z
 ---
 # Reach ideas — NOW BUILT (v0.11–v0.13)

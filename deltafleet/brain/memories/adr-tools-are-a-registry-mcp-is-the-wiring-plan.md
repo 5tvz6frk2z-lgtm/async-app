@@ -1,7 +1,7 @@
 ---
 name: Tools are a registry; MCP is the wiring plan
-summary: **6. Tools are a registry; MCP is the wiring plan.** holds name → schema → handler. In demo mode handlers are simulated connectors. Production wiring = handlers
-tags: adr, tool, registry, handler, plan, name
+summary: 6. Tools are a registry; MCP is the wiring plan. · ToolRegistry domain.verb MCP API 6 proxy since restrict character
+tags: tool, registry, handler, plan, name, character
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

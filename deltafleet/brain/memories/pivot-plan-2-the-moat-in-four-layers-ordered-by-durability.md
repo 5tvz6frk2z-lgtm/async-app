@@ -1,7 +1,7 @@
 ---
 name: 2 · The moat, in four layers (ordered by durability)
-summary: 1. Blueprint library (IP moat).
-tags: pivot-plan, moat, install, client, data, consultant
+summary: 1. Blueprint library (IP moat). · 1 15 2 3 25 34 4 chain fraction generalist consultant habit
+tags: moat, install, client, data, consultant, durability
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

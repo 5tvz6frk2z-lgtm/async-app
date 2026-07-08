@@ -1,7 +1,7 @@
 ---
 name: Architecture (single file, four zones)
-summary: 1. Head — meta/OG/Twitter tags, Organization JSON-LD, inline SVG favicon, fonts.
-tags: readme, system, four, page, architecture, single
+summary: 1. Head — meta/OG/Twitter tags, Organization JSON-LD, inline SVG favicon, fonts. · JSON SVG CSS CLEANUP 1 2 3 4 twitter inline favicon property
+tags: system, four, page, architecture, single, file
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

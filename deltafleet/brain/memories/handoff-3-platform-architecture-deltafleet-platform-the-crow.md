@@ -1,8 +1,8 @@
 ---
 name: 3 · Platform architecture (deltafleet/platform — the crown jewels)
-summary: One Node process per client.
-tags: handoff, tool, json, pack, proof, client
-pointers: 
+summary: One Node process per client. · PHI JSONL ALL SINGLE SAME MCP HTTP JSON profile.byok corridorhint mutate promis
+tags: tool, json, pack, proof, client, kill
+pointers: adr-append-only-jsonl-ledger-all-state-is-replay, readme-delta-fleet-deltafleet-ai, adr-console-is-served-by-the-same-process
 updated: 2026-07-08T00:00:00.000Z
 ---
 # 3 · Platform architecture (deltafleet/platform — the crown jewels)

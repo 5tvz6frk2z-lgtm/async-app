@@ -1,8 +1,8 @@
 ---
 name: The thesis
-summary: We've built the safe, proven layer: gated tool-use, hybrid pipelines, a trust curve, per-client memory, Delta Proof, a benchmark ledger.
-tags: frontier-plan, themselv, thesi, crew, frontier, memory
-pointers: 
+summary: We've built the safe, proven layer: gated tool-use, hybrid pipelines, a trust curve, per-client memory, Delta Proof, a benchmark ledger. · DNA themselv improve coordinate taken mistak
+tags: themselv, thesi, crew, frontier, memory, human
+pointers: readme-delta-fleet-deltafleet-ai, pivot-plan-5-execution-plan-step-by-step, llms-delta-fleet
 updated: 2026-07-08T00:00:00.000Z
 ---
 # The thesis

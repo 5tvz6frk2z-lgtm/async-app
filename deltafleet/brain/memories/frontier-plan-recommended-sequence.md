@@ -1,7 +1,7 @@
 ---
 name: Recommended sequence
-summary: Fastest path to a demoable frontier story: Bet 2 + Bet 1 together — "here's a corridor graded on 200 scenarios before launch, and here's the fleet catching its own bad ou
-tags: frontier-plan, recommend, sequence, here, demoable, fastest
+summary: 2 → 1 → 3 → 4 → 5. The Shadow Eval Harness (Bet 2) is the measurement substrate everything else is proven on, and it's independently valuable (de-risks installs) — build · 2 1 3 4 5 200 valuable fastest demoable together independently
+tags: recommend, sequence, here, demoable, fastest, pair
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

@@ -1,8 +1,8 @@
 ---
 name: Delta Fleet
-summary: This site is a single-page application with hash routing; all page and article content ships in the initial HTML source (inert <template> elements), so full text is avail
-tags: llms, corridor, brand, fleet, install, delta
-pointers: 
+summary: Positioning: done-for-you AI integration for small and mid-market businesses (10–200 employees), across industries. · CRM AEO DIY PHI API HTML 79 10 small operate decide bring
+tags: corridor, brand, fleet, install, delta, workflow
+pointers: readme-delta-fleet-deltafleet-ai, readme-editing-cheatsheet, llms-corridors-services
 updated: 2026-07-08T00:00:00.000Z
 ---
 # Delta Fleet

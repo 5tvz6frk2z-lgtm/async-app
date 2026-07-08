@@ -1,7 +1,7 @@
 ---
 name: Corridor 1 · Speed-to-Lead (`speed-to-lead`) — event: new lead
-summary: Runs on . Reads the lead and account history ( ·), scores against the client's ICP definition from the profile, writes segment + score + one-line reason to the CRM ( L).
-tags: agents, lead, send, reply, book, first
+summary: # Callsign Job in one line · crm.lead.created crm.read crm.update web.lookup email.draft email.send calendar.read calendar.book mimir someth definition
+tags: lead, send, reply, book, first, draft
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

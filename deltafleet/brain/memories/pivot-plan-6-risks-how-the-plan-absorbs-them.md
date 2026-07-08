@@ -1,8 +1,8 @@
 ---
 name: 6 · Risks & how the plan absorbs them
-summary: | Risk | Mitigation | |---|---| | Platform scope creep ("agency accidentally builds a SaaS") | Console MVP is five features; platform is delivery leverage, not
-tags: pivot-plan, risk, client, objection, absorb, them
-pointers: 
+summary: Platform scope creep ("agency accidentally builds a SaaS") Console MVP is five features; platform is delivery leverage, not the product, until ≥10 clients. · MVP MCP DPA 10 0 20 mitigation creep accidentally swappable objection
+tags: risk, client, objection, absorb, them, runtime
+pointers: adr-gates-are-the-platform-not-a-feature
 updated: 2026-07-08T00:00:00.000Z
 ---
 # 6 · Risks & how the plan absorbs them

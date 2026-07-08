@@ -1,8 +1,8 @@
 ---
 name: Bet 5 · Agent Skills — *reusable, progressively-disclosed capability modules*
-summary: **What:** a = a named capability pack — — that an agent loads **on demand** when a task matches, rather than carrying every instruction all the time. The agent
-tags: frontier-plan, skill, agent, capability, guidance, validator
-pointers: 
+summary: What: a Skill = a named capability pack — {name, description, guidance, examples, validator} — that an agent loads on demand when a task matches, rather than carrying eve · Skill validator brand-voice-email invoice-reconciliation meeting-scheduling review-response-tone exec-summary SkillRegistry dem
+tags: skill, agent, capability, guidance, validator, load
+pointers: frontier-plan-frontier-plan-the-unproven-bets
 updated: 2026-07-08T00:00:00.000Z
 ---
 # Bet 5 · Agent Skills — *reusable, progressively-disclosed capability modules*

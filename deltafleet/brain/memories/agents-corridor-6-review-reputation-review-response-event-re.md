@@ -1,7 +1,7 @@
 ---
 name: Corridor 6 · Review & Reputation (`review-response`) — event: review posted
-summary: Watches all platforms ( ·), classifies sentiment and severity, detects review-bombing patterns (velocity + similarity) and alerts immediately ( L).
-tags: agents, review, response, draft, rate, recovery
+summary: # Callsign Job in one line · reviews.read notify.slack reviews.draft reviews.publish email.draft ARGUS ECHO EIR detect recovery negativ
+tags: review, response, draft, rate, recovery, measur
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

@@ -1,8 +1,8 @@
 ---
 name: Squadron Composer: design corridors, schema-gated (v0.13, FRONTIER-PLAN reach idea)
-summary: **24. Squadron Composer: design corridors, schema-gated (v0.13, FRONTIER-PLAN reach idea).** The meta-level capability: an agent that *designs* a corridor from
-tags: adr, design, blueprint, corridor, composer, schema
-pointers: 
+summary: 24. Squadron Composer: design corridors, schema-gated (v0.13, FRONTIER-PLAN reach idea). · lib/composer.js validateBlueprint maxRepairs approve verify composerCatalog blueprints/ FRONTIER emitt composeblueprint balanc brace
+tags: design, blueprint, corridor, composer, schema, v0.13
+pointers: readme-agentloop-platform-v0-1
 updated: 2026-07-08T00:00:00.000Z
 ---
 # Squadron Composer: design corridors, schema-gated (v0.13, FRONTIER-PLAN reach idea)

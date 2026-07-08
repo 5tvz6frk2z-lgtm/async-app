@@ -1,8 +1,8 @@
 ---
 name: Bounded metric-sample window; ledger snapshotting deliberately deferred (v0.17, scalability)
-summary: **28. Bounded metric-sample window; ledger snapshotting deliberately deferred (v0.17, scalability).** The projection retained every event forever in , even thou
-tags: adr, ledger, sample, bound, window, projection
-pointers: 
+summary: 28. Bounded metric-sample window; ledger snapshotting deliberately deferred (v0.17, scalability). · sample proofFor count ledger.events JSONL RAM NOT ADR v0.17 retain reader latest
+tags: ledger, sample, bound, window, projection, scalability
+pointers: adr-not-built-yet-deliberately
 updated: 2026-07-08T00:00:00.000Z
 ---
 # Bounded metric-sample window; ledger snapshotting deliberately deferred (v0.17, scalability)

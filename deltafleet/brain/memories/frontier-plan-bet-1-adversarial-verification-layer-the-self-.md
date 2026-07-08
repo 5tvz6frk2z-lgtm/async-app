@@ -1,7 +1,7 @@
 ---
 name: Bet 1 · Adversarial Verification Layer — *the self-checking fleet*
-summary: **What:** a new gate tier, , that sits between and . Before a gated action executes, the engine spawns **N independent verifier agents** with fresh context and
-tags: frontier-plan, action, refute, adversarial, self, verification
+summary: What: a new gate tier, verify, that sits between log and approve. · verify log approve Verifier AgentRun gates.js SMB ADR technique weakness rubber stronger
+tags: action, refute, adversarial, self, verification, verifier
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

@@ -1,8 +1,8 @@
 ---
 name: Dynamic model routing, with a safety floor (v0.11, FRONTIER-PLAN reach idea)
-summary: **22. Dynamic model routing, with a safety floor (v0.11, FRONTIER-PLAN reach idea).** A static per-agent model wastes capability on easy work and under-powers h
-tags: adr, rout, model, floor, tier, safety
-pointers: 
+summary: 22. Dynamic model routing, with a safety floor (v0.11, FRONTIER-PLAN reach idea). · lib/routing.js classifyDifficulty infer FRONTIER PLAN TIER DETERMINISTIC routing.js classifydifficulty negotiable refund cheapest
+tags: rout, model, floor, tier, safety, frontier
+pointers: readme-agentloop-platform-v0-1
 updated: 2026-07-08T00:00:00.000Z
 ---
 # Dynamic model routing, with a safety floor (v0.11, FRONTIER-PLAN reach idea)

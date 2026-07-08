@@ -1,8 +1,8 @@
 ---
 name: 4 · The productized offer
-summary: 1. Speed-to-lead — intake → qualification → follow-up → booking (minutes matter, easy baseline)
-tags: pivot-plan, install, corridor, report, monitor, productiz
-pointers: 
+summary: Stage Price Duration Deliverable · ROI MCP CRM AEO 1 500 3 000 duration runbook staff walkthrough
+tags: install, corridor, report, monitor, productiz, access
+pointers: agents-corridor-1-speed-to-lead-speed-to-lead-event-new-lead
 updated: 2026-07-08T00:00:00.000Z
 ---
 # 4 · The productized offer

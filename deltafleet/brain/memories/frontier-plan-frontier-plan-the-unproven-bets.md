@@ -1,8 +1,8 @@
 ---
 name: FRONTIER PLAN — the unproven bets
-summary: > **STATUS UPDATE (July 2026): ALL FIVE BETS BUILT, TESTED, AND WIRED.** Platform v0.6–v0.9, 82 tests green, zero dependencies. Bet 2 Shadow Eval Harness ( + ,
-tags: frontier-plan, shadow, test, plan, agent, unproven
-pointers: 
+summary: Status: proposal · Date: July 2026 · Everything here is buildable and provable in the existing zero-dependency mock harness (the MockAdapter lets us script agent behavior · lib/shadow.js bin/shadow.js lib/verify.js lib/orchestrate.js lib/curator.js lib/skills.js MockAdapter STATUS buildable below bo
+tags: shadow, test, plan, agent, unproven, july
+pointers: adr-not-built-yet-deliberately
 updated: 2026-07-08T00:00:00.000Z
 ---
 # FRONTIER PLAN — the unproven bets

@@ -1,8 +1,8 @@
 ---
 name: 1 · The thesis
-summary: uses — live in 30 days, with approval gates, an audit trail, and measurable before/after proof —
-tags: pivot-plan, business, market, tool, thesi, buyer
-pointers: 
+summary: What we sell: We install supervised AI agent fleets inside the tools a business already · SMB DIY ROI 30 10 200 measurable succe zapier copilot consultancy
+tags: business, market, tool, thesi, buyer, leave
+pointers: llms-corridors-services
 updated: 2026-07-08T00:00:00.000Z
 ---
 # 1 · The thesis

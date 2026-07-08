@@ -1,7 +1,7 @@
 ---
 name: Before going to production
-summary: 1. Replace illustrative statistics with real data (charts are labelled "illustrative").
-tags: readme, going, illustrative, production, real, endpoint
+summary: 1. Replace illustrative statistics with real data (charts are labelled "illustrative"). · POC 1 2 3 4 500 labell initcontact submit endpoint prerender
+tags: going, illustrative, production, real, endpoint, initcontact
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

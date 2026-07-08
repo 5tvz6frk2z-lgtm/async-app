@@ -1,8 +1,8 @@
 ---
 name: Bet 2 · Shadow Eval Harness — *the Shadow Grader; de-risk before real traffic*
-summary: **What:** run a corridor against a set of **scenarios with known-good outcomes** (synthetic now; a client's historical data at install) with *nothing written* t
-tags: frontier-plan, scenario, shadow, corridor, risk, report
-pointers: 
+summary: What: run a corridor against a set of scenarios with known-good outcomes (synthetic now; a client's historical data at install) with nothing written to real systems, then · bin/shadow.js CLI ADR shadow.js scenarios.json 200 1 4 historical ground runscenario synthetic
+tags: scenario, shadow, corridor, risk, report, real
+pointers: handoff-5-version-history
 updated: 2026-07-08T00:00:00.000Z
 ---
 # Bet 2 · Shadow Eval Harness — *the Shadow Grader; de-risk before real traffic*

@@ -118,3 +118,28 @@ test('remove deletes the file and the index line together', () => {
 test('slug is filesystem-safe and stable', () => {
   assert.equal(slug('Delta Proof: baseline vs current!'), 'delta-proof-baseline-vs-current');
 });
+
+test('evidence excludes frontmatter and is clipped to a small slice', () => {
+  const dir = tmpBrain();
+  const idx = new BrainIndex(dir);
+  const big = '# Budgets\n' + 'Runaways die loudly. '.repeat(400); // a long section
+  save(idx, { name: 'Budgets are hard', id: 'budgets', summary: 'maxSteps and maxTokens per run.', tags: ['budget', 'limits'], content: big, now: NOW });
+  const r = retrieve(idx, 'what happens when an agent exceeds its budget?');
+  assert.equal(r.chosen.id, 'budgets');
+  assert.doesNotMatch(r.evidence, /^---|\nsummary:|\ntags:/, 'frontmatter never leaks into evidence');
+  assert.match(r.evidence, /Runaways die loudly/, 'the body answer is present');
+  assert.ok(r.evidence.endsWith('…') || r.tokens < 500, 'a long section is clipped, not dumped whole');
+  fs.rmSync(dir, { recursive: true, force: true });
+});
+
+test('body-aware re-rank: the body breaks a tie the one-line index cannot', () => {
+  const dir = tmpBrain();
+  const idx = new BrainIndex(dir);
+  // Two memories with near-identical index lines; the ANSWER term lives only in
+  // one body. Index scoring alone can't tell them apart; the re-rank must.
+  save(idx, { name: 'Ledger notes A', id: 'led-a', summary: 'The ledger and its runs and actions.', tags: ['ledger', 'runs'], content: '# A\nGeneral notes about the ledger and runs and actions.', now: NOW });
+  save(idx, { name: 'Ledger notes B', id: 'led-b', summary: 'The ledger and its runs and actions.', tags: ['ledger', 'runs'], content: '# B\nOn a crash mid-write the loader will truncate the torn final record.', now: NOW });
+  const r = retrieve(idx, 'how does the ledger truncate a torn record on crash?');
+  assert.equal(r.chosen.id, 'led-b', 'the body containing "truncate" wins despite equal index lines');
+  fs.rmSync(dir, { recursive: true, force: true });
+});

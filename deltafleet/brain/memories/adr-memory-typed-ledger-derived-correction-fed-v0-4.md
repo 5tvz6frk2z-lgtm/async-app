@@ -1,7 +1,7 @@
 ---
 name: Memory: typed, ledger-derived, correction-fed (v0.4)
-summary: **13. Memory: typed, ledger-derived, correction-fed (v0.4).** The learning layer uses the standard taxonomy (rule/preference = procedural, fact = semantic, patt
-tags: adr, correction, memory, ledger, v0.4, deriv
+summary: 13. Memory: typed, ledger-derived, correction-fed (v0.4). · edited rejected SAME 13 4 2026 10 memoryengine.retrieve taxonomy procedural episodic distillate
+tags: correction, memory, ledger, v0.4, deriv, semantic
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

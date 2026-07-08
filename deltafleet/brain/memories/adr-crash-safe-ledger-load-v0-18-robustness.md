@@ -1,8 +1,8 @@
 ---
 name: Crash-safe ledger load (v0.18, robustness)
-summary: **29. Crash-safe ledger load (v0.18, robustness).** The append-only JSONL is the durability contract, but a process killed mid- can leave a torn final line — an
-tags: adr, append, line, crash, record, robustness
-pointers: 
+summary: 29. Crash-safe ledger load (v0.18, robustness). · append JSON.parse JSONL JSON 29 18 json.parse parse eagerly newline otherwise
+tags: append, line, crash, record, robustness, torn
+pointers: readme-production-deployment
 updated: 2026-07-08T00:00:00.000Z
 ---
 # Crash-safe ledger load (v0.18, robustness)

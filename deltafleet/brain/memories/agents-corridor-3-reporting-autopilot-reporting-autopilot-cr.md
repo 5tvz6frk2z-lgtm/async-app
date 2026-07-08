@@ -1,8 +1,8 @@
 ---
 name: Corridor 3 · Reporting Autopilot (`reporting-autopilot`) — cron: Monday 07:00
-summary: Pulls the week from CRM, ad platforms and sheets (all reads ·).
-tags: agents, report, muninn, autopilot, week, read
-pointers: 
+summary: # Callsign Job in one line · sheets.write email.send HUGINN MUNINN BRAGI CRM 9 10 huginn muninn assemble narrative
+tags: report, muninn, autopilot, week, read, huginn
+pointers: adr-one-process-one-client
 updated: 2026-07-08T00:00:00.000Z
 ---
 # Corridor 3 · Reporting Autopilot (`reporting-autopilot`) — cron: Monday 07:00

@@ -1,8 +1,8 @@
 ---
 name: Test coverage
-summary: — 118 cases. Ledger incremental (6): full-replay-vs-incremental equivalence, post-build appends visible, pendingApprovals voids on run end, canonical-filter cross-check,
-tags: adr, validation, confidence, fail, verdict, step
-pointers: 
+summary: npm test — 118 cases. · JSON UNGUARDED MCP SSE memory.stats 118 6 5 reflect extractjson valid shouldescalate
+tags: validation, confidence, fail, verdict, step, gate
+pointers: adr-append-only-jsonl-ledger-all-state-is-replay
 updated: 2026-07-08T00:00:00.000Z
 ---
 # Test coverage

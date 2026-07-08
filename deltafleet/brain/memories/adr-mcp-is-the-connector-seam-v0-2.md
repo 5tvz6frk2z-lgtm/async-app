@@ -1,7 +1,7 @@
 ---
 name: MCP is the connector seam (v0.2)
-summary: **9. MCP is the connector seam (v0.2).** is a minimal zero-dep MCP client over Streamable HTTP: initialize → initialized → tools/list → tools/call, handling bot
-tags: adr, tool, connector, v0.2, seam, server
+summary: 9. MCP is the connector seam (v0.2). · lib/mcp.js mcp-session-id lib/connectors.js connectors.json assertBlueprintsCovered MCP HTTP JSON minimal initialize initializ surprise
+tags: tool, connector, v0.2, seam, server, list
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

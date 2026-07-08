@@ -1,7 +1,7 @@
 ---
 name: Universal memory: version-controlled sources, freshness, no bloat (v0.10)
-summary: **21. Universal memory: version-controlled sources, freshness, no bloat (v0.10).** The scaling contract for the learning layer, made explicit and enforced. The
-tags: adr, sourc, memory, bloat, version, controll
+summary: 21. Universal memory: version-controlled sources, freshness, no bloat (v0.10). · lib/sources.js syncSource version updated ttlDays retireStale retireBelow ADR state.memorystats approver syncsource upsert
+tags: sourc, memory, bloat, version, controll, freshness
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

@@ -1,7 +1,7 @@
 ---
 name: Corridor 5 · Document Intake (`document-intake`) — event: document received
-summary: Reads invoices/POs/applications ( ·) into structured records ( L): parties, line items, totals, dates, each field with a confidence mark.
-tags: agents, document, record, check, themi, exception
+summary: # Callsign Job in one line · docs.read records.write erp.read erp.write notify.slack THOTH THEMIS TYR thoth themi
+tags: document, record, check, themi, exception, intake
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

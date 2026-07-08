@@ -1,7 +1,7 @@
 ---
 name: 3 · Technical strategy — build thin, on standards
-summary: by the ecosystem — mature MCP servers exist for CRMs, email, calendars, Slack, sheets,
-tags: pivot-plan, build, engine, client, connector, proof
+summary: The unlock: build on MCP (Model Context Protocol). · MCP SDK CRM 10 30 protocol integratable ecosystem mature databas
+tags: build, engine, client, connector, proof, console
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

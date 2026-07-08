@@ -1,8 +1,8 @@
 ---
 name: The Curator: self-improving instructions, MEASURED (v0.8, FRONTIER-PLAN Bet 4; depends on Bet 2)
-summary: **19. The Curator: self-improving instructions, MEASURED (v0.8, FRONTIER-PLAN Bet 4; depends on Bet 2).** The memory flywheel already captures every human corre
-tags: adr, instruction, curator, accept, measur, overlay
-pointers: 
+summary: 19. The Curator: self-improving instructions, MEASURED (v0.8, FRONTIER-PLAN Bet 4; depends on Bet 2). · lib/curator.js CURATE_MIN_LIFT contextFor MEASURED FRONTIER PLAN POST curator.js curator.propose instruction.proposed state.instructions naive
+tags: instruction, curator, accept, measur, overlay, reject
+pointers: frontier-plan-bet-4-the-curator-self-improving-agent-instruc, handoff-5-version-history
 updated: 2026-07-08T00:00:00.000Z
 ---
 # The Curator: self-improving instructions, MEASURED (v0.8, FRONTIER-PLAN Bet 4; depends on Bet 2)

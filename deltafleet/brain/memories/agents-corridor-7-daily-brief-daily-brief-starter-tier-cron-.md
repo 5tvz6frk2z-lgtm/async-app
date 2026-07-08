@@ -1,7 +1,7 @@
 ---
 name: Corridor 7 · Daily Brief (`daily-brief`, starter tier) — cron: weekdays 07:00
-summary: The only judgment step in a hybrid pipeline: scripts pull email/calendar (read-only) and compute reply debt, overdue threads and day shape; VOR turns those computed stats
-tags: agents, brief, daily, shape, subscriber, weekday
+summary: 22 · VOR — narrator (Haiku — the whole product costs cents by design) · VOR 22 160 100 6 overdue shape those subscriber handle
+tags: brief, daily, shape, subscriber, weekday, compute
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

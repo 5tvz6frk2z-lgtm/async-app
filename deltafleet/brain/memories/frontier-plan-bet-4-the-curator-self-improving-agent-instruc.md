@@ -1,7 +1,7 @@
 ---
 name: Bet 4 · The Curator — *self-improving agent instructions, measured*
-summary: **What:** periodically synthesize an agent's accumulated correction-memories into a **proposed improvement to its own instructions**, then **A/B the proposal ag
-tags: frontier-plan, instruction, agent, measur, propos, curator
+summary: What: periodically synthesize an agent's accumulated correction-memories into a proposed improvement to its own instructions, then A/B the proposal against the current in · ADR 2 10 6 9 periodically synthesize being experience naively
+tags: instruction, agent, measur, propos, curator, scenario
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

@@ -1,7 +1,7 @@
 ---
 name: Corridor 4 · Content / AEO Engine (`content-aeo-engine`) — queue: gap brief approved
-summary: Turns a Citation Deck gap brief into a research pack: sources ( ·), entities, the exact question set the piece must win, and a drafted Direct Answer block (40–80 words, c
-tags: agents, publish, content, pack, draft, measur
+summary: # Callsign Job in one line · web.lookup docs.write seo.audit cms.stage cms.publish ODIN CALLIOPE APOLLO calliope apollo
+tags: publish, content, pack, draft, measur, answer
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

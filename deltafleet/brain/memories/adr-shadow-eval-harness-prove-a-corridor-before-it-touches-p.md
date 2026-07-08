@@ -1,8 +1,8 @@
 ---
 name: Shadow Eval Harness: prove a corridor before it touches production (v0.6, FRONTIER-PLAN Bet 2)
-summary: **16. Shadow Eval Harness: prove a corridor before it touches production (v0.6, FRONTIER-PLAN Bet 2).** A corridor is graded against — — with known-good outcome
-tags: adr, corridor, ready, real, production, shadow
-pointers: 
+summary: 16. Shadow Eval Harness: prove a corridor before it touches production (v0.6, FRONTIER-PLAN Bet 2). · scenarios log gate.change structuredScorer results.stats.replyDebt readinessReport guarded unguarded results.stats.replydebt throwaway structuredscorer replydebt
+tags: corridor, ready, real, production, shadow, frontier
+pointers: adr-model-access-is-an-adapter
 updated: 2026-07-08T00:00:00.000Z
 ---
 # Shadow Eval Harness: prove a corridor before it touches production (v0.6, FRONTIER-PLAN Bet 2)

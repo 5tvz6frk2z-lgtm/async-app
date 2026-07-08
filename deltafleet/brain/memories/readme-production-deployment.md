@@ -1,7 +1,7 @@
 ---
 name: Production deployment
-summary: ANTHROPIC_API_KEY=… FLEET_HOOK_SECRET=… \
-tags: readme, blueprint, fleet, secret, hook, connector
+summary: ANTHROPIC_API_KEY=… FLEET_HOOK_SECRET=… \ · MCP POST server.js connectors.json ledger.jsonl crm.read email.send 4 header simulation loudly
+tags: blueprint, fleet, secret, hook, connector, trigger
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

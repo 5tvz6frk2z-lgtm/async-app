@@ -1,8 +1,8 @@
 ---
 name: Adversarial Verification Layer: the self-checking fleet (v0.6, FRONTIER-PLAN Bet 1)
-summary: **17. Adversarial Verification Layer: the self-checking fleet (v0.6, FRONTIER-PLAN Bet 1).** A fourth gate tier, , sits between and (). Before a verify-gated ac
-tags: adr, verifier, verify, fleet, held, adversarial
-pointers: 
+summary: 17. Adversarial Verification Layer: the self-checking fleet (v0.6, FRONTIER-PLAN Bet 1). · verify log approve runVerification lib/verify.js Verifier caught FRONTIER verification.start gateengine.verificationstats fourth runverification
+tags: verifier, verify, fleet, held, adversarial, check
+pointers: frontier-plan-bet-1-adversarial-verification-layer-the-self-, pivot-plan-5-execution-plan-step-by-step
 updated: 2026-07-08T00:00:00.000Z
 ---
 # Adversarial Verification Layer: the self-checking fleet (v0.6, FRONTIER-PLAN Bet 1)

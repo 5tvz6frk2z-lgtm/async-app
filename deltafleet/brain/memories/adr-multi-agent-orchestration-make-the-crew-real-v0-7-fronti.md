@@ -1,8 +1,8 @@
 ---
 name: Multi-Agent Orchestration: make the crew real (v0.7, FRONTIER-PLAN Bet 3)
-summary: **18. Multi-Agent Orchestration: make the crew real (v0.7, FRONTIER-PLAN Bet 3).** The runtime runs one agent per run; a blueprint's "crew" was descriptive. A (
-tags: adr, agent, crew, judge, orchestration, child
-pointers: 
+summary: 18. Multi-Agent Orchestration: make the crew real (v0.7, FRONTIER-PLAN Bet 3). · Coordinator lib/orchestrate.js orchestration Promise.all AgentRun thread output threads promise.all agentrun.run declar clock
+tags: agent, crew, judge, orchestration, child, parent
+pointers: frontier-plan-bet-3-multi-agent-orchestration-make-the-crew-, pivot-plan-5-execution-plan-step-by-step
 updated: 2026-07-08T00:00:00.000Z
 ---
 # Multi-Agent Orchestration: make the crew real (v0.7, FRONTIER-PLAN Bet 3)

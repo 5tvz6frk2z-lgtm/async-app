@@ -1,7 +1,7 @@
 ---
 name: 4 · Site (index.html) essentials
-summary: Same conventions as ever: hash router (/ maps + init dispatch in ), inert pages, teardowns, archive-don't-delete, zero deps, anchored-Python-patch workflow.
-tags: handoff, html, essential, swiftshader, font, headless
+summary: Same conventions as ever: hash router (ROUTES/TITLES maps + init dispatch in render()), inert <template> pages, CLEANUP teardowns, archive-don't-delete, zero deps, anchor · ROUTES TITLES CLEANUP REAL SAME URL 12 00 convention dispatch archive anchor
+tags: html, essential, swiftshader, font, headless, artifact
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

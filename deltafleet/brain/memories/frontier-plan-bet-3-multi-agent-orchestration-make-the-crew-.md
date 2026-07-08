@@ -1,8 +1,8 @@
 ---
 name: Bet 3 · Multi-Agent Orchestration — *make the crew real*
-summary: **What:** a that executes a blueprint's agents as an actual graph, not a single run. Four composable primitives: **sequential handoff** (have it, formalize), **
-tags: frontier-plan, agent, judge, multi, coordinator, parallel
-pointers: 
+summary: What: a Coordinator that executes a blueprint's agents as an actual graph, not a single run. · Coordinator orchestration ADR 3 10 formalize collect debate compet coordination
+tags: agent, judge, multi, coordinator, parallel, orchestration
+pointers: pivot-plan-5-execution-plan-step-by-step
 updated: 2026-07-08T00:00:00.000Z
 ---
 # Bet 3 · Multi-Agent Orchestration — *make the crew real*

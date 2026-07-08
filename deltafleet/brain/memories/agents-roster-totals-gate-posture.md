@@ -1,7 +1,7 @@
 ---
 name: Roster totals & gate posture
-summary: 22 agents · 7 corridors. Permanently human-gated regardless of trust curve: (ATHENA), negative-review responses (EIR).
-tags: agents, posture, roster, saga, total, publish
+summary: 22 agents · 7 corridors. · crm.merge erp.write cms.publish email.send calendar.book reviews.publish log approve probation define whether condition
+tags: posture, roster, saga, total, publish, write
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

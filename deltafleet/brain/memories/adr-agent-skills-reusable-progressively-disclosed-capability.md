@@ -1,8 +1,8 @@
 ---
 name: Agent Skills: reusable, progressively-disclosed capability modules (v0.9, FRONTIER-PLAN Bet 5)
-summary: **20. Agent Skills: reusable, progressively-disclosed capability modules (v0.9, FRONTIER-PLAN Bet 5).** A () is a named capability pack — . It is the **reuse la
-tags: adr, skill, capability, match, agent, guidance
-pointers: 
+summary: 20. Agent Skills: reusable, progressively-disclosed capability modules (v0.9, FRONTIER-PLAN Bet 5). · Skill lib/skills.js triggers brand-voice-email invoice-reconciliation meeting-scheduling review-response-tone exec-summary skillregistry.descriptions alike keyword teeth
+tags: skill, capability, match, agent, guidance, v0.9
+pointers: frontier-plan-bet-5-agent-skills-reusable-progressively-disc, pivot-plan-5-execution-plan-step-by-step
 updated: 2026-07-08T00:00:00.000Z
 ---
 # Agent Skills: reusable, progressively-disclosed capability modules (v0.9, FRONTIER-PLAN Bet 5)

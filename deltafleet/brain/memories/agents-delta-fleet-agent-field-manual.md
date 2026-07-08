@@ -1,8 +1,8 @@
 ---
 name: Delta Fleet — Agent Field Manual
-summary: The operational spec for every agent we deploy.
-tags: agents, agent, human, ledger, field, verdict
-pointers: 
+summary: The operational spec for every agent we deploy. · approve model 20 5 22 operational readable personality quiet opinion
+tags: agent, human, ledger, field, verdict, number
+pointers: readme-delta-fleet-deltafleet-ai, llms-delta-fleet, readme-production-deployment
 updated: 2026-07-08T00:00:00.000Z
 ---
 # Delta Fleet — Agent Field Manual

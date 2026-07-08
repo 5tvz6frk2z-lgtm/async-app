@@ -1,8 +1,8 @@
 ---
 name: Pillar guides (The Flight Log — answer-first, FAQ + BlogPosting schema)
-summary: - How to integrate AI into your business workflows (the practical, gated playbook): https://deltafleet.ai/#/blog/how-to-integrate-ai-into-business-workflows - A
-tags: llms, blog, deltafleet.ai, deltafleet, http, automation
-pointers: 
+summary: How to integrate AI into your business workflows (the practical, gated playbook): https://deltafleet.ai/#/blog/how-to-integrate-ai-into-business-workflows · ROI deltafleet.ai 2026 practical payable automation narrate automate
+tags: blog, deltafleet.ai, deltafleet, http, automation, answer
+pointers: readme-delta-fleet-deltafleet-ai, llms-delta-fleet
 updated: 2026-07-08T00:00:00.000Z
 ---
 # Pillar guides (The Flight Log — answer-first, FAQ + BlogPosting schema)

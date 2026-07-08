@@ -1,8 +1,8 @@
 ---
 name: Agentloop Platform (v0.1)
-summary: The real thing behind the Delta Fleet pitch: per-client agent runtime + gate engine + append-only run ledger + the client console.
-tags: readme, agent, json, client, blueprint, report
-pointers: 
+summary: The real thing behind the Delta Fleet pitch: per-client agent runtime + gate engine + append-only run ledger + the client console. · HERMOD BRAGI TYR ECHO JSONL MCP HTTP JSON brief.example.json blueprint.js benchmark.js demo.js
+tags: agent, json, client, blueprint, report, console
+pointers: adr-confidence-calibration-off-the-run-hot-path-v0-16-scalab, readme-delta-fleet-deltafleet-ai, adr-zero-runtime-dependencies
 updated: 2026-07-08T00:00:00.000Z
 ---
 # Agentloop Platform (v0.1)

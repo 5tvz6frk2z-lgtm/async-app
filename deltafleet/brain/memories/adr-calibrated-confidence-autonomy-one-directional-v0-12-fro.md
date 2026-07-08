@@ -1,8 +1,8 @@
 ---
 name: Calibrated-confidence autonomy — one-directional (v0.12, FRONTIER-PLAN reach idea)
-summary: **23. Calibrated-confidence autonomy — one-directional (v0.12, FRONTIER-PLAN reach idea).** An agent may attach a self-reported (0–1) to a gated action ( or an
-tags: adr, confidence, calibrat, autonomy, agent, directional
-pointers: 
+summary: 23. Calibrated-confidence autonomy — one-directional (v0.12, FRONTIER-PLAN reach idea). · confidence call.confidence input._confidence lib/confidence.js auto log approve calibrate gateengine.confidencestats state.confidence directional attach
+tags: confidence, calibrat, autonomy, agent, directional, v0.12
+pointers: frontier-plan-reach-ideas-now-built-v0-11-v0-13, readme-agentloop-platform-v0-1
 updated: 2026-07-08T00:00:00.000Z
 ---
 # Calibrated-confidence autonomy — one-directional (v0.12, FRONTIER-PLAN reach idea)

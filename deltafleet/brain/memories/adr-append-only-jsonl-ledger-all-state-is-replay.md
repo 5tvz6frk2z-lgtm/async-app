@@ -1,7 +1,7 @@
 ---
 name: Append-only JSONL ledger; all state is replay
-summary: **3. Append-only JSONL ledger; all state is replay.** Events are never mutated. Runs, actions, approvals, metrics and gate overrides are derived by replaying th
-tags: adr, replay, state, ledger, jsonl, append
+summary: 3. Append-only JSONL ledger; all state is replay. · JSONL SMB 3 reconstruct moment negligible snapshott mutat
+tags: replay, state, ledger, jsonl, append, only
 pointers: 
 updated: 2026-07-08T00:00:00.000Z
 ---

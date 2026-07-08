@@ -1,8 +1,8 @@
 ---
 name: 1 · What this business is now (it evolved — follow the arc)
-summary: **Delta Fleet (deltafleet.ai)** started as an AI *marketing* agency site (v1–v8), then pivoted (see ) into an **AI workflow integration studio**: we install sup
-tags: handoff, client, pivot, fleet, memory, agent
-pointers: 
+summary: Delta Fleet (deltafleet.ai) started as an AI marketing agency site (v1–v8), then pivoted (see PIVOT-PLAN.md) into an AI workflow integration studio: we install supervised · PIVOT-PLAN.md PIVOT PLAN BYOK JSON CRM deltafleet.ai 99 affordability carte bottom marketplace
+tags: client, pivot, fleet, memory, agent, evolv
+pointers: pivot-plan-delta-fleet-v9-the-integration-pivot, readme-delta-fleet-deltafleet-ai, llms-delta-fleet
 updated: 2026-07-08T00:00:00.000Z
 ---
 # 1 · What this business is now (it evolved — follow the arc)

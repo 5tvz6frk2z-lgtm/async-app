@@ -1,8 +1,8 @@
 ---
 name: Corridor 2 · Inbox & CRM Hygiene (`inbox-crm-hygiene`) — event: message received
-summary: First eyes on everything. Classifies (lead / client / vendor / spam / urgent), applies labels ( ·).
-tags: agents, label, urgent, inbox, deal, message
-pointers: 
+summary: # Callsign Job in one line · email.label crm.update crm.merge notify.slack HEIMDALL MNEMOSYNE ATHENA CRM heimdall inbound mnemosyne truthful
+tags: label, urgent, inbox, deal, message, hygiene
+pointers: agents-corridor-1-speed-to-lead-speed-to-lead-event-new-lead
 updated: 2026-07-08T00:00:00.000Z
 ---
 # Corridor 2 · Inbox & CRM Hygiene (`inbox-crm-hygiene`) — event: message received
