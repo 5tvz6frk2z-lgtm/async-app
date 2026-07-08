@@ -22,7 +22,7 @@ import { PipelineRun } from './lib/pipeline.js';
 import { Verifier } from './lib/verify.js';
 import { Coordinator } from './lib/orchestrate.js';
 import { demoScriptRegistry, assertScriptsCovered } from './lib/scripts.js';
-import { demoToolRegistry, seedBaselines, launchScenario, SCENARIOS } from './lib/demo.js';
+import { demoToolRegistry, seedBaselines, demoScript, SCENARIOS } from './lib/demo.js';
 import { buildMcpRegistry, assertBlueprintsCovered } from './lib/connectors.js';
 import { TriggerEngine, makeHookHandler } from './lib/triggers.js';
 import { MemoryEngine } from './lib/memory.js';
@@ -123,8 +123,8 @@ function adapterFor(blueprintId, agentName) {
       : 'live mode needs ANTHROPIC_API_KEY (or run with --demo)');
     return new AnthropicAdapter({ apiKey: key });
   }
-  const sc = SCENARIOS[blueprintId];
-  if (sc && sc.agent === agentName) return new MockAdapter(structuredClone(sc.script));
+  const script = demoScript(blueprintId, agentName);
+  if (script) return new MockAdapter(script);
   return new MockAdapter([{ text: `(${agentName}) trigger received and acknowledged — no scripted scenario for this agent in demo mode.` }]);
 }
 
@@ -331,17 +331,10 @@ const server = http.createServer(async (req, res) => {
       if (!DEMO) return json(res, 403, { ok: false, error: 'simulation only available with --demo' });
       const b = await readBody(req);
       const names = b.scenario ? [b.scenario] : Object.keys(SCENARIOS);
-      const launched = [];
-      for (const scenario of names) {
-        if (blueprints.get(scenario)?.pipeline) {
-          launched.push(launchRun(scenario, SCENARIOS[scenario]?.trigger || { demo: true }));
-          continue;
-        }
-        const { run, finished } = launchScenario({ ledger, gates, blueprints, tools, scenario });
-        activeRuns.set(run.id, run);
-        finished.finally(() => activeRuns.delete(run.id));
-        launched.push(run.id);
-      }
+      // Every corridor launches through the one entry point: pipelines run the
+      // hybrid executor, crews run the Coordinator (full multi-agent handoff),
+      // plain agents run the loop. All scripted per-agent by adapterFor.
+      const launched = names.map((scenario) => launchRun(scenario, SCENARIOS[scenario]?.trigger || { demo: true }));
       return json(res, 200, { ok: true, launched });
     }
     json(res, 404, { ok: false, error: 'not found' });

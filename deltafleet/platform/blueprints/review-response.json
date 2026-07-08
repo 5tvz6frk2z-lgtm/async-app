@@ -2,11 +2,42 @@
   "blueprint": "review-response",
   "title": "Review & Reputation Response",
   "summary": "Every review answered fast and in-voice; negative reviews escalated with a recovery play, never auto-answered.",
-  "trigger": { "type": "event", "source": "review.posted", "description": "New review appears on a monitored platform." },
+  "trigger": {
+    "type": "event",
+    "source": "review.posted",
+    "description": "New review appears on a monitored platform."
+  },
   "agents": [
-    { "name": "monitor", "callsign": "ARGUS", "role": "Watches review platforms; classifies sentiment and severity; detects review-bombing patterns.", "model": "claude-haiku-4-5", "tools": ["reviews.read", "notify.slack"] },
-    { "name": "responder", "callsign": "ECHO", "role": "Drafts platform-appropriate responses in the client's voice; positive reviews thanked specifically, not generically.", "tools": ["reviews.read", "reviews.draft", "reviews.publish"] },
-    { "name": "recovery", "callsign": "EIR", "role": "For negative reviews: drafts the private recovery outreach and the public holding response; always escalates to the account owner.", "tools": ["reviews.read", "email.draft", "notify.slack"] }
+    {
+      "name": "monitor",
+      "callsign": "ARGUS",
+      "role": "Watches review platforms; classifies sentiment and severity; detects review-bombing patterns.",
+      "model": "claude-haiku-4-5",
+      "tools": [
+        "reviews.read",
+        "notify.slack"
+      ]
+    },
+    {
+      "name": "responder",
+      "callsign": "ECHO",
+      "role": "Drafts platform-appropriate responses in the client's voice; positive reviews thanked specifically, not generically.",
+      "tools": [
+        "reviews.read",
+        "reviews.draft",
+        "reviews.publish"
+      ]
+    },
+    {
+      "name": "recovery",
+      "callsign": "EIR",
+      "role": "For negative reviews: drafts the private recovery outreach and the public holding response; always escalates to the account owner.",
+      "tools": [
+        "reviews.read",
+        "email.draft",
+        "notify.slack"
+      ]
+    }
   ],
   "gates": {
     "*": "log",
@@ -16,14 +47,45 @@
     "email.draft": "log",
     "notify.slack": "log"
   },
-  "connectors": ["gbp-mcp", "yelp-mcp", "gmail-mcp", "slack-mcp"],
+  "connectors": [
+    "gbp-mcp",
+    "yelp-mcp",
+    "gmail-mcp",
+    "slack-mcp"
+  ],
   "metrics": {
     "baseline": [
-      { "key": "response_rate_pct", "label": "Review response rate", "unit": "%", "direction": "up" },
-      { "key": "response_time_h", "label": "Median response time", "unit": "h", "direction": "down" },
-      { "key": "avg_rating", "label": "Average rating", "unit": "stars", "direction": "up" }
+      {
+        "key": "response_rate_pct",
+        "label": "Review response rate",
+        "unit": "%",
+        "direction": "up"
+      },
+      {
+        "key": "response_time_h",
+        "label": "Median response time",
+        "unit": "h",
+        "direction": "down"
+      },
+      {
+        "key": "avg_rating",
+        "label": "Average rating",
+        "unit": "stars",
+        "direction": "up"
+      }
     ],
-    "targets": { "response_rate_pct": "100", "response_time_h": "< 4" }
+    "targets": {
+      "response_rate_pct": "100",
+      "response_time_h": "< 4"
+    }
   },
-  "rollback": "Disable the review.posted trigger; drafted-but-unpublished responses remain in the approval queue. Published responses stand."
+  "rollback": "Disable the review.posted trigger; drafted-but-unpublished responses remain in the approval queue. Published responses stand.",
+  "orchestration": {
+    "type": "sequential",
+    "agents": [
+      "monitor",
+      "responder",
+      "recovery"
+    ]
+  }
 }

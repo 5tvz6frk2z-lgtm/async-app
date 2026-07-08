@@ -3,7 +3,7 @@
 // is a stub that returns SIMULATED data; the runtime, gates and ledger paths
 // are the real ones. This is also what Install #0 dry-runs look like before
 // real MCP connectors are wired in.
-import { ToolRegistry, AgentRun, MockAdapter } from './runtime.js';
+import { ToolRegistry } from './runtime.js';
 
 export function demoToolRegistry() {
   const reg = new ToolRegistry();
@@ -40,55 +40,145 @@ export function demoToolRegistry() {
   return reg;
 }
 
-// Scenario scripts: what the MockAdapter has each agent "decide" per step.
+// Scenario scripts. Each corridor runs its FULL crew as a sequential handoff
+// (the blueprint's `orchestration` block) — every agent gets a scripted turn, so
+// the demo shows the whole fleet working, not just the entry agent. Shape:
+//   SCENARIOS[corridor] = { trigger, crew: { agentName: [ {text, toolCalls?} ] } }
+const done = (t) => ({ text: t });
 export const SCENARIOS = {
   'speed-to-lead': {
-    agent: 'first-responder',
     trigger: { lead: 'Dana Reyes', company: 'Ironvale Manufacturing', source: 'workflow-grader' },
-    script: [
-      { text: 'New lead from the Workflow Grader. Pulling CRM context.', toolCalls: [{ tool: 'crm.read', input: { leadId: 'L-2214' } }] },
-      { text: 'ICP fit is strong (industrial, 140 seats). Drafting first touch referencing their grader results.', toolCalls: [{ tool: 'email.draft', input: { to: 'dana@ironvale.example', subject: 'Your workflow readiness results — two corridors stand out' } }] },
-      { text: 'Draft ready. Requesting send approval.', toolCalls: [{ tool: 'email.send', input: { to: 'dana@ironvale.example', draftId: 'd_1', body: 'Hi Dana — your intake and reporting corridors scored highest for automation readiness. Two specific numbers stood out…' } }] },
-      { text: 'First touch sent 3m 41s after form submit. Logging to CRM.', toolCalls: [{ tool: 'crm.update', input: { leadId: 'L-2214', status: 'contacted', note: 'First touch sent; grader results referenced.' } }] },
-      { text: 'Lead contacted and logged. Handing off to SAGA for scheduling on reply.' },
-    ],
-  },
-  'reporting-autopilot': {
-    agent: 'narrator',
-    trigger: { schedule: 'Monday 07:00', client: 'Meridian SaaS' },
-    script: [
-      { text: 'Weekly report run. Pulling final numbers.', toolCalls: [{ tool: 'sheets.read', input: { sheet: 'weekly-rollup' } }] },
-      { text: 'CPL improved 11% WoW; demo no-shows doubled — flagging as the exception this week. Drafting narrative.', toolCalls: [{ tool: 'email.draft', input: { subject: 'Week 27: CPL down 11%, no-shows need a play' } }] },
-      { text: 'Report drafted. Requesting send approval to client distribution list.', toolCalls: [{ tool: 'email.send', input: { to: 'exec@meridian.example', body: 'Headline: CPL down 11% WoW on the new AEO pages. Exception: demo no-shows 2×…' } }] },
-      { text: 'Weekly report delivered on schedule.' },
-    ],
+    crew: {
+      qualifier: [
+        { text: 'New lead Dana Reyes. Reading CRM and scoring against the ICP.', toolCalls: [{ tool: 'crm.read', input: { leadId: 'L-2214' } }] },
+        { text: 'ICP fit strong — industrial, 140 seats, VP Ops. Marking qualified.', toolCalls: [{ tool: 'crm.update', input: { leadId: 'L-2214', status: 'qualified', note: 'ICP 8/10' } }] },
+        done('Qualified. Handing to MIMIR for enrichment.'),
+      ],
+      enricher: [
+        { text: 'Pulling firmographics for Ironvale Manufacturing.', toolCalls: [{ tool: 'web.lookup', input: { company: 'Ironvale Manufacturing' } }] },
+        { text: '140 employees, dealer network, recent capex signal. Writing the enrichment note.', toolCalls: [{ tool: 'crm.update', input: { leadId: 'L-2214', note: '140 emp; dealer network; capex signal' } }] },
+        done('Enriched. Handing to HERMOD for the first touch.'),
+      ],
+      'first-responder': [
+        { text: 'Drafting the first touch in Ironvale voice, referencing their grader results.', toolCalls: [{ tool: 'email.draft', input: { to: 'dana@ironvale.example', subject: 'Your workflow readiness — two corridors stand out' } }] },
+        { text: 'Draft ready. Requesting send approval.', toolCalls: [{ tool: 'email.send', input: { to: 'dana@ironvale.example', body: 'Hi Dana — your intake and reporting corridors scored highest for automation readiness…' } }] },
+        done('First touch sent 3m 41s after submit. Handing to SAGA.'),
+      ],
+      scheduler: [
+        { text: 'Reading the calendar for slots to offer on reply.', toolCalls: [{ tool: 'calendar.read', input: {} }] },
+        done('Two slots ready (Tue 10:00, Wed 09:00 ET) — books automatically when Dana replies.'),
+      ],
+    },
   },
   'document-intake': {
-    agent: 'router',
     trigger: { document: 'invoice-1042.pdf', from: 'billing@corvid.example' },
-    script: [
-      { text: 'Invoice received. Reading extracted record.', toolCalls: [{ tool: 'records.read', input: { doc: 'invoice-1042.pdf' } }] },
-      { text: 'PO-7731 matches, totals cross-foot. Posting to accounting.', toolCalls: [{ tool: 'erp.write', input: { po: 'PO-7731', vendor: 'Corvid Studios', total: 12480.5 } }] },
-      { text: 'Posted. Notifying ops channel.', toolCalls: [{ tool: 'notify.slack', input: { channel: '#ap', text: 'Invoice PO-7731 posted, clean match.' } }] },
-      { text: 'Document processed end-to-end; zero exceptions.' },
-    ],
+    crew: {
+      extractor: [
+        { text: 'Reading invoice-1042.pdf; extracting parties, line items and totals.', toolCalls: [{ tool: 'docs.read', input: { doc: 'invoice-1042.pdf' } }] },
+        { text: 'Extracted Corvid Studios / PO-7731 / $12,480.50. Writing the record; handing to THEMIS.', toolCalls: [{ tool: 'records.write', input: { record: 'inv-1042' } }] },
+      ],
+      validator: [
+        { text: 'Cross-checking the record against the ERP.', toolCalls: [{ tool: 'records.read', input: { record: 'inv-1042' } }] },
+        { text: 'PO-7731 exists, vendor matches, totals cross-foot — no exceptions. Handing to TYR.', toolCalls: [{ tool: 'erp.read', input: { po: 'PO-7731' } }] },
+      ],
+      router: [
+        { text: 'Clean match — posting to accounting.', toolCalls: [{ tool: 'erp.write', input: { po: 'PO-7731', total: 12480.5 } }] },
+        { text: 'Posted. Notifying the AP channel.', toolCalls: [{ tool: 'notify.slack', input: { channel: '#ap', text: 'Invoice PO-7731 posted, clean match.' } }] },
+        done('Document processed end-to-end; zero exceptions.'),
+      ],
+    },
+  },
+  'content-aeo-engine': {
+    trigger: { topic: 'AI invoice processing', gap: 'citation-gap-list' },
+    crew: {
+      researcher: [
+        { text: 'Assembling sources and the question set for "AI invoice processing".', toolCalls: [{ tool: 'web.lookup', input: { topic: 'AI invoice processing' } }] },
+        { text: 'Research pack ready: 6 questions, 4 stats, Direct Answer drafted. Handing to CALLIOPE.', toolCalls: [{ tool: 'docs.write', input: { doc: 'research-pack' } }] },
+      ],
+      drafter: [
+        { text: 'Reading the research pack; writing the answer-first draft in the client voice.', toolCalls: [{ tool: 'docs.read', input: { doc: 'research-pack' } }] },
+        { text: 'Draft complete — 900 words, Direct Answer up top. Handing to APOLLO.', toolCalls: [{ tool: 'docs.write', input: { doc: 'draft-v1' } }] },
+      ],
+      optimizer: [
+        { text: 'Applying AEO structure and running the citability checklist.', toolCalls: [{ tool: 'seo.audit', input: { doc: 'draft-v1' } }] },
+        { text: 'Score 86 — added an FAQ block and schema. Handing to HELIOS.', toolCalls: [{ tool: 'docs.write', input: { doc: 'draft-v2' } }] },
+      ],
+      publisher: [
+        { text: 'Staging in the CMS with schema and internal links.', toolCalls: [{ tool: 'cms.stage', input: { doc: 'draft-v2' } }] },
+        { text: 'Staged. Requesting publish approval.', toolCalls: [{ tool: 'cms.publish', input: { url: '/blog/ai-invoice-processing' } }] },
+        done('Published through the gate.'),
+      ],
+    },
+  },
+  'inbox-crm-hygiene': {
+    trigger: { window: '12h', mailbox: 'ops@ironvale.example' },
+    crew: {
+      triage: [
+        { text: 'Reading the overnight inbox — 47 messages.', toolCalls: [{ tool: 'email.read', input: { window: '12h' } }] },
+        { text: '12 need action, 3 billing, 6 noise. Labeling.', toolCalls: [{ tool: 'email.label', input: { applied: ['action', 'billing', 'noise'] } }] },
+        done('Triaged. Handing to MNEMOSYNE.'),
+      ],
+      logger: [
+        { text: 'Logging the action threads to the CRM.', toolCalls: [{ tool: 'crm.read', input: { match: 'senders' } }] },
+        { text: '3 contacts matched, 1 new. Logging interactions.', toolCalls: [{ tool: 'crm.update', input: { logged: 4 } }] },
+        done('Logged. Handing to ATHENA.'),
+      ],
+      'data-steward': [
+        { text: 'Found a duplicate contact for M. Calloway.', toolCalls: [{ tool: 'crm.read', input: { dupCheck: true } }] },
+        { text: 'Proposing a merge — this never auto-relaxes, requesting approval.', toolCalls: [{ tool: 'crm.merge', input: { keep: 'C-102', merge: 'C-889' } }] },
+        done('Merge queued for approval. Handing to IRIS.'),
+      ],
+      router: [
+        { text: 'Routing the two exceptions that need a human.', toolCalls: [{ tool: 'notify.slack', input: { channel: '#ops', text: '2 threads need a decision: refund + contract question.' } }] },
+        done('Inbox cleared to zero unrouted; 2 exceptions escalated.'),
+      ],
+    },
+  },
+  'reporting-autopilot': {
+    trigger: { schedule: 'Monday 07:00', client: 'Meridian SaaS' },
+    crew: {
+      'data-puller': [
+        { text: 'Pulling the week: CRM, ads and the rollup sheet.', toolCalls: [{ tool: 'sheets.read', input: { sheet: 'weekly-rollup' } }] },
+        { text: 'Numbers in. Handing to MUNINN.', toolCalls: [{ tool: 'ads.read', input: {} }] },
+      ],
+      assembler: [
+        { text: 'Computing the deltas — every number from the sheet, none invented.', toolCalls: [{ tool: 'sheets.read', input: { tab: 'raw' } }] },
+        { text: 'CPL −11% WoW; demo no-shows 2×. Written to the report tab. Handing to BRAGI.', toolCalls: [{ tool: 'sheets.write', input: { tab: 'week-27' } }] },
+      ],
+      narrator: [
+        { text: 'Drafting the narrative around the computed numbers.', toolCalls: [{ tool: 'email.draft', input: { subject: 'Week 27: CPL down 11%, no-shows need a play' } }] },
+        { text: 'Report ready. Requesting send approval to the client list.', toolCalls: [{ tool: 'email.send', input: { to: 'exec@meridian.example', body: 'Headline: CPL down 11% WoW on the new AEO pages…' } }] },
+        done('Weekly report delivered on schedule.'),
+      ],
+    },
   },
   'review-response': {
-    agent: 'responder',
     trigger: { platform: 'Google', rating: 2, author: 'M. Calloway' },
-    script: [
-      { text: '2-star review detected. Reading full text and history.', toolCalls: [{ tool: 'reviews.read', input: { id: 'gr_9921' } }] },
-      { text: 'Service-speed complaint, first-time reviewer. Drafting public holding response; EIR handles private recovery.', toolCalls: [{ tool: 'reviews.draft', input: { tone: 'accountable, specific, no template smell' } }] },
-      { text: 'Response drafted. Requesting publish approval.', toolCalls: [{ tool: 'reviews.publish', input: { id: 'gr_9921', text: 'You are right that last week was slower than our standard, and that is on us…' } }] },
-      { text: 'Response published 47 minutes after the review appeared.' },
-    ],
+    crew: {
+      monitor: [
+        { text: 'New 2★ Google review from M. Calloway. Reading it and the history.', toolCalls: [{ tool: 'reviews.read', input: { id: 'gr_9921' } }] },
+        { text: 'Service-speed complaint, first-time reviewer. Flagging. Handing to ECHO.', toolCalls: [{ tool: 'notify.slack', input: { channel: '#reviews', text: '2★ review needs a response.' } }] },
+      ],
+      responder: [
+        { text: 'Drafting an accountable public response — no template smell.', toolCalls: [{ tool: 'reviews.draft', input: { tone: 'accountable, specific' } }] },
+        { text: 'Draft ready. Requesting publish approval — this never auto-relaxes.', toolCalls: [{ tool: 'reviews.publish', input: { id: 'gr_9921', text: 'You are right that last week was slower than our standard…' } }] },
+        done('Response published. Handing to EIR for private recovery.'),
+      ],
+      recovery: [
+        { text: 'Opening a private recovery path with the reviewer.', toolCalls: [{ tool: 'email.draft', input: { to: 'calloway@example.com', subject: 'Making last week right' } }] },
+        { text: 'Recovery offer drafted; ops notified to expedite.', toolCalls: [{ tool: 'notify.slack', input: { channel: '#ops', text: 'Expedite Calloway to recover the account.' } }] },
+        done('Review handled end-to-end: public response + private recovery.'),
+      ],
+    },
   },
 };
 
+// Daily Brief is a hybrid pipeline (one infer agent), not a crew.
 SCENARIOS['daily-brief'] = {
-  agent: 'narrator',
   trigger: { schedule: 'weekday 07:00', demo: true },
-  script: [{ text: "Good morning, Dana. Handle Corvid's invoice question first — it's 9 hours old and it blocks AP. Reply debt is 3 threads; the oldest is M. Calloway at 31 hours. Today: 3 meetings, 90 minutes total, first at 09:30; your clear block is 13:00–15:00 — protect it for the Atlas renewal prep. One pattern: 6 threads this week were opened but never answered, all arriving after 4pm. A 4:30 reply pass would clear them same-day.", usage: { in: 900, out: 170 } }],
+  crew: {
+    narrator: [{ text: "Good morning, Dana. Handle Corvid's invoice question first — it's 9 hours old and it blocks AP. Reply debt is 3 threads; the oldest is M. Calloway at 31 hours. Today: 3 meetings, 90 minutes total, first at 09:30; your clear block is 13:00–15:00 — protect it for the Atlas renewal prep. One pattern: 6 threads this week were opened but never answered, all arriving after 4pm. A 4:30 reply pass would clear them same-day.", usage: { in: 900, out: 170 } }],
+  },
 };
 
 export function seedBaselines(ledger) {
@@ -107,14 +197,9 @@ export function seedBaselines(ledger) {
   s('daily-brief', 'briefs_on_time_pct', 100);
 }
 
-/** Launch one scripted scenario run. Returns the AgentRun (caller keeps it for kill()). */
-export function launchScenario({ ledger, gates, blueprints, tools, scenario }) {
+/** The scripted MockAdapter for one agent of a demo corridor (used by the
+ *  server's adapterFor so the Coordinator can run the whole crew). */
+export function demoScript(scenario, agentName) {
   const sc = SCENARIOS[scenario];
-  if (!sc) throw new Error(`unknown scenario ${scenario}`);
-  const run = new AgentRun({
-    blueprint: blueprints.get(scenario), agentName: sc.agent, ledger, gates,
-    adapter: new MockAdapter(structuredClone(sc.script)), tools,
-  });
-  const finished = run.run(sc.trigger);
-  return { run, finished };
+  return sc?.crew?.[agentName] ? structuredClone(sc.crew[agentName]) : null;
 }

@@ -2,11 +2,40 @@
   "blueprint": "document-intake",
   "title": "Document Intake",
   "summary": "Invoices, POs and applications extracted, validated against source systems, and routed — exceptions to humans.",
-  "trigger": { "type": "event", "source": "document.received", "description": "Document arrives by email attachment or upload folder." },
+  "trigger": {
+    "type": "event",
+    "source": "document.received",
+    "description": "Document arrives by email attachment or upload folder."
+  },
   "agents": [
-    { "name": "extractor", "callsign": "THOTH", "role": "Reads the document and extracts the structured record (parties, line items, totals, dates).", "tools": ["docs.read", "records.write"] },
-    { "name": "validator", "callsign": "THEMIS", "role": "Cross-checks the record against the source system (PO matches, vendor exists, totals cross-foot); flags exceptions with reasons.", "model": "claude-haiku-4-5", "tools": ["records.read", "erp.read"] },
-    { "name": "router", "callsign": "TYR", "role": "Posts clean records to the target system; sends exceptions to the human queue with the failing check named.", "tools": ["erp.write", "notify.slack"] }
+    {
+      "name": "extractor",
+      "callsign": "THOTH",
+      "role": "Reads the document and extracts the structured record (parties, line items, totals, dates).",
+      "tools": [
+        "docs.read",
+        "records.write"
+      ]
+    },
+    {
+      "name": "validator",
+      "callsign": "THEMIS",
+      "role": "Cross-checks the record against the source system (PO matches, vendor exists, totals cross-foot); flags exceptions with reasons.",
+      "model": "claude-haiku-4-5",
+      "tools": [
+        "records.read",
+        "erp.read"
+      ]
+    },
+    {
+      "name": "router",
+      "callsign": "TYR",
+      "role": "Posts clean records to the target system; sends exceptions to the human queue with the failing check named.",
+      "tools": [
+        "erp.write",
+        "notify.slack"
+      ]
+    }
   ],
   "gates": {
     "*": "log",
@@ -17,14 +46,44 @@
     "erp.write": "approve",
     "notify.slack": "log"
   },
-  "connectors": ["gmail-mcp", "qbo-mcp", "slack-mcp"],
+  "connectors": [
+    "gmail-mcp",
+    "qbo-mcp",
+    "slack-mcp"
+  ],
   "metrics": {
     "baseline": [
-      { "key": "touch_min_per_doc", "label": "Touch time per document", "unit": "min", "direction": "down" },
-      { "key": "keying_error_rate_pct", "label": "Keying error rate", "unit": "%", "direction": "down" },
-      { "key": "cycle_time_h", "label": "Receipt-to-posted cycle time", "unit": "h", "direction": "down" }
+      {
+        "key": "touch_min_per_doc",
+        "label": "Touch time per document",
+        "unit": "min",
+        "direction": "down"
+      },
+      {
+        "key": "keying_error_rate_pct",
+        "label": "Keying error rate",
+        "unit": "%",
+        "direction": "down"
+      },
+      {
+        "key": "cycle_time_h",
+        "label": "Receipt-to-posted cycle time",
+        "unit": "h",
+        "direction": "down"
+      }
     ],
-    "targets": { "keying_error_rate_pct": "< 0.5", "cycle_time_h": "< 4" }
+    "targets": {
+      "keying_error_rate_pct": "< 0.5",
+      "cycle_time_h": "< 4"
+    }
   },
-  "rollback": "Disable the document.received trigger; unposted records stay in the review queue. erp.write stays gated until 60 days of clean edit-rate history."
+  "rollback": "Disable the document.received trigger; unposted records stay in the review queue. erp.write stays gated until 60 days of clean edit-rate history.",
+  "orchestration": {
+    "type": "sequential",
+    "agents": [
+      "extractor",
+      "validator",
+      "router"
+    ]
+  }
 }
