@@ -1,0 +1,15 @@
+{
+  "name": "fleetdeck",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Fleet Deck — a local-first, zero-dependency operator suite for AI agents. Views over one shared spine: the event timeline every tool reads and writes.",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test",
+    "tollgate": "node bin/tollgate.js",
+    "recorder": "node bin/recorder.js"
+  }
+}
