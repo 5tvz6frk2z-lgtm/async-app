@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fleet Deck</title>
+<style>
+  :root {
+    --bg: #0b0e14; --panel: #131722; --panel2: #1a2030; --line: #232a3a;
+    --ink: #e6ebf5; --dim: #8a93a8; --faint: #5c6479;
+    --accent: #5b9dff; --ok: #3fb950; --warn: #d29922; --crit: #f85149; --review: #a371f7;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: light) {
+    :root { --bg:#f4f6fb; --panel:#fff; --panel2:#f0f3fa; --line:#e2e7f0; --ink:#141824; --dim:#5c6479; --faint:#98a1b5; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 14px; line-height: 1.5; }
+  header { display: flex; align-items: center; gap: 16px; padding: 14px 22px; border-bottom: 1px solid var(--line); background: var(--panel); position: sticky; top: 0; z-index: 5; }
+  .logo { font-weight: 700; letter-spacing: .3px; font-size: 16px; }
+  .logo b { color: var(--accent); }
+  .spine { font-family: var(--mono); font-size: 11px; color: var(--faint); }
+  .stats { margin-left: auto; display: flex; gap: 10px; flex-wrap: wrap; }
+  .stat { background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 5px 11px; font-size: 12px; display: flex; gap: 7px; align-items: baseline; }
+  .stat b { font-size: 15px; font-variant-numeric: tabular-nums; }
+  .stat.crit b { color: var(--crit); } .stat.review b { color: var(--review); } .stat.warn b { color: var(--warn); }
+  main { max-width: 1180px; margin: 0 auto; padding: 20px 22px 60px; }
+  .banner { border: 1px solid var(--crit); background: color-mix(in srgb, var(--crit) 12%, transparent); border-radius: 10px; padding: 14px 18px; margin-bottom: 20px; display: none; }
+  .banner.show { display: block; }
+  .banner h2 { margin: 0 0 4px; font-size: 15px; color: var(--crit); }
+  .banner p { margin: 0; color: var(--dim); font-size: 13px; }
+  nav { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 1px solid var(--line); }
+  nav button { background: none; border: none; color: var(--dim); padding: 9px 15px; font-size: 13px; font-family: var(--sans); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  nav button:hover { color: var(--ink); }
+  nav button.active { color: var(--ink); border-bottom-color: var(--accent); font-weight: 600; }
+  nav .count { font-family: var(--mono); font-size: 11px; color: var(--faint); margin-left: 5px; }
+  .panel { display: none; } .panel.active { display: block; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; margin-bottom: 14px; }
+  .card h3 { margin: 0 0 12px; font-size: 13px; text-transform: uppercase; letter-spacing: .5px; color: var(--dim); }
+  /* timeline */
+  .tl { font-family: var(--mono); font-size: 12.5px; }
+  .row { display: grid; grid-template-columns: 62px 96px 1fr auto; gap: 12px; padding: 6px 8px; border-radius: 6px; align-items: baseline; }
+  .row:hover { background: var(--panel2); }
+  .row .t { color: var(--faint); }
+  .row .who { color: var(--accent); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .row .msg { color: var(--ink); }
+  .row .meta { color: var(--dim); text-align: right; white-space: nowrap; }
+  .k { display: inline-block; padding: 0 6px; border-radius: 4px; font-size: 10.5px; background: var(--panel2); border: 1px solid var(--line); color: var(--dim); }
+  .k.deny { color: var(--crit); border-color: var(--crit); } .k.review { color: var(--review); border-color: var(--review); } .k.allow { color: var(--ok); border-color: var(--ok); }
+  .ok { color: var(--ok); } .bad { color: var(--crit); }
+  /* alerts */
+  .alert { border: 1px solid var(--line); border-left: 3px solid var(--crit); border-radius: 8px; padding: 12px 14px; margin-bottom: 10px; background: var(--panel); }
+  .alert.warn { border-left-color: var(--warn); } .alert.info { border-left-color: var(--faint); }
+  .alert .hd { display: flex; gap: 10px; align-items: center; margin-bottom: 8px; }
+  .sev { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; text-transform: uppercase; letter-spacing: .5px; }
+  .sev.critical { background: var(--crit); color: #fff; } .sev.warn { background: var(--warn); color: #000; } .sev.info { background: var(--faint); color: #fff; }
+  .alert .srv { font-family: var(--mono); font-weight: 600; } .alert .ts { color: var(--faint); font-size: 11px; margin-left: auto; }
+  .chg { font-family: var(--mono); font-size: 12px; padding: 3px 0; color: var(--dim); }
+  .chg b { color: var(--crit); } .chg .tool { color: var(--ink); }
+  /* meter */
+  .bars { display: grid; gap: 10px; }
+  .bl { display: grid; grid-template-columns: 150px 1fr 90px; gap: 12px; align-items: center; font-size: 13px; }
+  .bl .name { font-family: var(--mono); color: var(--dim); overflow: hidden; text-overflow: ellipsis; }
+  .track { background: var(--panel2); border-radius: 5px; height: 9px; overflow: hidden; }
+  .fill { height: 100%; background: var(--accent); border-radius: 5px; }
+  .fill.ok { background: var(--ok); } .fill.warning { background: var(--warn); } .fill.exceeded { background: var(--crit); }
+  .bl .val { font-family: var(--mono); text-align: right; color: var(--ink); }
+  .bl .val small { color: var(--faint); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 720px) { .grid2 { grid-template-columns: 1fr; } .stats { display: none; } .row { grid-template-columns: 50px 1fr; } .row .who, .row .meta { display: none; } }
+  /* inbox */
+  .inbox-item { border: 1px solid var(--line); border-left: 3px solid var(--review); border-radius: 8px; padding: 12px 14px; margin-bottom: 10px; display: flex; gap: 14px; align-items: center; }
+  .inbox-item .body { flex: 1; }
+  .inbox-item .tool { font-family: var(--mono); font-weight: 600; }
+  .inbox-item .input { font-family: var(--mono); font-size: 12px; color: var(--dim); margin-top: 3px; }
+  .inbox-item .ref { font-family: var(--mono); font-size: 11px; color: var(--faint); }
+  .btn { border: 1px solid var(--line); background: var(--panel2); color: var(--ink); border-radius: 7px; padding: 6px 13px; font-size: 13px; cursor: pointer; font-family: var(--sans); }
+  .btn:hover { border-color: var(--accent); }
+  .btn.approve:hover { border-color: var(--ok); color: var(--ok); } .btn.reject:hover { border-color: var(--crit); color: var(--crit); }
+  .empty { color: var(--faint); font-style: italic; padding: 20px 4px; text-align: center; }
+  .resolved { font-family: var(--mono); font-size: 12px; color: var(--dim); padding: 4px 8px; }
+  .resolved .v-approved { color: var(--ok); } .resolved .v-rejected { color: var(--crit); }
+  /* check tool */
+  .checkbar { display: flex; gap: 8px; margin-bottom: 14px; }
+  .checkbar input { flex: 1; background: var(--panel2); border: 1px solid var(--line); border-radius: 7px; padding: 9px 12px; color: var(--ink); font-family: var(--mono); font-size: 13px; }
+  .score { font-size: 42px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .grade { font-size: 15px; padding: 3px 12px; border-radius: 8px; font-weight: 700; }
+  footer { color: var(--faint); font-size: 11px; text-align: center; padding: 20px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">Fleet<b>Deck</b></div>
+  <div class="spine" id="spine">—</div>
+  <div class="stats" id="stats"></div>
+</header>
+<main>
+  <div class="banner" id="banner">
+    <h2 id="banner-title"></h2>
+    <p id="banner-sub"></p>
+  </div>
+  <nav id="nav">
+    <button data-tab="timeline" class="active">Flight Recorder<span class="count" id="c-timeline"></span></button>
+    <button data-tab="alerts">Tollgate<span class="count" id="c-alerts"></span></button>
+    <button data-tab="meter">Meter<span class="count" id="c-meter"></span></button>
+    <button data-tab="inbox">Approvals<span class="count" id="c-inbox"></span></button>
+    <button data-tab="check">Agent-Ready</button>
+  </nav>
+
+  <section class="panel active" id="p-timeline"><div class="card"><h3>Every agent action, newest first</h3><div class="tl" id="timeline"></div></div></section>
+  <section class="panel" id="p-alerts"><div id="alerts"></div></section>
+  <section class="panel" id="p-meter">
+    <div class="grid2">
+      <div class="card"><h3>Cost by agent</h3><div class="bars" id="by-agent"></div></div>
+      <div class="card"><h3>Cost by model</h3><div class="bars" id="by-model"></div></div>
+    </div>
+    <div class="card"><h3>Budgets</h3><div class="bars" id="budgets"></div></div>
+  </section>
+  <section class="panel" id="p-inbox">
+    <div class="card"><h3>Pending — awaiting a human</h3><div id="inbox"></div></div>
+    <div class="card"><h3>Resolved</h3><div id="resolved"></div></div>
+  </section>
+  <section class="panel" id="p-check">
+    <div class="card">
+      <h3>Score a URL's legibility to AI agents</h3>
+      <div class="checkbar"><input id="check-url" placeholder="https://example.com" value="https://"><button class="btn" id="check-go">Check</button></div>
+      <div id="check-out"></div>
+    </div>
+  </section>
+</main>
+<footer>Fleet Deck · local-first · one spine, many views · figures from the demo spine are illustrative</footer>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
+const money = (n) => '$' + (n || 0).toFixed(n < 1 ? 4 : 2);
+let who = localStorage.getItem('fd-who') || '';
+
+// ---- tabs ----
+$('nav').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return;
+  for (const el of document.querySelectorAll('nav button')) el.classList.toggle('active', el === b);
+  for (const el of document.querySelectorAll('.panel')) el.classList.toggle('active', el.id === 'p-' + b.dataset.tab);
+});
+
+// ---- render ----
+function render(s) {
+  $('spine').textContent = `spine v${s.version} · ${s.events} events`;
+  const c = s.counts;
+  $('stats').innerHTML = [
+    ['tool calls', c.toolCalls, ''],
+    ['drift', c.drift, c.criticalDrift ? 'crit' : ''],
+    ['pending', c.pendingApprovals, c.pendingApprovals ? 'review' : ''],
+    ['budget alarms', c.budgetAlarms, c.budgetAlarms ? 'warn' : ''],
+    ['cost', money(s.meter.total.costUsd), ''],
+  ].map(([k, v, cl]) => `<div class="stat ${cl}"><span>${k}</span><b>${v}</b></div>`).join('');
+  $('c-timeline').textContent = s.timeline.length;
+  $('c-alerts').textContent = c.drift;
+  $('c-inbox').textContent = c.pendingApprovals;
+
+  // banner for critical drift
+  if (c.criticalDrift) {
+    $('banner').classList.add('show');
+    $('banner-title').textContent = `⚠ Tool poisoning detected — ${c.criticalDrift} critical change${c.criticalDrift > 1 ? 's' : ''}`;
+    $('banner-sub').textContent = 'An already-approved MCP server changed a tool description or input schema. Review before letting agents use it.';
+  } else $('banner').classList.remove('show');
+
+  renderTimeline(s.timeline);
+  renderAlerts(s.alerts);
+  renderMeter(s.meter);
+  renderInbox(s.inbox);
+}
+
+function renderTimeline(tl) {
+  if (!tl.length) { $('timeline').innerHTML = '<div class="empty">no events — run <code>fleetdeck seed</code></div>'; return; }
+  $('timeline').innerHTML = tl.map((x) => {
+    const decision = x.decision ? `<span class="k ${x.decision}">${x.decision}</span>` : `<span class="k">${esc(x.kind)}</span>`;
+    const res = x.result ? (x.result.ok === false ? '<span class="bad">✗</span>' : '<span class="ok">✓</span>') : '';
+    const meta = [x.durationMs != null ? x.durationMs + 'ms' : '', x.costUsd ? money(x.costUsd) : ''].filter(Boolean).join(' · ');
+    return `<div class="row"><span class="t">${esc(x.ts.slice(11,19))}</span><span class="who">${esc(x.agent||'—')}</span>` +
+      `<span class="msg">${decision} ${esc(x.summary)} ${res}</span><span class="meta">${esc(meta)}</span></div>`;
+  }).join('');
+}
+
+function renderAlerts(alerts) {
+  if (!alerts.length) { $('alerts').innerHTML = '<div class="card"><div class="empty">No drift. Every pinned server matches its approved baseline.</div></div>'; return; }
+  $('alerts').innerHTML = alerts.map((a) => {
+    const cls = a.severity === 'critical' ? '' : a.severity;
+    const changes = a.changes.map((ch) => `<div class="chg"><b>${esc(ch.type)}</b> · <span class="tool">${esc(ch.tool)}</span></div>`).join('');
+    return `<div class="alert ${cls}"><div class="hd"><span class="sev ${a.severity}">${a.severity}</span>` +
+      `<span class="srv">${esc(a.server)}</span><span class="ts">${esc(a.ts)}</span></div>${changes}</div>`;
+  }).join('');
+}
+
+function bars(container, rows, max) {
+  $(container).innerHTML = rows.map(([name, val, state, extra]) => {
+    const pct = max ? Math.min(1, val / max) * 100 : 0;
+    return `<div class="bl"><span class="name">${esc(name)}</span><div class="track"><div class="fill ${state||''}" style="width:${pct}%"></div></div>` +
+      `<span class="val">${money(val)}${extra ? ` <small>${esc(extra)}</small>` : ''}</span></div>`;
+  }).join('') || '<div class="empty">no spend yet</div>';
+}
+function renderMeter(m) {
+  const amax = Math.max(0.0001, ...Object.values(m.byAgent).map((v) => v.costUsd));
+  bars('by-agent', Object.entries(m.byAgent).map(([k, v]) => [k, v.costUsd, '', v.calls + ' calls']), amax);
+  const mmax = Math.max(0.0001, ...Object.values(m.byModel).map((v) => v.costUsd));
+  bars('by-model', Object.entries(m.byModel).map(([k, v]) => [k, v.costUsd, '', v.calls + ' calls']), mmax);
+  $('c-meter') && ($('c-meter').textContent = '');
+  $('budgets').innerHTML = m.budgets.length ? m.budgets.map((b) =>
+    `<div class="bl"><span class="name">${esc(b.id)}</span><div class="track"><div class="fill ${b.state}" style="width:${Math.min(1,b.pct)*100}%"></div></div>` +
+    `<span class="val">${money(b.spendUsd)} <small>/ ${money(b.limitUsd)}</small></span></div>`).join('') : '<div class="empty">no budgets configured</div>';
+}
+
+function renderInbox(inbox) {
+  if (!who) who = '';
+  $('inbox').innerHTML = inbox.pending.length ? inbox.pending.map((p) =>
+    `<div class="inbox-item"><div class="body"><span class="tool">${esc(p.tool)}</span> · ${esc(p.agent)} → ${esc(p.server)}` +
+    `<div class="input">${esc(JSON.stringify(p.input))}</div><div class="ref">${esc(p.ref)}</div></div>` +
+    `<button class="btn approve" data-act="approve" data-ref="${esc(p.ref)}">Approve</button>` +
+    `<button class="btn reject" data-act="reject" data-ref="${esc(p.ref)}">Reject</button></div>`).join('') : '<div class="empty">Inbox clear.</div>';
+  $('resolved').innerHTML = inbox.history.length ? inbox.history.map((r) =>
+    `<div class="resolved"><span class="v-${r.verdict}">${r.verdict === 'approved' ? '✓' : '✗'} ${esc(r.verdict)}</span> ` +
+    `${esc(r.tool)} · by ${esc(r.by||'?')}${r.note ? ' — ' + esc(r.note) : ''}</div>`).join('') : '<div class="empty">nothing resolved yet</div>';
+}
+
+// ---- inbox actions ----
+$('inbox').addEventListener('click', async (e) => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (!who) { who = prompt('Approve/reject as (your name):') || ''; if (!who) return; localStorage.setItem('fd-who', who); }
+  const note = b.dataset.act === 'reject' ? (prompt('Reason (optional):') || '') : '';
+  const r = await fetch('/api/' + b.dataset.act, { method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ ref: b.dataset.ref, by: who, note }) });
+  if (!r.ok) { const j = await r.json(); alert(j.error || 'failed'); }
+  refresh();
+});
+
+// ---- agent-ready check ----
+$('check-go').addEventListener('click', async () => {
+  const url = $('check-url').value.trim(); if (!url || url === 'https://') return;
+  $('check-out').innerHTML = '<div class="empty">fetching & analyzing…</div>';
+  try {
+    const r = await fetch('/api/check?url=' + encodeURIComponent(url));
+    const rep = await r.json();
+    if (rep.error) { $('check-out').innerHTML = `<div class="empty">${esc(rep.error)}</div>`; return; }
+    const gColor = { A: 'var(--ok)', B: 'var(--ok)', C: 'var(--warn)', D: 'var(--warn)', F: 'var(--crit)' }[rep.grade];
+    $('check-out').innerHTML =
+      `<div style="display:flex;gap:18px;align-items:center;margin-bottom:16px"><span class="score">${rep.score}</span>` +
+      `<span class="grade" style="background:${gColor};color:#000">grade ${rep.grade}</span>` +
+      `<span style="color:var(--dim)">${esc(rep.url)}</span></div>` +
+      `<div class="bars">${rep.breakdown.map((b) => {
+        const st = b.earned >= b.weight * 0.8 ? 'ok' : b.earned >= b.weight * 0.4 ? 'warning' : 'exceeded';
+        return `<div class="bl"><span class="name">${esc(b.signal)}</span><div class="track"><div class="fill ${st}" style="width:${(b.earned/b.weight)*100}%"></div></div><span class="val">${b.earned}<small>/${b.weight}</small></span></div>`;
+      }).join('')}</div>` +
+      `<h3 style="margin-top:18px">Top fixes</h3>` +
+      rep.recommendations.slice(0, 5).map((f) => `<div class="chg">[${esc(f.priority)}] +${f.gain} — <span class="tool">${esc(f.fix)}</span></div>`).join('');
+  } catch (err) { $('check-out').innerHTML = `<div class="empty">${esc(err.message)}</div>`; }
+});
+
+// ---- poll ----
+async function refresh() {
+  try { const r = await fetch('/api/snapshot'); render(await r.json()); } catch {}
+}
+refresh();
+setInterval(refresh, 3000);
+</script>
+</body>
+</html>
