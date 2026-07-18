@@ -33,12 +33,14 @@ Node ≥22, standard library only. No npm dependencies. No telemetry leaves the 
 | **AI Register** | `lib/register.js` | Regulation-agnostic compliance evidence. Maps spine events to a swappable **law-pack**'s controls (baseline governance, EU AI Act). Exports the evidence as CSV. |
 | **Preflight** | `lib/preflight.js` | CI for your agent policy. Replays a candidate Tollgate manifest against real history and reports which calls would newly be denied / allowed / held — and dry-runs an MCP server update against its pin without recording. Flags a change UNSAFE if it would newly *allow* a previously-blocked call. |
 | **Agent-Ready** | `lib/agentready.js` | Scores how legible a web page is to AI agents / answer engines (JSON-LD, content density, robots.txt AI-crawler access across 13 known tokens, llms.txt, semantics) into a transparent 0–100 rubric with prioritized fixes. Pure `analyze()`; fetch is separate. |
+| **Cortex-as-MCP** | `lib/cortex-mcp.js` | Wraps the Cortex second brain (`../brain`) as a real **MCP server** (`memory_search` / `memory_stats`) over the stdio transport. Any MCP client can query the second brain as a tool and get a compact evidence block. Because it's a real MCP server, Tollgate can pin and guard it like any other. |
 
 ## Run it
 
 ```bash
 node bin/fleetdeck.js seed          # play the demo scenario onto a spine
 node bin/fleetdeck.js serve         # operator UI + JSON API at http://localhost:7420
+node bin/cortex-mcp.js              # serve the second brain as an MCP server (stdio)
 ```
 
 Other CLI verbs: `timeline`, `alerts`, `meter`, `inbox`, `approve/reject`,
