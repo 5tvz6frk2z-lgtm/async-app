@@ -47,38 +47,54 @@ export class Spine {
   #load(file) {
     // Crash-safe load, identical policy to the platform ledger: a process killed
     // mid-append can leave one torn final line — tolerate exactly that (truncate
-    // it so the next append writes cleanly). A parse error anywhere earlier is
-    // real corruption and must throw rather than silently rewrite history.
-    const lines = fs.readFileSync(file, 'utf8').split('\n');
+    // it so the next append writes cleanly). Anything corrupt earlier throws
+    // rather than silently rewrite history. A line that parses as JSON but is not
+    // a plain object (null, a number, an array, a string) is NOT an event and is
+    // treated as corruption on the same path — dropping it silently would be the
+    // very history-rewrite we refuse.
+    const raw = fs.readFileSync(file, 'utf8');
+    const lines = raw.split('\n');
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
       if (!line.trim()) continue;
-      let e;
-      try {
-        e = JSON.parse(line);
-      } catch (err) {
+      let e, bad = false, why = '';
+      try { e = JSON.parse(line); } catch (err) { bad = true; why = err.message; }
+      if (!bad && !isEvent(e)) { bad = true; why = 'not a JSON object'; }
+      if (bad) {
         if (lines.slice(i + 1).every((l) => !l.trim())) {
           const validBytes = lines.slice(0, i).reduce((n, l) => n + Buffer.byteLength(l, 'utf8') + 1, 0);
           try { fs.truncateSync(file, validBytes); } catch { /* read-only fs: in-memory drop still correct */ }
           console.warn(`spine: dropped torn final record in ${path.basename(file)} (crash mid-append?), truncated to ${validBytes} bytes`);
           break;
         }
-        throw new Error(`spine ${path.basename(file)} corrupt at line ${i + 1}: ${err.message}`);
+        throw new Error(`spine ${path.basename(file)} corrupt at line ${i + 1}: ${why}`);
       }
       this.events.push(e);
       this.#index(e);
       this.version++;
     }
+    // If the file's last complete record lost only its trailing newline (a plausible
+    // torn write), the record still parsed above — but appending now would fuse it
+    // with the next record. Remember to write a separating newline first.
+    this._needsLeadingNewline = raw.length > 0 && !raw.endsWith('\n');
   }
 
   /** Append one event. Returns the stored, fully-stamped record. */
   append(kind, payload = {}) {
     if (typeof kind !== 'string' || !kind) throw new Error('append(kind, payload): kind must be a non-empty string');
     const seq = this.events.length;
-    const e = { id: `evt_${seq.toString(36).padStart(6, '0')}`, seq, ts: new Date().toISOString(), kind, ...payload };
+    // Stamp id/seq/ts/kind LAST so a caller's payload can never forge them — these
+    // fields ARE the audit trail, and the spine is their sole authority.
+    const e = { ...payload, id: `evt_${seq.toString(36).padStart(6, '0')}`, seq, ts: new Date().toISOString(), kind };
+    // Persist BEFORE mutating memory: if the disk write throws (full/read-only),
+    // in-memory state must not diverge from what's durably on disk.
+    if (this.file) {
+      const line = (this._needsLeadingNewline ? '\n' : '') + JSON.stringify(e) + '\n';
+      fs.appendFileSync(this.file, line);
+      this._needsLeadingNewline = false;
+    }
     this.events.push(e);
     this.version++;
-    if (this.file) fs.appendFileSync(this.file, JSON.stringify(e) + '\n');
     this.#index(e);
     // Advance every registered projection BEFORE listeners fire, so a listener
     // that reads view() sees a state that already accounts for this event.
@@ -160,6 +176,11 @@ export class Spine {
 
     let out = seqs === null ? this.events.slice() : seqs.map((s) => this.events[s]);
 
+    // Index keys are String(value), so values that stringify alike (number 1 vs
+    // string "1", true vs "true") share a bucket. Re-verify every constraint with
+    // strict === so query() is exactly the maintained view of a linear scan.
+    if (constraints.length) out = out.filter((e) => constraints.every(([f, v]) => e[f] === v));
+
     if (since !== undefined) out = out.filter((e) => afterOrEqual(e, since));
     if (until !== undefined) out = out.filter((e) => beforeOrEqual(e, until));
     if (reverse) out.reverse();
@@ -170,6 +191,9 @@ export class Spine {
   all() { return this.events; }
   get length() { return this.events.length; }
 }
+
+// A stored event must be a plain object; null / arrays / primitives are not events.
+function isEvent(v) { return v !== null && typeof v === 'object' && !Array.isArray(v); }
 
 // Two ascending seq lists -> their intersection, ascending. O(n+m).
 function intersectSorted(a, b) {
