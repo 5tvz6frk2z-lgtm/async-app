@@ -81,6 +81,13 @@
   .empty { color: var(--faint); font-style: italic; padding: 20px 4px; text-align: center; }
   .resolved { font-family: var(--mono); font-size: 12px; color: var(--dim); padding: 4px 8px; }
   .resolved .v-approved { color: var(--ok); } .resolved .v-rejected { color: var(--crit); }
+  /* register */
+  .ctrl { display: grid; grid-template-columns: 90px 1fr; gap: 12px; padding: 11px 12px; border: 1px solid var(--line); border-radius: 8px; margin-bottom: 8px; }
+  .ctrl .st { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; align-self: start; padding: 3px 8px; border-radius: 20px; text-align: center; }
+  .st.satisfied { background: var(--ok); color: #04210b; } .st.attention { background: var(--warn); color: #241a00; } .st.gap { background: var(--crit); color: #fff; }
+  .ctrl .cid { font-family: var(--mono); font-size: 11px; color: var(--faint); }
+  .ctrl .cname { font-weight: 600; } .ctrl .cdetail { color: var(--dim); font-size: 13px; margin-top: 3px; }
+  .overall { display: inline-block; padding: 3px 12px; border-radius: 8px; font-weight: 700; font-size: 12px; text-transform: uppercase; }
   /* check tool */
   .checkbar { display: flex; gap: 8px; margin-bottom: 14px; }
   .checkbar input { flex: 1; background: var(--panel2); border: 1px solid var(--line); border-radius: 7px; padding: 9px 12px; color: var(--ink); font-family: var(--mono); font-size: 13px; }
@@ -105,6 +112,7 @@
     <button data-tab="alerts">Tollgate<span class="count" id="c-alerts"></span></button>
     <button data-tab="meter">Meter<span class="count" id="c-meter"></span></button>
     <button data-tab="inbox">Approvals<span class="count" id="c-inbox"></span></button>
+    <button data-tab="register">AI Register<span class="count" id="c-register"></span></button>
     <button data-tab="check">Agent-Ready</button>
   </nav>
 
@@ -120,6 +128,15 @@
   <section class="panel" id="p-inbox">
     <div class="card"><h3>Pending — awaiting a human</h3><div id="inbox"></div></div>
     <div class="card"><h3>Resolved</h3><div id="resolved"></div></div>
+  </section>
+  <section class="panel" id="p-register">
+    <div class="card">
+      <h3>Compliance evidence <span id="reg-pack-wrap" style="float:right;text-transform:none;letter-spacing:0">
+        <select id="reg-pack" class="btn" style="padding:4px 8px"><option value="governance">Baseline governance</option><option value="eu-ai-act">EU AI Act</option></select>
+        <a class="btn" id="reg-csv" href="/api/register?format=csv" style="text-decoration:none">Export CSV</a></span></h3>
+      <div id="register"></div>
+      <p id="reg-note" style="color:var(--faint);font-size:12px;margin-top:14px"></p>
+    </div>
   </section>
   <section class="panel" id="p-check">
     <div class="card">
@@ -170,7 +187,26 @@ function render(s) {
   renderAlerts(s.alerts);
   renderMeter(s.meter);
   renderInbox(s.inbox);
+  if (s.register) { $('c-register').textContent = s.register.summary.gap + s.register.summary.attention || ''; renderRegister(s.register); }
 }
+
+const OVERALL_COLOR = { satisfied: 'var(--ok)', attention: 'var(--warn)', gap: 'var(--crit)' };
+function renderRegister(r) {
+  const s = r.summary;
+  $('register').innerHTML =
+    `<div style="margin-bottom:14px"><span class="overall" style="background:${OVERALL_COLOR[r.overall]};color:#000">${esc(r.overall)}</span>` +
+    ` <span style="color:var(--dim);margin-left:10px">${s.satisfied} satisfied · ${s.attention} attention · ${s.gap} gap</span></div>` +
+    r.controls.map((c) =>
+      `<div class="ctrl"><span class="st ${c.status}">${esc(c.status)}</span>` +
+      `<div><span class="cid">${esc(c.id)}</span> <span class="cname">${esc(c.name)}</span><div class="cdetail">${esc(c.detail)}</div></div></div>`).join('');
+  $('reg-note').textContent = r.note;
+}
+$('reg-pack').addEventListener('change', async (e) => {
+  const pack = e.target.value;
+  $('reg-csv').href = `/api/register?format=csv&pack=${pack}`;
+  const r = await (await fetch('/api/register?pack=' + pack)).json();
+  renderRegister(r);
+});
 
 function renderTimeline(tl) {
   if (!tl.length) { $('timeline').innerHTML = '<div class="empty">no events — run <code>fleetdeck seed</code></div>'; return; }

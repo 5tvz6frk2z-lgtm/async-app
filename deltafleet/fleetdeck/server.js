@@ -48,6 +48,16 @@ export function startServer({ file, port = 7420, config }) {
         ensureFresh();
         return json(res, { semconv: (await import('./lib/recorder.js')).OTEL_SEMCONV, spans: deck.recorder.toOtelSpans() });
       }
+      if (req.method === 'GET' && route === '/api/register') {
+        ensureFresh();
+        if (url.searchParams.get('pack')) deck.register.setPack(url.searchParams.get('pack'));
+        if (url.searchParams.get('format') === 'csv') {
+          const csv = deck.register.toCsv();
+          res.writeHead(200, { 'content-type': 'text/csv', 'content-disposition': 'attachment; filename="ai-register.csv"' });
+          return res.end(csv);
+        }
+        return json(res, deck.register.register());
+      }
       if (req.method === 'GET' && route === '/api/check') {
         const target = url.searchParams.get('url');
         if (!target) return json(res, { error: 'url query param required' }, 400);

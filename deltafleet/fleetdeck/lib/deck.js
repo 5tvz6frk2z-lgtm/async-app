@@ -8,6 +8,7 @@ import { Tollgate } from './tollgate.js';
 import { Meter } from './meter.js';
 import { Recorder } from './recorder.js';
 import { Approvals } from './approvals.js';
+import { Register } from './register.js';
 
 // Illustrative list prices (USD per 1e6 tokens) — operators should override with
 // their real contract pricing. Meter falls back to these only when an event
@@ -24,12 +25,13 @@ export const DEFAULT_PRICING = {
 export const DEFAULT_MANIFEST = { default: 'review', agents: {} };
 
 export class Deck {
-  constructor(file, { manifest = DEFAULT_MANIFEST, pricing = DEFAULT_PRICING, budgets = [] } = {}) {
+  constructor(file, { manifest = DEFAULT_MANIFEST, pricing = DEFAULT_PRICING, budgets = [], pack = 'governance' } = {}) {
     this.spine = new Spine(file, { indexBy: ['agent', 'server'] });
     this.gate = new Tollgate({ spine: this.spine, manifest });
     this.meter = new Meter({ spine: this.spine, pricing, budgets });
     this.recorder = new Recorder({ spine: this.spine, pricing });
     this.inbox = new Approvals({ spine: this.spine });
+    this.register = new Register({ spine: this.spine, pack });
     this._snap = null; // memoized snapshot, invalidated by spine.version
     this._snapAt = -1;
   }
@@ -41,6 +43,7 @@ export class Deck {
     const alerts = this.gate.alerts();
     const meter = this.meter.report();
     const pending = this.inbox.pending();
+    const register = this.register.register();
     this._snap = {
       version: this.spine.version,
       events: this.spine.length,
@@ -50,11 +53,13 @@ export class Deck {
         criticalDrift: alerts.filter((a) => a.severity === 'critical').length,
         pendingApprovals: pending.length,
         budgetAlarms: meter.alarms.length,
+        complianceGaps: register.summary.gap + register.summary.attention,
       },
       timeline: this.recorder.timeline({ reverse: true, limit }),
       alerts,
       meter,
       inbox: { pending, history: this.inbox.history().slice(0, 50) },
+      register,
     };
     this._snapAt = this.spine.version;
     return this._snap;

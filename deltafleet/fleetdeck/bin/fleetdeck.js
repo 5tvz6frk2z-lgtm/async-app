@@ -93,6 +93,18 @@ async function main() {
       console.log(`${cmd}d ${ref} by ${who}`);
       break;
     }
+    case 'register': {
+      const deck = openDeck(rest[0] || DEFAULT_FILE);
+      if (rest[1]) deck.register.setPack(rest[1]);
+      if (rest.includes('--csv')) { console.log(deck.register.toCsv()); break; }
+      const r = deck.register.register();
+      const mark = { satisfied: '✓', attention: '!', gap: '✗' };
+      console.log(`${r.framework}\n  overall: ${r.overall.toUpperCase()}  (${r.summary.satisfied} satisfied, ${r.summary.attention} attention, ${r.summary.gap} gap)\n`);
+      for (const c of r.controls) console.log(`  ${mark[c.status]} ${c.id.padEnd(8)} ${c.name}\n      ${c.detail}`);
+      console.log(`\nnote: ${r.note}`);
+      console.log('export evidence:  fleetdeck register <file> [pack] --csv');
+      break;
+    }
     case 'check': {
       const url = rest[0];
       if (!url) { console.error('usage: fleetdeck check <url>'); process.exit(2); }
@@ -123,6 +135,7 @@ usage:
   fleetdeck meter [file]          Meter — cost rollups + budget alarms
   fleetdeck inbox [file]          Approvals — what's awaiting a human
   fleetdeck approve <file> <ref> <who> [note]
+  fleetdeck register [file] [pack] [--csv]   AI Register — compliance evidence
   fleetdeck check <url>           Agent-Ready score for a live URL
 
 default spine file: ${DEFAULT_FILE}`);
