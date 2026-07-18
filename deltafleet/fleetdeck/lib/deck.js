@@ -9,6 +9,7 @@ import { Meter } from './meter.js';
 import { Recorder } from './recorder.js';
 import { Approvals } from './approvals.js';
 import { Register } from './register.js';
+import { Contextsmith } from './contextsmith.js';
 
 // Illustrative list prices (USD per 1e6 tokens) — operators should override with
 // their real contract pricing. Meter falls back to these only when an event
@@ -32,6 +33,7 @@ export class Deck {
     this.recorder = new Recorder({ spine: this.spine, pricing });
     this.inbox = new Approvals({ spine: this.spine });
     this.register = new Register({ spine: this.spine, pack });
+    this.contextsmith = new Contextsmith({ spine: this.spine });
     this._snap = null; // memoized snapshot, invalidated by spine.version
     this._snapAt = -1;
   }

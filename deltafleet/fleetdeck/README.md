@@ -34,6 +34,7 @@ Node ≥22, standard library only. No npm dependencies. No telemetry leaves the 
 | **Preflight** | `lib/preflight.js` | CI for your agent policy. Replays a candidate Tollgate manifest against real history and reports which calls would newly be denied / allowed / held — and dry-runs an MCP server update against its pin without recording. Flags a change UNSAFE if it would newly *allow* a previously-blocked call. |
 | **Agent-Ready** | `lib/agentready.js` | Scores how legible a web page is to AI agents / answer engines (JSON-LD, content density, robots.txt AI-crawler access across 13 known tokens, llms.txt, semantics) into a transparent 0–100 rubric with prioritized fixes. Pure `analyze()`; fetch is separate. |
 | **Cortex-as-MCP** | `lib/cortex-mcp.js` | Wraps the Cortex second brain (`../brain`) as a real **MCP server** (`memory_search` / `memory_stats`) over the stdio transport. Any MCP client can query the second brain as a tool and get a compact evidence block. Because it's a real MCP server, Tollgate can pin and guard it like any other. |
+| **Contextsmith** | `lib/contextsmith.js` | Versioned registry for the context that steers agents (CLAUDE.md, prompts, skill guidance). Content-addressed versions with dedup, activate/rollback, line diff — and every activation is a spine event, so a cost or behavior change can be correlated with the exact context version that was live. |
 
 ## Run it
 

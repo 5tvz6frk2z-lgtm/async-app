@@ -126,6 +126,30 @@ async function main() {
       console.log(`\n${v.safe ? '✓ SAFE' : '✗ REVIEW'}: ${v.reason}`);
       break;
     }
+    case 'context': {
+      const [file, action, name, arg1, arg2] = rest;
+      const deck = openDeck(file);
+      const cs = deck.contextsmith;
+      if (action === 'list' || !action) {
+        const items = cs.list();
+        if (!items.length) { console.log('no context artifacts registered'); break; }
+        for (const it of items) console.log(`  ${it.name.padEnd(20)} active v${it.active} of ${it.versions}`);
+      } else if (action === 'put') {
+        if (!name || !arg1) { console.error('usage: fleetdeck context <file> put <name> <content-path>'); process.exit(2); }
+        const r = cs.put(name, fs.readFileSync(arg1, 'utf8'));
+        console.log(r.deduped ? `unchanged — still v${r.version} (${r.sha})` : `${name} → v${r.version} (${r.sha})`);
+      } else if (action === 'activate') {
+        cs.activate(name, Number(arg1));
+        console.log(`activated ${name} v${arg1}`);
+      } else if (action === 'history') {
+        for (const v of cs.history(name)) console.log(`  v${v.version} ${v.sha} ${v.active ? '(active)' : ''}  ${v.at}`);
+      } else if (action === 'diff') {
+        const d = cs.diff(name, Number(arg1), Number(arg2));
+        console.log(`+${d.added} -${d.removed}\n`);
+        for (const h of d.hunks) if (h.op !== ' ') console.log(`${h.op} ${h.line}`);
+      } else { console.error('actions: list | put | activate | history | diff'); process.exit(2); }
+      break;
+    }
     case 'check': {
       const url = rest[0];
       if (!url) { console.error('usage: fleetdeck check <url>'); process.exit(2); }
@@ -158,6 +182,7 @@ usage:
   fleetdeck approve <file> <ref> <who> [note]
   fleetdeck register [file] [pack] [--csv]   AI Register — compliance evidence
   fleetdeck preflight <file> <manifest.json> replay a policy change vs real history
+  fleetdeck context <file> <list|put|activate|history|diff> ...  versioned context registry
   fleetdeck check <url>           Agent-Ready score for a live URL
 
 default spine file: ${DEFAULT_FILE}`);
