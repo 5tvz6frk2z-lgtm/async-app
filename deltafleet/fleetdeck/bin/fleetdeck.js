@@ -15,6 +15,7 @@ import path from 'node:path';
 import { Deck } from '../lib/deck.js';
 import { seed, SEED_CONFIG } from '../lib/seed.js';
 import { analyze, fetchSite } from '../lib/agentready.js';
+import { previewManifest, verdict } from '../lib/preflight.js';
 import { startServer } from '../server.js';
 
 const DEFAULT_FILE = 'fleetdeck.jsonl';
@@ -105,6 +106,26 @@ async function main() {
       console.log('export evidence:  fleetdeck register <file> [pack] --csv');
       break;
     }
+    case 'preflight': {
+      const [file, candidatePath] = rest;
+      if (!candidatePath) { console.error('usage: fleetdeck preflight <file> <candidate-manifest.json>'); process.exit(2); }
+      const candidate = JSON.parse(fs.readFileSync(candidatePath, 'utf8'));
+      const deck = openDeck(file);
+      const r = previewManifest(deck.spine, candidate);
+      if (!r.ok) { console.error('invalid candidate manifest:\n  ' + r.errors.join('\n  ')); process.exit(1); }
+      const v = verdict(r);
+      console.log(`replayed ${r.total} historical call(s) under the candidate manifest\n`);
+      console.log(`  unchanged:     ${r.summary.unchanged}`);
+      console.log(`  newly denied:  ${r.summary.newlyDenied}`);
+      console.log(`  newly review:  ${r.summary.newlyReview}`);
+      console.log(`  newly allowed: ${r.summary.newlyAllowed}`);
+      if (r.changes.length) {
+        console.log('\nchanges:');
+        for (const c of r.changes) console.log(`  ${c.agent} ${c.tool}@${c.server}:  ${c.was} → ${c.now}`);
+      }
+      console.log(`\n${v.safe ? '✓ SAFE' : '✗ REVIEW'}: ${v.reason}`);
+      break;
+    }
     case 'check': {
       const url = rest[0];
       if (!url) { console.error('usage: fleetdeck check <url>'); process.exit(2); }
@@ -136,6 +157,7 @@ usage:
   fleetdeck inbox [file]          Approvals — what's awaiting a human
   fleetdeck approve <file> <ref> <who> [note]
   fleetdeck register [file] [pack] [--csv]   AI Register — compliance evidence
+  fleetdeck preflight <file> <manifest.json> replay a policy change vs real history
   fleetdeck check <url>           Agent-Ready score for a live URL
 
 default spine file: ${DEFAULT_FILE}`);

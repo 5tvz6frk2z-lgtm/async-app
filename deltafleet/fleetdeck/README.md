@@ -31,6 +31,7 @@ Node ≥22, standard library only. No npm dependencies. No telemetry leaves the 
 | **Meter** | `lib/meter.js` | Token/cost FinOps rollups by agent / model / day / total, with budget alarms (ok → warning → exceeded). Pure read-model. |
 | **Approvals Inbox** | `lib/approvals.js` | Cross-agent human-in-the-loop. A Tollgate `review` decision is the request; a human resolves it with an `approval.verdict` event. Doubles as tamper-evident compliance evidence. |
 | **AI Register** | `lib/register.js` | Regulation-agnostic compliance evidence. Maps spine events to a swappable **law-pack**'s controls (baseline governance, EU AI Act). Exports the evidence as CSV. |
+| **Preflight** | `lib/preflight.js` | CI for your agent policy. Replays a candidate Tollgate manifest against real history and reports which calls would newly be denied / allowed / held — and dry-runs an MCP server update against its pin without recording. Flags a change UNSAFE if it would newly *allow* a previously-blocked call. |
 | **Agent-Ready** | `lib/agentready.js` | Scores how legible a web page is to AI agents / answer engines (JSON-LD, content density, robots.txt AI-crawler access across 13 known tokens, llms.txt, semantics) into a transparent 0–100 rubric with prioritized fixes. Pure `analyze()`; fetch is separate. |
 
 ## Run it
