@@ -27,6 +27,7 @@ Node ≥22, standard library only. No npm dependencies. No telemetry leaves the 
 | Tool | File | What it does |
 |------|------|--------------|
 | **Tollgate** | `lib/tollgate.js` | Local MCP firewall. Deny-by-default per-agent tool scoping (deny is a hard floor across scopes). Pins each server's advertised tools and raises **CRITICAL drift** when a description / title / input-schema changes on an already-approved tool — the tool-poisoning / rug-pull signature. `readOnlyHint` is advisory, never a grant. |
+| **Tollgate proxy** | `lib/proxy.js` | The enforcement point. A real MCP proxy that sits between a client and a downstream MCP server: runs every `tools/list` through drift detection (blocks a poisoned listing — fail closed) and every `tools/call` through the gate (deny → error, review → held for approval, allow → forwarded + recorded). `bin/tollgate-proxy.js` spawns any stdio MCP server behind it. This is what makes Tollgate *enforce*, not just observe. |
 | **Flight Recorder** | `lib/recorder.js` | One chronological timeline of every agent action; correlates call→result into a single entry with duration and cost; exports **OpenTelemetry GenAI** spans (`execute_tool`). |
 | **Meter** | `lib/meter.js` | Token/cost FinOps rollups by agent / model / day / total, with budget alarms (ok → warning → exceeded). Pure read-model. |
 | **Approvals Inbox** | `lib/approvals.js` | Cross-agent human-in-the-loop. A Tollgate `review` decision is the request; a human resolves it with an `approval.verdict` event. Doubles as tamper-evident compliance evidence. |
@@ -42,6 +43,9 @@ Node ≥22, standard library only. No npm dependencies. No telemetry leaves the 
 node bin/fleetdeck.js seed          # play the demo scenario onto a spine
 node bin/fleetdeck.js serve         # operator UI + JSON API at http://localhost:7420
 node bin/cortex-mcp.js              # serve the second brain as an MCP server (stdio)
+
+# put the firewall in a real MCP path — guard the memory server:
+node bin/tollgate-proxy.js --server cortex --agent claude -- node bin/cortex-mcp.js
 ```
 
 Other CLI verbs: `timeline`, `alerts`, `meter`, `inbox`, `approve/reject`,
