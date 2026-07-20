@@ -24,18 +24,22 @@ export function previewManifest(spine, candidate) {
 
   const calls = spine.query({ kind: 'tool.call' });
   const changes = [];
-  const summary = { unchanged: 0, newlyDenied: 0, newlyAllowed: 0, newlyReview: 0, otherChange: 0 };
+  // Restriction rank: allow (0) < review (1) < deny (2). A drop in rank is a
+  // LOOSENING (less oversight), a rise is a TIGHTENING — the risk-relevant direction.
+  const rank = { allow: 0, review: 1, deny: 2 };
+  const summary = { unchanged: 0, newlyDenied: 0, newlyAllowed: 0, newlyReview: 0, otherChange: 0, loosened: 0, tightened: 0 };
 
   for (const c of calls) {
     const was = c.decision; // the decision recorded when the call happened
     const now = decide(candidate, c.agent, c.server, c.tool).decision;
     if (was === now) { summary.unchanged++; continue; }
-    // classify the transition by where it lands (the risk-relevant direction)
     if (now === 'deny') summary.newlyDenied++;
     else if (now === 'allow') summary.newlyAllowed++;
     else if (now === 'review') summary.newlyReview++;
     else summary.otherChange++;
-    changes.push({ ref: c.id, agent: c.agent, server: c.server, tool: c.tool, was, now, at: c.ts });
+    const dir = rank[now] - rank[was];
+    if (dir < 0) summary.loosened++; else if (dir > 0) summary.tightened++;
+    changes.push({ ref: c.id, agent: c.agent, server: c.server, tool: c.tool, was, now, direction: dir < 0 ? 'looser' : dir > 0 ? 'tighter' : 'lateral', at: c.ts });
   }
 
   return { ok: true, total: calls.length, summary, changes };
@@ -54,11 +58,14 @@ export function previewPin(spine, server, freshTools) {
   return { pinned: true, ...report };
 }
 
-/** A one-line verdict for a manifest preview: is it safe to ship as-is? */
+/** A one-line verdict for a manifest preview: is it safe to ship as-is?
+ *  UNSAFE if ANY historical call would become less restricted (deny→review,
+ *  deny→allow, or review→allow) — any reduction in oversight deserves review,
+ *  not just a jump straight to allow. */
 export function verdict(preview) {
   if (!preview.ok) return { safe: false, reason: `invalid manifest: ${preview.errors.join('; ')}` };
   const s = preview.summary;
-  if (s.newlyAllowed > 0) return { safe: false, reason: `${s.newlyAllowed} call(s) that were blocked would now be ALLOWED — review before shipping` };
-  if (s.newlyDenied + s.newlyReview > 0) return { safe: true, reason: `tightens policy: ${s.newlyDenied} newly denied, ${s.newlyReview} newly held for review, ${s.newlyAllowed} newly allowed` };
+  if (s.loosened > 0) return { safe: false, reason: `${s.loosened} call(s) become LESS restricted (${s.newlyAllowed} newly ALLOWED, deny→review included) — review before shipping` };
+  if (s.tightened > 0) return { safe: true, reason: `tightens policy: ${s.newlyDenied} newly denied, ${s.newlyReview} newly held for review, none loosened` };
   return { safe: true, reason: 'no change to any historical decision' };
 }

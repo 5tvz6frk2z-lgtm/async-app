@@ -176,7 +176,7 @@ export class Register {
     const rows = this.evidence();
     if (!rows.length) return 'control,name\n';
     const cols = [...new Set(rows.flatMap((r) => Object.keys(r)))];
-    const esc = (v) => { const s = v == null ? '' : String(v); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+    const esc = (v) => { const s = v == null ? '' : String(v); return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
     return [cols.join(','), ...rows.map((r) => cols.map((k) => esc(r[k])).join(','))].join('\n');
   }
 }

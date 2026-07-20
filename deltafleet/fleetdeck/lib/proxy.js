@@ -18,6 +18,8 @@
 // `downstream` with `request(msg) -> Promise<response>`, so it runs in-process in
 // tests and over spawned stdio in production (bin/tollgate-proxy.js).
 
+import { canonical } from './tollgate.js';
+
 const ok = (id, result) => ({ jsonrpc: '2.0', id, result });
 const rpcError = (id, code, message) => ({ jsonrpc: '2.0', id, error: { code, message } });
 const toolError = (id, text) => ok(id, { content: [{ type: 'text', text }], isError: true });
@@ -77,9 +79,11 @@ export class TollgateProxy {
     const d = this.gate.guard(this.agent, this.server, name, args); // logs tool.call + decision
     if (d.decision === 'deny') return toolError(msg.id, `Blocked by Tollgate policy: ${d.reason}`);
     if (d.decision === 'review') {
-      // An approval is SINGLE-USE: a human approving one held call must not become a
-      // standing grant for every future call of that tool. Consume the approval here.
-      const ref = this.approvals ? this.#unconsumedApproval(name) : null;
+      // An approval is SINGLE-USE and BOUND TO THE REVIEWED PAYLOAD: a human approved a
+      // *specific* action, so only a retry with the SAME arguments may consume it. This
+      // preserves the human-in-the-loop guarantee — an attacker can't swap in a
+      // different payload to ride an approval granted for a benign one.
+      const ref = this.approvals ? this.#unconsumedApproval(name, args) : null;
       if (ref) this.gate.spine.append('approval.consumed', { ref, agent: this.agent, server: this.server, tool: name });
       else return toolError(msg.id, `Held for human approval — ${this.agent} → ${name}@${this.server}. Approve in the Fleet Deck inbox, then retry.`);
     }
@@ -89,12 +93,16 @@ export class TollgateProxy {
     return res;
   }
 
-  // The ref of an approved, not-yet-consumed verdict for this (agent, server, tool), or null.
-  #unconsumedApproval(tool) {
+  // The ref of an approved, not-yet-consumed verdict for this (agent, server, tool)
+  // WHOSE REVIEWED INPUT MATCHES `args`, or null. Input equality is order-independent
+  // (canonical JSON), so a human's approval authorizes exactly the payload they saw.
+  #unconsumedApproval(tool, args) {
     if (!this.approvals.history) return null;
     const consumed = new Set(this.gate.spine.query({ kind: 'approval.consumed' }).map((e) => e.ref));
+    const want = canonical(args ?? {});
     const match = this.approvals.history().find((h) =>
-      h.verdict === 'approved' && h.agent === this.agent && h.server === this.server && h.tool === tool && !consumed.has(h.ref));
+      h.verdict === 'approved' && h.agent === this.agent && h.server === this.server && h.tool === tool &&
+      !consumed.has(h.ref) && canonical(h.input ?? {}) === want);
     return match ? match.ref : null;
   }
 }

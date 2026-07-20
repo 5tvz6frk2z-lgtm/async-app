@@ -91,9 +91,15 @@ export class Contextsmith {
 }
 
 // Line-level diff via LCS — zero-dep, deterministic. Returns { added, removed, hunks }.
+// The LCS table is (m+1)x(n+1); guard against a pathological diff (context artifacts
+// are prose files, not megabyte blobs) rather than letting it exhaust memory.
+const MAX_DIFF_CELLS = 4_000_000; // ~2000 x 2000 lines
 export function lineDiff(before, after) {
   const A = String(before).split('\n'), B = String(after).split('\n');
   const m = A.length, n = B.length;
+  if ((m + 1) * (n + 1) > MAX_DIFF_CELLS) {
+    throw new Error(`lineDiff: inputs too large to diff (${m}x${n} lines); context artifacts should be prose, not bulk data`);
+  }
   const lcs = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
   for (let i = m - 1; i >= 0; i--) {
     for (let j = n - 1; j >= 0; j--) {

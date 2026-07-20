@@ -42,7 +42,11 @@ if (!configPath) console.error('tollgate-proxy: no --config; defaulting to revie
 const child = spawn(command, cmdArgs, { stdio: ['pipe', 'pipe', 'inherit'] });
 child.on('exit', (code) => { console.error(`tollgate-proxy: downstream exited (${code})`); process.exit(code ?? 0); });
 
-const pending = new Map(); // id -> resolve
+// Correlate downstream responses by an INTERNAL id, never the client-supplied one:
+// two clients (or a buggy one) reusing a JSON-RPC id must not cross-deliver or hang.
+// The client's original id is restored on the response before it goes back upstream.
+const pending = new Map(); // internalId -> (responseMsg) => void
+let seq = 0;
 let dbuf = '';
 child.stdout.setEncoding('utf8');
 child.stdout.on('data', (chunk) => {
@@ -59,8 +63,10 @@ child.stdout.on('data', (chunk) => {
 const downstream = {
   request: (msg) => new Promise((resolve) => {
     if (msg.id === undefined) { child.stdin.write(JSON.stringify(msg) + '\n'); return resolve(null); }
-    pending.set(msg.id, resolve);
-    child.stdin.write(JSON.stringify(msg) + '\n');
+    const clientId = msg.id;
+    const internalId = `p${seq++}`;
+    pending.set(internalId, (res) => { res.id = clientId; resolve(res); }); // restore the caller's id
+    child.stdin.write(JSON.stringify({ ...msg, id: internalId }) + '\n');
   }),
 };
 
