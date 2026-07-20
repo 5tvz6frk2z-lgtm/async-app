@@ -77,11 +77,11 @@ export class TollgateProxy {
     const d = this.gate.guard(this.agent, this.server, name, args); // logs tool.call + decision
     if (d.decision === 'deny') return toolError(msg.id, `Blocked by Tollgate policy: ${d.reason}`);
     if (d.decision === 'review') {
-      if (this.approvals && this.approvals.isApproved && this.#priorApproval(name)) {
-        // a human already approved an equivalent call — let it through
-      } else {
-        return toolError(msg.id, `Held for human approval — ${this.agent} → ${name}@${this.server}. Approve in the Fleet Deck inbox, then retry.`);
-      }
+      // An approval is SINGLE-USE: a human approving one held call must not become a
+      // standing grant for every future call of that tool. Consume the approval here.
+      const ref = this.approvals ? this.#unconsumedApproval(name) : null;
+      if (ref) this.gate.spine.append('approval.consumed', { ref, agent: this.agent, server: this.server, tool: name });
+      else return toolError(msg.id, `Held for human approval — ${this.agent} → ${name}@${this.server}. Approve in the Fleet Deck inbox, then retry.`);
     }
     const res = await this.downstream.request(msg);
     const isErr = res.result?.isError === true || !!res.error;
@@ -89,10 +89,13 @@ export class TollgateProxy {
     return res;
   }
 
-  // Was an equivalent (agent, server, tool) call approved and not yet consumed?
-  #priorApproval(tool) {
-    const hist = this.approvals.history ? this.approvals.history() : [];
-    return hist.some((h) => h.verdict === 'approved' && h.agent === this.agent && h.server === this.server && h.tool === tool);
+  // The ref of an approved, not-yet-consumed verdict for this (agent, server, tool), or null.
+  #unconsumedApproval(tool) {
+    if (!this.approvals.history) return null;
+    const consumed = new Set(this.gate.spine.query({ kind: 'approval.consumed' }).map((e) => e.ref));
+    const match = this.approvals.history().find((h) =>
+      h.verdict === 'approved' && h.agent === this.agent && h.server === this.server && h.tool === tool && !consumed.has(h.ref));
+    return match ? match.ref : null;
   }
 }
 

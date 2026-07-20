@@ -118,6 +118,10 @@ test('with approvals wired, a previously-approved call is let through on retry',
   const r = await proxy.handle(callMsg('create_issue', { title: 'x' }, 5)); // retry
   assert.equal(r.result.isError, false, 'retry after approval goes through');
   assert.match(r.result.content[0].text, /ran create_issue/);
+  // SINGLE-USE: the approval is consumed — a second call is held again, not a standing grant
+  const r2 = await proxy.handle(callMsg('create_issue', { title: 'y' }, 6));
+  assert.equal(r2.result.isError, true, 'a second call needs its own approval');
+  assert.match(r2.result.content[0].text, /Held for human approval/);
 });
 
 test('initialize is forwarded and the server name is marked as firewalled', async () => {
