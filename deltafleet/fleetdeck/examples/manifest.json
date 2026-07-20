@@ -1,0 +1,16 @@
+{
+  "_comment": "Tollgate permission manifest. Deny by default; scope each agent to the tools it may call on each MCP server. deny > review > allow, and a deny at any scope is a hard floor. This example lets the `claude` agent read the Cortex second brain but nothing else.",
+  "default": "deny",
+  "agents": {
+    "claude": {
+      "cortex": {
+        "allow": ["memory_search", "memory_stats"]
+      }
+    },
+    "*": {
+      "*": {
+        "review": ["*"]
+      }
+    }
+  }
+}

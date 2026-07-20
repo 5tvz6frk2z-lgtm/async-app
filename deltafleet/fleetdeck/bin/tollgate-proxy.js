@@ -82,7 +82,15 @@ process.stdin.on('data', async (chunk) => {
     if (res) process.stdout.write(JSON.stringify(res) + '\n');
   }
 });
-// When the upstream client closes stdin (EOF), shut the downstream down and exit —
-// a well-behaved stdio server doesn't linger after its client disconnects.
-process.stdin.on('end', () => { try { child.kill(); } catch { /* already gone */ } });
+// When the upstream client closes stdin (EOF), shut down — but DRAIN any in-flight
+// downstream requests first, so a call already forwarded still gets its response
+// written before the child is killed (a well-behaved server doesn't drop replies).
+process.stdin.on('end', () => {
+  const finish = () => {
+    if (pending.size > 0) { setTimeout(finish, 20); return; }
+    try { child.stdin.end(); child.kill(); } catch { /* already gone */ }
+    process.exit(0);
+  };
+  finish();
+});
 console.error(`tollgate-proxy: guarding "${command} ${cmdArgs.join(' ')}" as server="${server}" agent="${agent}" (drift=${onCriticalDrift}) -> spine ${spineFile}`);

@@ -49,7 +49,14 @@ node bin/tollgate-proxy.js --server cortex --agent claude -- node bin/cortex-mcp
 ```
 
 Other CLI verbs: `timeline`, `alerts`, `meter`, `inbox`, `approve/reject`,
-`register [pack] [--csv]`, `check <url>`.
+`register [pack] [--csv]`, `preflight`, `context`, `check <url>`.
+
+### Wire it into your MCP client
+
+Point your client (e.g. Claude Code's `.mcp.json`) at the Tollgate proxy instead of
+the server directly, passing the real server after `--`. See `examples/mcp-config.json`
+and `examples/manifest.json`. Every `tools/list` is drift-checked and every
+`tools/call` is policy-gated; run `fleetdeck serve` alongside to watch the traffic.
 
 ```bash
 node --test                         # the whole suite
