@@ -16,6 +16,7 @@ import { spawn } from 'node:child_process';
 import { Spine } from '../lib/spine.js';
 import { Tollgate } from '../lib/tollgate.js';
 import { TollgateProxy } from '../lib/proxy.js';
+import { deliver } from '../lib/notify.js';
 
 // ---- args -------------------------------------------------------------------
 const argv = process.argv.slice(2);
@@ -73,7 +74,14 @@ const downstream = {
 // ---- proxy over the parent's own stdio (the upstream client) -----------------
 const spine = new Spine(spineFile, { indexBy: ['agent', 'server'] });
 const gate = new Tollgate({ spine, manifest });
-const proxy = new TollgateProxy({ gate, downstream, server, agent, onCriticalDrift });
+// A tool-poisoning drift pages a human off the box if notify is configured.
+const notifyCfg = manifest.notify || (configPath ? JSON.parse(fs.readFileSync(configPath, 'utf8')).notify : null);
+const onAlert = notifyCfg
+  ? (alerts) => deliver(alerts, { ...notifyCfg, title: 'Fleet Deck: tool-poisoning drift blocked' })
+      .then((d) => { spine.append('notify.sent', { source: 'tollgate', count: alerts.length, delivered: d.delivered, channels: d.results }); })
+      .catch((e) => console.error(`tollgate-proxy: alert delivery failed: ${e.message}`))
+  : null;
+const proxy = new TollgateProxy({ gate, downstream, server, agent, onCriticalDrift, onAlert });
 
 let ubuf = '';
 process.stdin.setEncoding('utf8');

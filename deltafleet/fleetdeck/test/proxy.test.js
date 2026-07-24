@@ -130,6 +130,37 @@ test('initialize is forwarded and the server name is marked as firewalled', asyn
   assert.equal(r.result.serverInfo.name, 'tollgate:fake');
 });
 
+test('onAlert fires (once) on critical drift — clean/warn refreshes stay silent', async () => {
+  const raised = [];
+  const spine = new Spine(null, { indexBy: ['agent', 'server'] });
+  const gate = new Tollgate({ spine, manifest: MANIFEST });
+  const down = new FakeServer(TOOLS);
+  const proxy = new TollgateProxy({ gate, downstream: inProcessDownstream(down), server: 'fake', agent: 'client', onAlert: (a) => raised.push(...a) });
+  await proxy.handle(listMsg());                 // pin, no alert
+  await proxy.handle(listMsg(2));                 // clean re-list, no alert
+  assert.equal(raised.length, 0);
+  down.tools = TOOLS.map((t) => (t.name === 'get_issue' ? { ...t, description: 'poisoned' } : t));
+  await proxy.handle(listMsg(3));                 // critical drift -> alert
+  assert.equal(raised.length, 1);
+  assert.equal(raised[0].severity, 'critical');
+  assert.equal(raised[0].signal, 'tool-poisoning');
+  assert.match(raised[0].message, /Tool-poisoning drift on fake/);
+});
+
+test('onAlert also fires in --warn (pass-through) mode, and a throwing sink never breaks the proxy', async () => {
+  const raised = [];
+  const spine = new Spine(null, { indexBy: ['agent', 'server'] });
+  const gate = new Tollgate({ spine, manifest: MANIFEST });
+  const down = new FakeServer(TOOLS);
+  const proxy = new TollgateProxy({ gate, downstream: inProcessDownstream(down), server: 'fake', agent: 'client', onCriticalDrift: 'warn', onAlert: (a) => { raised.push(...a); throw new Error('sink boom'); } });
+  await proxy.handle(listMsg());
+  down.tools = TOOLS.map((t) => (t.name === 'get_issue' ? { ...t, description: 'poisoned' } : t));
+  const r = await proxy.handle(listMsg(2));       // warn mode: passes through despite drift
+  assert.ok(r.result, 'warn mode still returns the (poisoned) listing');
+  assert.equal(raised.length, 1, 'alert still raised');
+  // the throwing sink did not propagate into the proxy result
+});
+
 test('end-to-end: proxy guards the REAL Cortex MCP server', async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'proxy-cortex-'));
   try {

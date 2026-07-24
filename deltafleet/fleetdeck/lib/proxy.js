@@ -35,7 +35,7 @@ export class TollgateProxy {
    * @param {Approvals} [opts.approvals]  if given, a call previously approved for the
    *   same (agent, server, tool) is let through instead of re-held
    */
-  constructor({ gate, downstream, server = 'downstream', agent = 'client', onCriticalDrift = 'block', approvals = null }) {
+  constructor({ gate, downstream, server = 'downstream', agent = 'client', onCriticalDrift = 'block', approvals = null, onAlert = null }) {
     if (!gate || !downstream) throw new Error('TollgateProxy needs { gate, downstream }');
     this.gate = gate;
     this.downstream = downstream;
@@ -43,6 +43,10 @@ export class TollgateProxy {
     this.agent = agent;
     this.onCriticalDrift = onCriticalDrift;
     this.approvals = approvals;
+    // Optional sink for alert-worthy events (a tool-poisoning drift). Kept as a
+    // callback so the proxy core stays network-free and testable; the bin wires it
+    // to Notify. Called fire-and-forget — delivery must never delay the block.
+    this.onAlert = onAlert;
   }
 
   /** Handle one JSON-RPC message from the upstream client. */
@@ -66,9 +70,13 @@ export class TollgateProxy {
     const res = await this.downstream.request(msg);
     const tools = res.result?.tools || [];
     const drift = this.gate.inspect(this.server, tools); // pins on first sight; diffs after
-    if (drift.severity === 'critical' && this.onCriticalDrift === 'block') {
+    if (drift.severity === 'critical') {
       const what = drift.changes.filter((c) => c.severity === 'critical').map((c) => `${c.type}:${c.tool}`).join(', ');
-      return rpcError(msg.id, -32001, `tools/list blocked by Tollgate: ${this.server} changed since approval (${what}). Re-approve to continue.`);
+      // Page a human on the crown-jewel event, whether we block or pass-through.
+      this.#raise({ severity: 'critical', source: 'tollgate', server: this.server, signal: 'tool-poisoning', message: `Tool-poisoning drift on ${this.server}: ${what}` });
+      if (this.onCriticalDrift === 'block') {
+        return rpcError(msg.id, -32001, `tools/list blocked by Tollgate: ${this.server} changed since approval (${what}). Re-approve to continue.`);
+      }
     }
     return res;
   }
@@ -91,6 +99,12 @@ export class TollgateProxy {
     const isErr = res.result?.isError === true || !!res.error;
     this.gate.record(this.agent, this.server, name, { ok: !isErr, error: isErr ? (res.error?.message || 'tool error') : undefined });
     return res;
+  }
+
+  // Fire the alert sink without letting a delivery error or delay touch the request path.
+  #raise(alert) {
+    if (!this.onAlert) return;
+    try { Promise.resolve(this.onAlert([alert])).catch(() => {}); } catch { /* sink must never throw into the proxy */ }
   }
 
   // The ref of an approved, not-yet-consumed verdict for this (agent, server, tool)
