@@ -98,7 +98,8 @@ async function main() {
     }
     case 'register': {
       const deck = openDeck(rest[0] || DEFAULT_FILE);
-      if (rest[1]) deck.register.setPack(rest[1]);
+      // [pack] is an optional positional; don't mistake a flag (e.g. --csv) for the pack name.
+      if (rest[1] && !rest[1].startsWith('--')) deck.register.setPack(rest[1]);
       if (rest.includes('--csv')) { console.log(deck.register.toCsv()); break; }
       const r = deck.register.register();
       const mark = { satisfied: '✓', attention: '!', gap: '✗' };
