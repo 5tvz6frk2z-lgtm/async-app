@@ -133,34 +133,30 @@ export const AGENT_READY_RULES = [
   // Set comparison (string-normalized) when both checks carry the list — catches a same-count
   // swap; numeric-coerced count fallback for legacy/injected metrics that predate the list.
   (p, c) => {
-    // Enter the identity-based branch whenever the CURRENT check carries the retrieval
-    // list — the baseline below already tolerates a prev that lacks it (via `|| []`), so
-    // a prev recorded only in blockedList (predating the retrievalList field) is still
-    // credited as already-blocked. Requiring BOTH sides to carry the list dropped that
-    // credit and misread an unchanged (or improved) posture as a fresh 0→1 block.
-    if (Array.isArray(c.blockedRetrievalList)) {
-      // "newly blocked" = a retrieval bot NOT already blocked overall last check. Keying
-      // off p.blockedList (fallback p.blockedRetrievalList) means a mere role-tag flip on
-      // an already-blocked bot (a registry reclassification, not an access change) stays
-      // silent — access didn't slip, so no alert.
-      // Baseline = every bot blocked last check, by EITHER list (union), so an
-      // inconsistent hand-fed metric where blockedRetrievalList ⊄ blockedList can't
-      // make an unchanged check look like a new block.
+    // Each side's retrieval-blocked count from the best signal it carries: the list length
+    // if present (authoritative), else the numeric count, else 0 (truly absent metric).
+    const retCount = (m) => Array.isArray(m.blockedRetrievalList) ? m.blockedRetrievalList.length
+      : m.blockedRetrieval == null ? 0 : Number(m.blockedRetrieval);
+    // IDENTITY comparison — only when we can NAME the blocked bots on BOTH sides: cur carries
+    // the retrieval list AND prev carries some identity (its blockedList and/or retrieval
+    // list). Subtracting identities lets a role re-tag on an already-blocked bot, or a
+    // reclassification, stay silent. A count-only prev has NO identities to subtract, so
+    // identity subtraction there would wrongly read every already-blocked bot as new — that
+    // case must fall through to the count comparison, NOT default prev to an empty set.
+    const prevHasIdentity = Array.isArray(p.blockedList) || Array.isArray(p.blockedRetrievalList);
+    if (Array.isArray(c.blockedRetrievalList) && prevHasIdentity) {
+      // Baseline = every bot blocked last check, by EITHER list (union), so an inconsistent
+      // hand-fed metric where blockedRetrievalList ⊄ blockedList can't look like a new block.
       const wasBlocked = strSet([...(p.blockedList || []), ...(p.blockedRetrievalList || [])]);
       const newly = c.blockedRetrievalList.map(String).filter((n) => !wasBlocked.has(n));
       return newly.length
         ? { signal: 'retrieval-access', severity: 'critical', from: p.blockedRetrievalList, to: c.blockedRetrievalList, message: `Answer-engine RETRIEVAL bot(s) newly blocked: ${newly.join(', ')} — kills AI-search citations` }
         : null;
     }
-    // Count fallback (one side lacks the list). The blockedRetrievalList, when present,
-    // is the AUTHORITATIVE count — so a side that carries the list but omits the count
-    // must be read from the list, not defaulted to 0 (that ignored an already-blocked
-    // bot and misread a no-change 1→1 as a new 0→1 block). Only a truly absent metric
-    // (no list AND no count — a check predating the metric) is a 0 baseline, so a new
-    // block from nothing still fires; a PRESENT but non-numeric count ('two') stays
-    // uncomparable and must not coerce to 0 (which would misread an improvement).
-    const retCount = (m) => Array.isArray(m.blockedRetrievalList) ? m.blockedRetrievalList.length
-      : m.blockedRetrieval == null ? 0 : Number(m.blockedRetrieval);
+    // COUNT comparison (a side lacks identity, e.g. a legacy count-only prev). A truly
+    // absent metric (no list, no count) is a 0 baseline so a first-seen block still fires;
+    // a PRESENT but non-numeric count ('two') stays uncomparable (never coerced to 0, which
+    // would misread an improvement or fabricate a block).
     const pr = retCount(p), cr = retCount(c);
     if (!Number.isFinite(pr) || !Number.isFinite(cr)) return null;
     return cr > pr
@@ -185,7 +181,15 @@ export const AGENT_READY_RULES = [
     }
     if (typeof p.blockedCrawlers !== 'number' || typeof c.blockedCrawlers !== 'number') return null;
     if (c.blockedCrawlers <= p.blockedCrawlers) return null;
-    const newOther = (c.blockedCrawlers - num(c.blockedRetrieval)) - (p.blockedCrawlers - num(p.blockedRetrieval));
+    // Subtract the retrieval bots (rule above owns them) ONLY when both retrieval counts are
+    // known finite numbers. A MISSING count (null/undefined) must read as unknown, NOT 0 —
+    // Number(null)===0 is finite and would inflate the "other" delta beyond the real total
+    // increase, so a missing side falls back to the gross blockedCrawlers rise (never over-counts).
+    const retNum = (m) => m.blockedRetrieval == null ? NaN : Number(m.blockedRetrieval);
+    const pRet = retNum(p), cRet = retNum(c);
+    const newOther = (Number.isFinite(pRet) && Number.isFinite(cRet))
+      ? (c.blockedCrawlers - cRet) - (p.blockedCrawlers - pRet)
+      : (c.blockedCrawlers - p.blockedCrawlers);
     return newOther > 0
       ? { signal: 'crawler-access', severity: 'warning', from: p.blockedCrawlers, to: c.blockedCrawlers, message: `${newOther} more AI crawler(s) now blocked in robots.txt (${p.blockedCrawlers}→${c.blockedCrawlers})` }
       : null;

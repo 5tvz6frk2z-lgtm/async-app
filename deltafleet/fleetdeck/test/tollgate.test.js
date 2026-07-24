@@ -97,6 +97,33 @@ test('audit6: reordering a dependentRequired set is NOT drift (unordered propert
   assert.equal(diffSnapshots(fingerprintServer(a), fingerprintServer(c)).drifted, true);
 });
 
+test('audit7: invisible chars outside C/Z/M (Default_Ignorable + Braille blank) are denied', () => {
+  // Hangul fillers (Lo) and Braille blank U+2800 (So) render as nothing yet are NOT in C/Z/M.
+  // Manifest ALLOWS everything, so only the unclean-identifier guard can produce a deny; and
+  // asserting the char is physically present keeps the test non-vacuous.
+  const m = { default: 'deny', agents: { A: { S: { allow: ['*'] } } } };
+  for (const [cp, ch] of [[0x115f, 'ᅟ'], [0x1160, 'ᅠ'], [0x3164, 'ㅤ'], [0xffa0, 'ﾠ'], [0x2800, '⠀']]) {
+    const name = 'read_file' + ch;
+    assert.equal([...name].length, 'read_file'.length + 1, 'U+' + cp.toString(16) + ' present in source');
+    assert.equal(ch.codePointAt(0), cp, 'char matches expected code point');
+    assert.equal(decide(m, 'A', 'S', name).decision, 'deny', 'U+' + cp.toString(16) + ' decorated name denied despite allow:[*]');
+  }
+  assert.equal(decide(m, 'A', 'S', 'read_file').decision, 'allow', 'the clean identifier is allowed');
+});
+
+test('audit7: reordering a tool\'s `examples` is NOT drift (non-normative unordered annotation)', () => {
+  const a = [{ name: 'read_file', description: 'd', inputSchema: { type: 'object', properties: { path: { type: 'string', examples: ['/etc/hosts', '/tmp/a', '/var/log'] } } } }];
+  const b = [{ name: 'read_file', description: 'd', inputSchema: { type: 'object', properties: { path: { type: 'string', examples: ['/var/log', '/tmp/a', '/etc/hosts'] } } } }];
+  assert.equal(diffSnapshots(fingerprintServer(a), fingerprintServer(b)).drifted, false);
+  // but changing an example's CONTENT, or the order WITHIN an example array, is a real change
+  const c = [{ name: 'read_file', description: 'd', inputSchema: { examples: [{ a: 1 }] } }];
+  const d = [{ name: 'read_file', description: 'd', inputSchema: { examples: [{ a: 2 }] } }];
+  assert.equal(diffSnapshots(fingerprintServer(c), fingerprintServer(d)).drifted, true);
+  const e = [{ name: 'read_file', description: 'd', inputSchema: { examples: [['a', 'b']] } }];
+  const f = [{ name: 'read_file', description: 'd', inputSchema: { examples: [['b', 'a']] } }];
+  assert.equal(diffSnapshots(fingerprintServer(e), fingerprintServer(f)).drifted, true, 'order WITHIN an example is meaningful');
+});
+
 test('audit5: reordering an array inside a `default`/`const` DATA region IS drift (not a schema keyword)', () => {
   // A field named `type` inside instance data (default/const) is plain data — its order
   // carries meaning, so reordering it is a real accepted-value change and must drift.

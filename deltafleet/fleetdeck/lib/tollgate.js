@@ -87,15 +87,17 @@ function applicableRules(manifest, agent, server) {
  */
 export function decide(manifest, agent, server, tool) {
   const fallback = manifest.default || 'deny';
-  // FAIL CLOSED on a tool name carrying any INVISIBLE or COMBINING character. A control,
-  // format, zero-width, bidi, separator, or combining/variation-selector char (newline,
-  // NBSP, ZWSP, RLO, BOM, U+2028, VS16 U+FE0F, U+E0100, Mongolian FVS, …) can decorate a
-  // name so it looks identical to a denied one yet dodges the anchored deny regex, while a
-  // broad allow:['*'] still matches it — a deny bypass. Rejecting the whole Unicode C
-  // (control/format), Z (separator) AND M (marks — combining/variation selectors are
-  // Mn, invisible yet category-M so C/Z alone misses them) closes the entire class at
-  // once; visible punctuation (parens, dots) stays allowed and matches literally.
-  if (typeof tool !== 'string' || tool.length === 0 || /[\p{C}\p{Z}\p{M}]/u.test(tool)) {
+  // FAIL CLOSED on a tool name carrying any INVISIBLE / non-rendering character. Such a char
+  // (newline, NBSP, ZWSP, RLO, BOM, U+2028, VS16 U+FE0F, Mongolian FVS, Hangul fillers
+  // U+115F/1160/3164/FFA0, Braille-blank U+2800, …) can decorate a name so it looks identical
+  // to a denied one yet dodges the anchored deny regex while a broad allow:['*'] still matches
+  // it — a deny bypass. Blocklisting one Unicode category at a time is whack-a-mole (invisible
+  // chars hide in C, Z, M, AND letter/symbol categories), so we reject the whole invisible
+  // universe at once: C (control/format), Z (separator), M (marks/variation selectors),
+  // Default_Ignorable_Code_Point (Hangul fillers & friends — Lo/So yet render as nothing),
+  // plus U+2800 (Braille blank, a So char that isn't Default_Ignorable). Visible punctuation
+  // (parens, dots) is none of these, so it stays allowed and matches literally.
+  if (typeof tool !== 'string' || tool.length === 0 || /[\p{C}\p{Z}\p{M}\p{Default_Ignorable_Code_Point}\u2800]/u.test(tool)) {
     return { decision: 'deny', reason: `${agent}/${server}: tool name is not a clean identifier (invisible/control characters)`, matched: 'deny' };
   }
   const rules = applicableRules(manifest, agent, server);
@@ -129,23 +131,34 @@ function sha(s) { return crypto.createHash('sha256').update(s).digest('hex').sli
 
 // Canonicalize an inputSchema so two schemas fingerprint equal IFF they mean the same
 // thing to a tool consumer. The JSON Schema spec makes some arrays UNORDERED sets —
-// `required`, a union `type` (['string','null']), `enum`, and the `anyOf`/`oneOf`/
-// `allOf` applicators — so a server merely re-serializing them differently must NOT
-// read as a rug-pull. But order carries meaning everywhere else: positional tuples
-// (`items`/`prefixItems`) AND — critically — anything inside an instance-DATA region
-// (`default`/`const`/`examples`), where an array that happens to be named `type` is
-// just data, not a schema keyword.
+// `required`, a union `type` (['string','null']), `enum`, the `anyOf`/`oneOf`/`allOf`
+// applicators, and the non-normative `examples` annotation (a bag of sample instances) —
+// so a server merely re-serializing them differently must NOT read as a rug-pull. But
+// order carries meaning everywhere else: positional tuples (`items`/`prefixItems`) AND —
+// critically — anything inside an instance-DATA VALUE (`default`/`const`, or an individual
+// `examples` member), where an array that happens to be named `type` is just data.
 //
 // The old version decided purely by key NAME at any depth. That was wrong in BOTH
 // directions: it sorted a `default.type`/`const.type` data array (hiding a real
 // accepted-value change = a drift false-negative), and it left `anyOf` order-sensitive
 // (crying CRITICAL wolf on a cosmetic reorder = a false-positive). We track POSITION
 // instead — a keyword is only a keyword at a schema position, never inside a data value
-// nor as a property NAME under `properties`.
+// nor as a property NAME under `properties`. `examples` splits the difference: the array
+// itself is an unordered set (sort it), but each member is instance data (preserve order
+// within it) — so we sort by canonical after normalizing each member as data, like `enum`.
 const _SCHEMA_SET_KEY = new Set(['anyOf', 'oneOf', 'allOf']); // arrays of subschemas = unordered sets
+const _DATA_SET_KEY = new Set(['enum', 'examples']); // unordered array of DATA values (members are data)
 const _SCHEMA_MAP_KEY = new Set(['properties', 'patternProperties', 'definitions', '$defs', 'dependentSchemas']); // name -> subschema
-const _DATA_KEY = new Set(['default', 'const', 'examples']); // value is instance data, order-sensitive
+const _DATA_KEY = new Set(['default', 'const']); // value is a single instance value, order-sensitive
 const _byCanonical = (a, b) => { const x = canonical(a), y = canonical(b); return x < y ? -1 : x > y ? 1 : 0; };
+
+// Sort a per-key map of unordered NAME arrays (draft-07 `dependencies` array-form and
+// `dependentRequired`); a schema-valued entry (dependencies' other form) recurses as schema.
+function normDepMap(val) {
+  const m = {};
+  for (const name of Object.keys(val)) m[name] = Array.isArray(val[name]) ? [...val[name]].sort() : normNode(val[name], 'schema');
+  return m;
+}
 
 function normNode(v, mode) {
   if (Array.isArray(v)) return v.map((x) => normNode(x, mode));
@@ -155,10 +168,8 @@ function normNode(v, mode) {
     const val = v[k];
     if (mode === 'data') { out[k] = normNode(val, 'data'); continue; } // in data: never sort, preserve order
     if ((k === 'required' || k === 'type') && Array.isArray(val)) out[k] = [...val].sort();
-    else if (k === 'dependentRequired' && val && typeof val === 'object' && !Array.isArray(val)) {
-      // name -> array of required-property NAMES; each array is an unordered set (like `required`).
-      const m = {}; for (const name of Object.keys(val)) m[name] = Array.isArray(val[name]) ? [...val[name]].sort() : normNode(val[name], 'data'); out[k] = m;
-    } else if (k === 'enum' && Array.isArray(val)) out[k] = val.map((x) => normNode(x, 'data')).sort(_byCanonical);
+    else if ((k === 'dependentRequired' || k === 'dependencies') && val && typeof val === 'object' && !Array.isArray(val)) out[k] = normDepMap(val);
+    else if (_DATA_SET_KEY.has(k) && Array.isArray(val)) out[k] = val.map((x) => normNode(x, 'data')).sort(_byCanonical);
     else if (_SCHEMA_SET_KEY.has(k) && Array.isArray(val)) out[k] = val.map((x) => normNode(x, 'schema')).sort(_byCanonical);
     else if (_SCHEMA_MAP_KEY.has(k) && val && typeof val === 'object' && !Array.isArray(val)) {
       const m = {}; for (const name of Object.keys(val)) m[name] = normNode(val[name], 'schema'); out[k] = m;

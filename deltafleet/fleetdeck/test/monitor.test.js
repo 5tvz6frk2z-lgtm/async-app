@@ -195,6 +195,30 @@ test('audit6: retrieval-access enters the list branch when only CUR carries the 
   assert.equal(g && g.severity, 'critical', 'a real new retrieval block still fires');
 });
 
+test('audit7: retrieval-access uses count comparison when prev is legacy count-only (no lists)', () => {
+  const retrieval = AGENT_READY_RULES[1];
+  // prev is a legacy count-only metric (blockedRetrieval set, no lists); cur carries the list.
+  // Same posture (1 blocked before & after) must stay silent — the identity branch must NOT
+  // treat the count-only prev as an empty baseline.
+  assert.equal(retrieval({ blockedRetrieval: 1 }, { blockedRetrievalList: ['GPTBot'], blockedList: ['GPTBot'], blockedRetrieval: 1 }), null, 'legacy-count no-change must stay silent');
+  // an IMPROVEMENT (2 -> 1) must also stay silent.
+  assert.equal(retrieval({ blockedRetrieval: 2 }, { blockedRetrievalList: ['GPTBot'], blockedList: ['GPTBot'], blockedRetrieval: 1 }), null, 'legacy-count improvement must stay silent');
+  // a genuine increase from a legacy count-only prev still fires.
+  const g = retrieval({ blockedRetrieval: 0 }, { blockedRetrievalList: ['GPTBot'], blockedList: ['GPTBot'] });
+  assert.equal(g && g.severity, 'critical', 'a real 0->1 from a count-only prev still fires');
+});
+
+test('audit7: crawler-access count fallback does not inflate when a retrieval count is missing', () => {
+  const crawler = AGENT_READY_RULES[2];
+  // prev has 1 crawler / 1 retrieval; cur has 2 crawlers but a MISSING retrieval count.
+  // The total rose by exactly 1, so the alert must report "1 more", not "2 more".
+  const r = crawler({ blockedCrawlers: 1, blockedRetrieval: 1 }, { blockedCrawlers: 2, blockedRetrieval: null });
+  assert.ok(r && /\b1 more\b/.test(r.message), `expected "1 more", got: ${r && r.message}`);
+  // the both-counts-known path is unchanged: 2 crawlers, 1 retrieval -> 1 other.
+  const r2 = crawler({ blockedCrawlers: 0, blockedRetrieval: 0 }, { blockedCrawlers: 2, blockedRetrieval: 1 });
+  assert.ok(r2 && /\b1 more\b/.test(r2.message));
+});
+
 test('audit6: a page going noindex via <meta name="robots"> (not just X-Robots-Tag) fires critical', () => {
   const m = mon();
   const page = (h = '') => `<!doctype html><html><head>${h}<title>Widgets</title>` +
