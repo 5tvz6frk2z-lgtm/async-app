@@ -59,7 +59,7 @@ function scrubError(e, url) {
  * must not sink a check).
  */
 export async function deliver(alerts, config, opts) {
-  if (!alerts || !alerts.length) return { delivered: 0, results: [] };
+  if (!Array.isArray(alerts) || alerts.length === 0) return { delivered: 0, results: [] }; // Array.isArray guards a hostile non-array whose .length getter throws
   // The `= {}` param default only fires for undefined; an explicit null (config OR opts) must
   // not throw — deliver()'s contract is NEVER throws. Normalize both here.
   config = config || {};

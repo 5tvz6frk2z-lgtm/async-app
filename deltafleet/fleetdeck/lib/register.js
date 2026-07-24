@@ -26,7 +26,21 @@ const drifts = (spine) => spine.query({ kind: 'mcp.drift' });
 // Which review requests never received a verdict (open human-oversight items).
 function openReviews(spine) {
   const decided = new Set(verdicts(spine).map((v) => v.ref));
-  return reviews(spine).filter((r) => !decided.has(r.id));
+  const open = reviews(spine).filter((r) => !decided.has(r.id)).sort((a, b) => a.seq - b.seq);
+  // A human-approved action that is retried logs a FRESH review tool.call (the proxy re-guards);
+  // that retry isn't a NEW open oversight item. Each approval.consumed clears the newest still-open
+  // matching (agent,server,tool) review — else a consumed retry inflates the open-review count and
+  // the human-oversight control looks worse than reality (mirrors the Approvals inbox).
+  const removed = new Set();
+  for (const c of spine.query({ kind: 'approval.consumed' })) {
+    let best = null;
+    for (const r of open) {
+      if (removed.has(r.id)) continue;
+      if ((r.agent ?? null) === (c.agent ?? null) && (r.server ?? null) === (c.server ?? null) && (r.tool ?? null) === (c.tool ?? null) && (!best || r.seq > best.seq)) best = r;
+    }
+    if (best) removed.add(best.id);
+  }
+  return open.filter((r) => !removed.has(r.id));
 }
 
 // ---- controls ----------------------------------------------------------------

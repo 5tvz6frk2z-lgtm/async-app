@@ -83,7 +83,11 @@ export class TollgateProxy {
 
   async #call(msg) {
     const name = msg.params?.name;
-    const args = msg.params?.arguments || {};
+    // `?? {}` not `|| {}` — only an ABSENT arguments becomes {}. Collapsing every falsy value
+    // (0/false/'') to {} would let an approval reviewed for one scalar be consumed by a retry
+    // with a different scalar (both recorded as {}), while the raw msg still forwards the real
+    // scalar downstream — a HITL bypass + audit gap.
+    const args = msg.params?.arguments ?? {};
     const d = this.gate.guard(this.agent, this.server, name, args); // logs tool.call + decision
     if (d.decision === 'deny') return toolError(msg.id, `Blocked by Tollgate policy: ${d.reason}`);
     if (d.decision === 'review') {

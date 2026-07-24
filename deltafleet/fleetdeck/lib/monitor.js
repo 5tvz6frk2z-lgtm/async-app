@@ -162,7 +162,11 @@ export const AGENT_READY_RULES = [
       // retrieval bots its lists actually enumerate, that slack of UNNAMED retrieval bots could
       // be exactly the ones cur now names — a rename, not a new block. Only alert on names
       // beyond that slack (a genuine same-count SWAP, where prev DID name its bot, still fires).
-      const namedPrevRetrieval = (p.blockedRetrievalList || []).length; // retrieval bots prev explicitly NAMED
+      // Retrieval bots prev NAMED — symmetric with retCount: the explicit retrieval list UNION
+      // the retrieval-role bots named in blockedList. (Counting only blockedRetrievalList double-
+      // counted a retrieval bot that lives in blockedList: it was subtracted from `newly` via
+      // wasBlocked AND inflated the unnamed slack, masking a genuinely new citation-killer block.)
+      const namedPrevRetrieval = strSet([...(p.blockedRetrievalList || []), ...((p.blockedList || []).filter((n) => AI_AGENT_ROLES[n] === 'retrieval'))]).size;
       const prevCount = Number(p.blockedRetrieval);
       const unnamedPrevRetrieval = Number.isFinite(prevCount) ? Math.max(0, prevCount - namedPrevRetrieval) : 0;
       return newly.length > unnamedPrevRetrieval

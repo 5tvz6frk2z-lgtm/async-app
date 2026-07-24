@@ -97,21 +97,29 @@ export class Spine {
     // Stamp id/seq/ts/kind LAST so a caller's payload can never forge them — these
     // fields ARE the audit trail, and the spine is their sole authority.
     const e = { ...payload, id: `evt_${seq.toString(36).padStart(6, '0')}`, seq, ts: new Date().toISOString(), kind };
+    // Normalize through JSON so the in-memory event is EXACTLY what a restarted process would
+    // reload — otherwise a payload carrying Infinity/NaN (→ null) or undefined (→ dropped) makes
+    // the live process and a replay of the same durable log disagree. `json` is the disk form;
+    // `stored` is its parse, so memory and disk are byte-identical.
+    const json = JSON.stringify(e);
+    const stored = JSON.parse(json);
     // Persist BEFORE mutating memory: if the disk write throws (full/read-only),
     // in-memory state must not diverge from what's durably on disk.
     if (this.file) {
-      const line = (this._needsLeadingNewline ? '\n' : '') + JSON.stringify(e) + '\n';
+      const line = (this._needsLeadingNewline ? '\n' : '') + json + '\n';
       fs.appendFileSync(this.file, line);
       this._needsLeadingNewline = false;
     }
-    this.events.push(e);
+    this.events.push(stored);
     this.version++;
-    this.#index(e, this.events.length - 1);
+    // index / projections / listeners / return ALL see `stored` (the normalized, durable form),
+    // so every consumer agrees with what a restarted process would replay.
+    this.#index(stored, this.events.length - 1);
     // Advance every registered projection BEFORE listeners fire, so a listener
     // that reads view() sees a state that already accounts for this event.
-    for (const p of this._projections.values()) this.#advance(p, e);
-    for (const fn of this.listeners) fn(e);
-    return e;
+    for (const p of this._projections.values()) this.#advance(p, stored);
+    for (const fn of this.listeners) fn(stored);
+    return stored;
   }
 
   #index(e, pos) {

@@ -21,8 +21,15 @@ const usageBearing = (e) => e.tokensIn != null || e.tokensOut != null || e.costU
 // drive the total down and silence an exceeded alarm; a string would be dropped to 0 or, for
 // tokens, string-concatenated into garbage. `null`/`undefined`/`absent` returns NaN so the
 // caller can distinguish "no value" (fall back to token pricing) from "zero".
-const money = (v) => { const n = Number(v); return v != null && Number.isFinite(n) && n >= 0 ? n : NaN; };
-const tokens = (v) => { const n = Number(v); return Number.isFinite(n) && n >= 0 ? n : 0; };
+// Only a real number or a NON-BLANK numeric string is a cost; null/undefined/''/false/[]/{}
+// are MISSING (return NaN so costOf falls back to token pricing) — NOT an explicit $0, which
+// would wrongly suppress the token-derived cost. Negative/non-finite are rejected too.
+const money = (v) => {
+  if (typeof v === 'number') return Number.isFinite(v) && v >= 0 ? v : NaN;
+  if (typeof v === 'string' && v.trim() !== '') { const n = Number(v); return Number.isFinite(n) && n >= 0 ? n : NaN; }
+  return NaN;
+};
+const tokens = (v) => { const n = typeof v === 'number' || (typeof v === 'string' && v.trim() !== '') ? Number(v) : NaN; return Number.isFinite(n) && n >= 0 ? n : 0; };
 
 export function costOf(e, pricing = {}) {
   const c = money(e.costUsd);

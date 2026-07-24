@@ -27,7 +27,7 @@ export const OTEL_SEMCONV = {
 
 const isCall = (e) => e.kind === 'tool.call';
 const isResult = (e) => e.kind === 'tool.result';
-const key = (e) => `${e.agent || ''}|${e.server || ''}|${e.tool || ''}`;
+const key = (e) => JSON.stringify([e.agent ?? '', e.server ?? '', e.tool ?? '']); // JSON, not `|`-join — a value containing '|' would otherwise collide two distinct tuples
 const ms = (ts) => Date.parse(ts); // ISO -> epoch ms (NaN-safe: guarded before use)
 
 export class Recorder {
@@ -45,9 +45,11 @@ export class Recorder {
    */
   timeline(filter = {}) {
     const { agent, server, tool, kind, since, until, limit, reverse } = filter;
-    // Pull the whole ordered log once, correlate, THEN filter — so a tool.call
-    // still finds its result even when the caller filters to just tool.calls.
-    const events = this.spine.query({ since, until });
+    // Pull the WHOLE ordered log (NOT windowed by since/until) and correlate on it — so a
+    // tool.call still finds its result even when the caller filters to just tool.calls, AND a
+    // result never binds to the wrong call because the window sliced its true call out of view.
+    // since/until are applied to the correlated ENTRIES at the end.
+    const events = this.spine.query({});
     // A tool.result can ONLY come from a call that actually executed. A denied call never
     // executes, and a review call executes only once a human approval is consumed — so
     // neither may sit in the correlation queue and steal a later allowed call's result
@@ -82,11 +84,16 @@ export class Recorder {
       entries.push(entry);
     }
 
+    const inWindow = (x) => {
+      if (since !== undefined && (typeof since === 'number' ? x.seq : x.ts) < since) return false;
+      if (until !== undefined && (typeof until === 'number' ? x.seq : x.ts) > until) return false;
+      return true;
+    };
     let out = entries.filter((x) =>
       (agent === undefined || x.agent === agent) &&
       (server === undefined || x.server === server) &&
       (tool === undefined || x.tool === tool) &&
-      (kind === undefined || x.kind === kind));
+      (kind === undefined || x.kind === kind) && inWindow(x));
     if (reverse) out.reverse();
     if (limit !== undefined) out = out.slice(0, limit);
     return out;
@@ -96,6 +103,7 @@ export class Recorder {
     return {
       seq: e.seq, id: e.id, ts: e.ts, kind: e.kind,
       agent: e.agent ?? null, server: e.server ?? null, tool: e.tool ?? null,
+      thread: e.thread ?? null, // carried through so toOtelSpans' traceId can group by thread
       model: e.model ?? null, decision: e.decision ?? null,
       tokensIn: e.tokensIn ?? null, tokensOut: e.tokensOut ?? null,
       costUsd: cost(e, this.pricing),
