@@ -1,0 +1,247 @@
+// The Spine — the one append-only timeline every Fleet Deck tool reads and writes.
+//
+// Fleet Deck is deliberately NOT a stack of separate apps. Tollgate, Flight
+// Recorder, Meter and the Approvals Inbox are all *views* over a single event
+// log: one file, one ordering, one source of truth. A tool never owns state; it
+// registers a projection and the spine keeps it current. This is what makes the
+// suite cohere — an approval, the tool call it gated, and its token cost are the
+// same three events seen through three lenses, not three databases to reconcile.
+//
+// Events are append-only JSONL. They are never mutated or deleted; every derived
+// view is a pure function of the log replayed in order. An event is:
+//   { id, seq, ts, kind, ...payload }
+//     seq   monotonic 0-based integer — the canonical order (survives restart)
+//     ts    ISO-8601 wall-clock stamp (for humans; never used for ordering)
+//     kind  dotted namespace, e.g. "tool.call", "mcp.snapshot", "approval.requested"
+//
+// Design mirrors the platform ledger's proven derivation discipline: a single
+// #apply path both builds a projection from scratch (full replay) and advances
+// it on append, so the two can never diverge.
+import fs from 'node:fs';
+import path from 'node:path';
+
+export class Spine {
+  /**
+   * @param {string|null} file  JSONL path, or null for an in-memory spine (tests).
+   * @param {object} [opts]
+   * @param {string[]} [opts.indexBy]  payload fields to build equality indexes on
+   *   for fast query() (kind is always indexed). Defaults to ['agent'].
+   */
+  constructor(file, opts = {}) {
+    this.file = file;
+    this.events = [];
+    this.version = 0;                 // bumps on every append; cheap cache key for consumers
+    this.listeners = new Set();
+    this._projections = new Map();    // name -> { reducer, state }
+    this._indexFields = ['kind', ...(opts.indexBy || ['agent'])];
+    this._index = new Map();          // field -> value -> seq[]
+    for (const f of this._indexFields) this._index.set(f, new Map());
+
+    if (file && fs.existsSync(file)) {
+      this.#load(file);
+    } else if (file) {
+      fs.mkdirSync(path.dirname(file), { recursive: true });
+    }
+  }
+
+  #load(file) {
+    // Crash-safe load, identical policy to the platform ledger: a process killed
+    // mid-append can leave one torn final line — tolerate exactly that (truncate
+    // it so the next append writes cleanly). Anything corrupt earlier throws
+    // rather than silently rewrite history. A line that parses as JSON but is not
+    // a plain object (null, a number, an array, a string) is NOT an event and is
+    // treated as corruption on the same path — dropping it silently would be the
+    // very history-rewrite we refuse.
+    const raw = fs.readFileSync(file, 'utf8');
+    const lines = raw.split('\n');
+    const seenIds = new Set();
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (!line.trim()) continue;
+      let e, bad = false, why = '';
+      try { e = JSON.parse(line); } catch (err) { bad = true; why = err.message; }
+      if (!bad && !isEvent(e)) { bad = true; why = 'not a JSON object'; }
+      if (bad) {
+        // A crash mid-append leaves a TORN final record — recognizable because the file does not
+        // end with a newline (the record, and its terminating '\n', were never fully written).
+        // Tolerate exactly that: truncate it. A corrupt record that DOES end with a newline was
+        // fully committed, so it's real corruption — throw, as documented (never rewrite history).
+        if (!raw.endsWith('\n') && lines.slice(i + 1).every((l) => !l.trim())) {
+          const validBytes = lines.slice(0, i).reduce((n, l) => n + Buffer.byteLength(l, 'utf8') + 1, 0);
+          try { fs.truncateSync(file, validBytes); } catch { /* read-only fs: in-memory drop still correct */ }
+          console.warn(`spine: dropped torn final record in ${path.basename(file)} (crash mid-append?), truncated to ${validBytes} bytes`);
+          break;
+        }
+        throw new Error(`spine ${path.basename(file)} corrupt at line ${i + 1}: ${why}`);
+      }
+      // Guarantee in-memory id UNIQUENESS. A merged/restored log (or two writers sharing a file)
+      // can carry duplicate seqs → duplicate ids; a later approval.verdict/ref would then be
+      // ambiguous, letting an UNreviewed payload ride an approval meant for a different one.
+      // Disambiguate collisions so refs bind to exactly the record that existed when made.
+      if (seenIds.has(e.id)) { let k = 2, uid; do { uid = `${e.id}#${k++}`; } while (seenIds.has(uid)); e.id = uid; }
+      seenIds.add(e.id);
+      this.events.push(e);
+      this.#index(e, this.events.length - 1);
+      this.version++;
+    }
+    // If the file's last complete record lost only its trailing newline (a plausible
+    // torn write), the record still parsed above — but appending now would fuse it
+    // with the next record. Remember to write a separating newline first.
+    this._needsLeadingNewline = raw.length > 0 && !raw.endsWith('\n');
+  }
+
+  /** Append one event. Returns the stored, fully-stamped record. */
+  append(kind, payload = {}) {
+    if (typeof kind !== 'string' || !kind) throw new Error('append(kind, payload): kind must be a non-empty string');
+    const seq = this.events.length;
+    // Stamp id/seq/ts/kind LAST so a caller's payload can never forge them — these
+    // fields ARE the audit trail, and the spine is their sole authority.
+    const e = { ...payload, id: `evt_${seq.toString(36).padStart(6, '0')}`, seq, ts: new Date().toISOString(), kind };
+    // Normalize through JSON so the in-memory event is EXACTLY what a restarted process would
+    // reload — otherwise a payload carrying Infinity/NaN (→ null) or undefined (→ dropped) makes
+    // the live process and a replay of the same durable log disagree. `json` is the disk form;
+    // `stored` is its parse, so memory and disk are byte-identical.
+    const json = JSON.stringify(e);
+    const stored = JSON.parse(json);
+    // Persist BEFORE mutating memory: if the disk write throws (full/read-only),
+    // in-memory state must not diverge from what's durably on disk.
+    if (this.file) {
+      const line = (this._needsLeadingNewline ? '\n' : '') + json + '\n';
+      fs.appendFileSync(this.file, line);
+      this._needsLeadingNewline = false;
+    }
+    this.events.push(stored);
+    this.version++;
+    // index / projections / listeners / return ALL see `stored` (the normalized, durable form),
+    // so every consumer agrees with what a restarted process would replay.
+    this.#index(stored, this.events.length - 1);
+    // Advance every registered projection BEFORE listeners fire, so a listener
+    // that reads view() sees a state that already accounts for this event.
+    for (const p of this._projections.values()) this.#advance(p, stored);
+    for (const fn of this.listeners) fn(stored);
+    return stored;
+  }
+
+  #index(e, pos) {
+    // Store the ARRAY POSITION, not e.seq. query() resolves hits via this.events[pos], and a
+    // log whose seq values are not their array position (duplicate seqs from two writers sharing
+    // one file, or a gapped/reordered seq in a restored log) would otherwise make query() drop
+    // real rows or crash on this.events[missingSeq]. Position is always the true slot.
+    for (const field of this._indexFields) {
+      const v = e[field];
+      if (v === undefined || v === null) continue;
+      const bucket = this._index.get(field);
+      const key = String(v);
+      if (!bucket.has(key)) bucket.set(key, []);
+      bucket.get(key).push(pos);
+    }
+  }
+
+  #advance(p, e) {
+    const next = p.reducer.apply(p.state, e);
+    if (next !== undefined) p.state = next; // reducers may mutate-in-place (return void) or return new state
+  }
+
+  onEvent(fn) { this.listeners.add(fn); return () => this.listeners.delete(fn); }
+
+  /**
+   * Register a named incremental view. Built once by full replay, then kept
+   * current on every append. `reducer` is { init:()=>state, apply:(state,event)=>state|void }.
+   * Registering the same name again replaces it and rebuilds (idempotent — safe
+   * to call on every process start).
+   */
+  project(name, reducer) {
+    if (!reducer || typeof reducer.init !== 'function' || typeof reducer.apply !== 'function') {
+      throw new Error(`project(${name}): reducer needs { init(), apply(state, event) }`);
+    }
+    const p = { reducer, state: reducer.init() };
+    for (const e of this.events) this.#advance(p, e);
+    this._projections.set(name, p);
+    return this.view(name);
+  }
+
+  /** Read a projection's current state (the live object — treat as read-only). */
+  view(name) {
+    const p = this._projections.get(name);
+    if (!p) throw new Error(`no projection named "${name}" — call project() first`);
+    return p.state;
+  }
+
+  hasProjection(name) { return this._projections.has(name); }
+
+  /**
+   * Ordered event query with maintained indexes.
+   * @param {object} [filter]
+   * @param {string} [filter.kind]     exact kind (uses the kind index)
+   * @param {object} [filter.where]    { field: value } equality; each field must be in indexBy
+   * @param {number|string} [filter.since]  inclusive lower bound: seq (number) or ISO ts (string)
+   * @param {number|string} [filter.until]  inclusive upper bound: seq (number) or ISO ts (string)
+   * @param {number} [filter.limit]    cap results (after ordering)
+   * @param {boolean} [filter.reverse] newest-first (default oldest-first)
+   * @returns {object[]} matching events in seq order
+   */
+  query(filter = {}) {
+    const { kind, where = {}, since, until, limit, reverse = false } = filter;
+
+    // Intersect index buckets for every equality constraint, cheapest path first.
+    const constraints = [];
+    if (kind !== undefined) constraints.push(['kind', kind]);
+    for (const [field, value] of Object.entries(where)) constraints.push([field, value]);
+
+    // Validate EVERY where-field is indexed up front — before the intersection loop, whose
+    // `break` on an empty result would otherwise skip validating a later typo'd/renamed field
+    // (silently returning wrong rows instead of the documented throw).
+    for (const [field] of constraints) {
+      if (field !== 'kind' && !this._index.has(field)) throw new Error(`query where.${field}: not an indexed field (indexBy: ${this._indexFields.join(', ')})`);
+    }
+
+    let positions = null; // null = "all events"; otherwise ARRAY POSITIONS into this.events
+    for (const [field, value] of constraints) {
+      const bucket = this._index.get(field);
+      if (!bucket) throw new Error(`query where.${field}: not an indexed field (indexBy: ${this._indexFields.join(', ')})`);
+      // A null/undefined constraint value can't use the index — #index deliberately does not
+      // bucket absent values, so its bucket would be empty and wrongly return []. Leave it to
+      // the strict-=== re-filter below (null===null / undefined===undefined works there), while
+      // any non-null constraints still narrow via the index.
+      if (value === null || value === undefined) continue;
+      const hits = bucket.get(String(value)) || [];
+      positions = positions === null ? hits.slice() : intersectSorted(positions, hits);
+      if (positions.length === 0) break;
+    }
+
+    let out = positions === null ? this.events.slice() : positions.map((p) => this.events[p]);
+
+    // Index keys are String(value), so values that stringify alike (number 1 vs
+    // string "1", true vs "true") share a bucket. Re-verify every constraint with
+    // strict === so query() is exactly the maintained view of a linear scan.
+    if (constraints.length) out = out.filter((e) => constraints.every(([f, v]) => e[f] === v));
+
+    if (since !== undefined) out = out.filter((e) => afterOrEqual(e, since));
+    if (until !== undefined) out = out.filter((e) => beforeOrEqual(e, until));
+    if (reverse) out.reverse();
+    if (limit !== undefined) out = out.slice(0, limit);
+    return out;
+  }
+
+  all() { return this.events; }
+  get length() { return this.events.length; }
+}
+
+// A stored event must be a plain object; null / arrays / primitives are not events.
+function isEvent(v) { return v !== null && typeof v === 'object' && !Array.isArray(v); }
+
+// Two ascending seq lists -> their intersection, ascending. O(n+m).
+function intersectSorted(a, b) {
+  const out = [];
+  let i = 0, j = 0;
+  while (i < a.length && j < b.length) {
+    if (a[i] === b[j]) { out.push(a[i]); i++; j++; }
+    else if (a[i] < b[j]) i++;
+    else j++;
+  }
+  return out;
+}
+
+// Bounds accept a seq (number, compared to e.seq) or an ISO ts (string, compared to e.ts).
+function afterOrEqual(e, bound) { return typeof bound === 'number' ? e.seq >= bound : e.ts >= bound; }
+function beforeOrEqual(e, bound) { return typeof bound === 'number' ? e.seq <= bound : e.ts <= bound; }

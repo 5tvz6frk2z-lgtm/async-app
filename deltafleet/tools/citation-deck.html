@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Citation Deck — Delta Fleet Internal</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 3 29 27H3Z' fill='none' stroke='%23ff4d6b' stroke-width='2.5'/%3E%3C/svg%3E">
+<style>
+:root{
+  --void:#05070f; --deep:#080d1c; --raised:#0b1226;
+  --line:rgba(122,162,255,.14); --line-strong:rgba(122,162,255,.28);
+  --ion:#4fd8ff; --crimson:#ff4d6b; --gold:#ffc24b; --emerald:#34e3a4; --nebula:#8b7bff; --coral:#ff6a3d;
+  --text:#eaf0ff; --muted:#94a3c7; --faint:#5d6b8f;
+  --sans:'Instrument Sans','Segoe UI',system-ui,-apple-system,sans-serif;
+  --disp:'Space Grotesk','Avenir Next','Segoe UI',system-ui,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,'SFMono-Regular','Cascadia Mono',Consolas,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--void);color:var(--text);font-family:var(--sans);font-size:15.5px;line-height:1.55;-webkit-font-smoothing:antialiased}
+::selection{background:rgba(255,77,107,.28)}
+button{font-family:inherit;cursor:pointer}
+h1,h2,h3,h4{font-family:var(--disp);font-weight:600;letter-spacing:-.01em}
+::-webkit-scrollbar{width:9px;height:9px}::-webkit-scrollbar-track{background:var(--void)}::-webkit-scrollbar-thumb{background:#1b2647;border-radius:6px}
+.klabel{font-family:var(--mono);font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--faint)}
+.mono{font-family:var(--mono)}
+
+.bar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:14px;padding:0 20px;height:58px;background:rgba(5,8,17,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.bar .logo{display:flex;align-items:center;gap:10px;font-family:var(--disp);font-weight:700;font-size:.98rem;letter-spacing:.04em}
+.bar .logo svg{width:24px;height:24px;filter:drop-shadow(0 0 6px rgba(255,77,107,.5))}
+.bar .logo small{font-family:var(--mono);font-weight:400;font-size:.56rem;letter-spacing:.26em;color:var(--crimson);display:block}
+.bar .spacer{flex:1}
+.chip{font-family:var(--mono);font-size:.6rem;letter-spacing:.14em;padding:4px 10px;border:1px solid var(--line-strong);border-radius:100px;color:var(--muted)}
+
+.btn{display:inline-flex;align-items:center;gap:8px;font-family:var(--disp);font-weight:600;font-size:.82rem;padding:9px 16px;border-radius:8px;border:1px solid var(--line-strong);background:rgba(79,216,255,.06);color:var(--text);transition:.2s}
+.btn:hover{background:rgba(79,216,255,.13);transform:translateY(-1px)}
+.btn.primary{background:linear-gradient(135deg,#ff7d95,#ff3d60);color:#2a020b;border-color:transparent}
+.btn.danger:hover{border-color:var(--crimson);color:var(--crimson);background:rgba(255,77,107,.08)}
+.btn.sm{padding:6px 11px;font-size:.74rem}
+.btn:focus-visible,input:focus-visible,select:focus-visible,.cell:focus-visible{outline:2px solid var(--ion);outline-offset:1px}
+
+.tabs{display:flex;gap:6px;padding:14px 20px 0;border-bottom:1px solid var(--line);background:var(--deep)}
+.tab{background:none;border:1px solid transparent;border-bottom:none;color:var(--muted);font-family:var(--disp);font-weight:600;font-size:.86rem;padding:10px 18px;border-radius:10px 10px 0 0}
+.tab:hover{color:var(--text)}
+.tab.on{background:var(--void);border-color:var(--line);color:var(--crimson)}
+.main{padding:22px 24px 60px;max-width:1320px;margin:0 auto}
+
+.panel{background:var(--raised);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:16px}
+.panel h3{font-size:1.02rem}
+.phead{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.phead .spacer{flex:1}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:14px}
+.kpi{background:var(--deep);border:1px solid var(--line);border-radius:11px;padding:12px 13px}
+.kpi b{display:block;font-family:var(--disp);font-size:1.35rem;font-weight:700;color:var(--emerald);font-variant-numeric:tabular-nums}
+.kpi.red b{color:var(--crimson)}.kpi.gold b{color:var(--gold)}.kpi.blue b{color:var(--ion)}.kpi.vio b{color:var(--nebula)}
+.kpi span{font-size:.7rem;color:var(--faint);display:block;line-height:1.3}
+.kpi .sub{font-family:var(--mono);font-size:.56rem;color:var(--faint);margin-top:3px;display:block}
+.kpi .delta{font-family:var(--mono);font-size:.6rem;margin-left:5px}
+.up{color:var(--emerald)}.down{color:var(--crimson)}.flat{color:var(--faint)}
+
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th{font-family:var(--mono);font-size:.57rem;letter-spacing:.13em;text-transform:uppercase;color:var(--crimson);text-align:left;padding:8px 9px;border-bottom:1px solid var(--line-strong)}
+td{padding:8px 9px;border-bottom:1px solid var(--line);color:var(--muted);vertical-align:middle}
+td:first-child{color:var(--text)}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
+input,select{background:var(--deep);border:1px solid var(--line-strong);border-radius:8px;padding:9px 11px;color:var(--text);font-family:var(--sans);font-size:.9rem;width:100%}
+input:focus,select:focus{border-color:var(--ion)}
+td input,td select{padding:6px 8px;font-size:.84rem}
+
+.chart{background:var(--deep);border:1px solid var(--line);border-radius:11px;padding:14px}
+.chart h5{font-family:var(--mono);font-size:.58rem;letter-spacing:.18em;color:var(--faint);text-transform:uppercase;margin-bottom:10px}
+
+/* grading grid */
+.gwrap{overflow-x:auto}
+.ggrid td.q{min-width:290px;max-width:400px;font-size:.83rem;line-height:1.35}
+.ggrid .topic{font-family:var(--mono);font-size:.55rem;letter-spacing:.12em;color:var(--faint);display:block;margin-top:2px;text-transform:uppercase}
+.cell{min-width:84px;height:40px;border-radius:8px;border:1px solid var(--line);background:var(--deep);font-family:var(--mono);font-size:.58rem;letter-spacing:.05em;color:var(--faint);transition:.15s;padding:3px 6px;line-height:1.25}
+.cell:hover{border-color:var(--line-strong);transform:translateY(-1px)}
+.cell.o1{background:rgba(255,194,75,.08);border-color:rgba(255,194,75,.35);color:var(--gold)}
+.cell.o2{background:rgba(79,216,255,.09);border-color:rgba(79,216,255,.4);color:var(--ion)}
+.cell.o3{background:rgba(52,227,164,.12);border-color:rgba(52,227,164,.5);color:var(--emerald)}
+.cell .mods{display:block;font-size:.52rem;color:var(--muted)}
+.cell .mods .cmp{color:var(--crimson)}
+.cell .mods .rec{color:var(--gold)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-family:var(--mono);font-size:.58rem;letter-spacing:.08em;color:var(--faint);margin:10px 0 4px}
+.legend .e{color:var(--emerald)}.legend .c{color:var(--crimson)}.legend .i{color:var(--gold)}.legend .m{color:var(--ion)}
+
+/* cell editor modal */
+.edit-modal{position:fixed;inset:0;z-index:300;display:grid;place-items:center;padding:20px;background:rgba(4,6,14,.75);backdrop-filter:blur(6px)}
+.edit-sheet{width:min(520px,94vw);max-height:90vh;overflow-y:auto;background:linear-gradient(180deg,#0d1530,#080d1c);border:1px solid var(--line-strong);border-radius:16px;padding:24px}
+.edit-sheet h4{font-size:1rem;margin-bottom:2px}
+.edit-sheet .sub{font-family:var(--mono);font-size:.6rem;letter-spacing:.14em;color:var(--faint);text-transform:uppercase;margin-bottom:16px}
+.seg{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 14px}
+.seg button{background:var(--deep);border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:7px 12px;font-family:var(--mono);font-size:.62rem;letter-spacing:.08em}
+.seg button.on{background:rgba(79,216,255,.14);border-color:var(--ion);color:var(--ion)}
+.seg button.on.good{background:rgba(52,227,164,.14);border-color:var(--emerald);color:var(--emerald)}
+.seg button.on.bad{background:rgba(255,77,107,.14);border-color:var(--crimson);color:var(--crimson)}
+.seg button.on.warn{background:rgba(255,194,75,.14);border-color:var(--gold);color:var(--gold)}
+.edit-sheet .klabel{display:block;margin-top:10px}
+.checkrow{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 10px}
+.checkrow label{display:flex;gap:6px;align-items:center;font-size:.82rem;color:var(--muted);border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer}
+.checkrow input{width:auto}
+
+.brief{background:var(--deep);border:1px solid var(--line);border-left:3px solid var(--crimson);border-radius:11px;padding:16px 18px;margin-bottom:12px}
+.brief h4{font-size:.96rem;margin-bottom:6px}
+.brief .st{font-family:var(--mono);font-size:.6rem;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;line-height:1.7}
+.brief ul{margin:8px 0 0 18px;font-size:.83rem;color:var(--muted)}
+.brief li{margin-bottom:4px}
+.gapscore{font-family:var(--mono);font-size:.72rem;color:var(--gold);font-weight:700}
+.run-item{display:flex;align-items:center;gap:14px;padding:12px 14px;border:1px solid var(--line);border-radius:11px;margin-bottom:8px;background:var(--deep)}
+.run-item button.open{background:none;border:none;color:var(--text);font-family:var(--disp);font-weight:600;font-size:.92rem;text-align:left;flex:1}
+.run-item button.open:hover{color:var(--crimson)}
+.run-item .sov{font-family:var(--mono);font-size:.8rem;color:var(--emerald);margin-left:auto}
+.empty{border:1px dashed var(--line-strong);border-radius:14px;padding:50px 30px;text-align:center;color:var(--faint)}
+.hint{font-size:.74rem;color:var(--faint);margin-top:6px;line-height:1.5}
+.pri{font-family:var(--mono);font-size:.58rem;letter-spacing:.08em;padding:2px 8px;border-radius:100px;border:1px solid var(--line)}
+.pri.p1{color:var(--crimson);border-color:rgba(255,77,107,.4)}.pri.p2{color:var(--gold);border-color:rgba(255,194,75,.4)}.pri.p3{color:var(--faint)}
+@media(max-width:900px){.grid2,.grid3,.kpis{grid-template-columns:1fr}}
+@media print{.bar,.tabs,.btn,.legend,.print-hide{display:none!important}body{background:#fff;color:#111}.main{padding:0}
+ .brief{border:1px solid #99a;border-left:3px solid #c33;color:#223;page-break-inside:avoid}.brief h4{color:#111}.brief .st,.brief ul{color:#334}
+ .panel{background:none;border:1px solid #bbc;padding:10px 12px;page-break-inside:avoid}
+ .panel h3,.phead h3{color:#111}
+ .kpi,.chart{background:#fff;border:1px solid #99a}
+ .kpi b{color:#111}.kpi span,.kpi .sub,.chart h5,.hint{color:#445}
+ th{color:#334;border-color:#99a}td{color:#223;border-color:#ccd}td:first-child{color:#111}
+ .chip{color:#334;border-color:#99a}
+ .up{color:#0a7a4a}.down{color:#b3223f}.flat{color:#667}}
+
+/* ---- mobile hardening ---- */
+html{-webkit-text-size-adjust:100%}
+button,a,label{-webkit-tap-highlight-color:rgba(79,216,255,.12);touch-action:manipulation}
+@media(max-width:820px){
+ input,select,textarea{font-size:16px!important}
+ table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch}
+ th,td{min-width:100px}
+ .bar{flex-wrap:wrap;height:auto;padding:10px 14px;gap:8px}
+ .tabs{overflow-x:auto;flex-wrap:nowrap}
+ .kpis{grid-template-columns:1fr 1fr!important}
+ [style*="grid-template-columns"]{grid-template-columns:1fr!important}
+}
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <span class="logo">
+    <svg viewBox="0 0 32 32" fill="none"><path d="M16 3 29 27H3Z" stroke="#ff4d6b" stroke-width="2.4"/><path d="M16 11 22.5 23h-13Z" fill="#ff4d6b" opacity=".85"/></svg>
+    <span>CITATION DECK<small>DELTA FLEET · INTERNAL · AEO · V2</small></span>
+  </span>
+  <span class="chip" id="save-state">LOCAL · SAVED</span>
+  <span class="spacer"></span>
+  <button class="btn sm" id="btn-seed">Load Demo Data</button>
+  <button class="btn sm" id="btn-export">Export JSON</button>
+  <label class="btn sm" style="position:relative;overflow:hidden">Import JSON<input type="file" id="btn-import" accept=".json" style="position:absolute;inset:0;opacity:0;cursor:pointer"></label>
+  <button class="btn primary sm" id="btn-new-run">+ New Audit Run</button>
+</header>
+
+<nav class="tabs" id="tabs">
+  <button class="tab on" data-v="dash">Dashboard</button>
+  <button class="tab" data-v="bank">Question Bank</button>
+  <button class="tab" data-v="runs">Audit Runs</button>
+  <button class="tab" data-v="gaps">Gap Briefs</button>
+</nav>
+
+<main class="main" id="main"></main>
+<div id="editor-root"></div>
+
+<script>
+'use strict';
+/* ============ CITATION DECK v2 ============
+   Grading model per question×engine cell (research-brief spec):
+   o: 0 ABSENT · 1 INFLUENCED (our framing, unnamed) · 2 MENTIONED (named,
+   no link) · 3 CITED (domain linked). Plus: pos 1/2/3 (lead/mid/trailing),
+   sent +/0/−, inaccurate flag, recommended flag, competitor checkboxes,
+   competitor-recommended, cited URL, and k=3 outcome samples on P1 cells
+   (modal outcome scores; ties break pessimistic).
+   Score = (oScore + rec bonus) × position weight.
+   True SoV is competitor-normalized: ours / (ours + competitor appearances).
+   Inclusion rate (old "SoV") kept, relabeled, with a 95% CI. */
+const $=(s,c=document)=>c.querySelector(s), $$=(s,c=document)=>[...c.querySelectorAll(s)];
+const KEY='df-citation-v2', OLDKEY='df-citation-v1';
+const ENGINES=['ChatGPT','Perplexity','Gemini','Claude','AI Overviews'];
+const ONAMES=['—','INFL','MENT','CITED'];
+const OSCORE=[0,.3,.6,1], POSW={1:1,2:.6,3:.3};
+const STAGES={aw:['Awareness',1],co:['Consideration',2],de:['Decision',3]};
+const PRIW=[0,3,2,1];
+const pctf=n=>(n*100).toFixed(0)+'%';
+const esc=s=>String(s??'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+
+let DB={brand:'Delta Fleet',competitors:['AutomateIQ','FlowForge','OpsPilot'],questions:[],runs:[],briefs:{}};
+let view='dash', openRun=null, memOnly=false;
+const uid=()=>Math.random().toString(36).slice(2,9);
+function flash(t){const el=$('#save-state');el.textContent=t;el.style.color='var(--emerald)';setTimeout(()=>el.style.color='',900)}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(DB));flash('LOCAL · SAVED')}catch(e){memOnly=true;flash('MEMORY ONLY')}}
+function load(){
+ try{
+  const r=localStorage.getItem(KEY);
+  if(r){DB=JSON.parse(r);if(!DB.briefs)DB.briefs={};if(!DB.brand)DB.brand='Delta Fleet';return}
+  const old=localStorage.getItem(OLDKEY);
+  if(old){ // migrate v1 → v2
+   const o=JSON.parse(old);
+   DB.questions=(o.questions||[]).map(q=>({id:q.id,text:q.text,topic:q.topic,pri:q.pri||2,stage:'co'}));
+   const compSet=new Set();
+   (o.runs||[]).forEach(r=>Object.values(r.comp||{}).forEach(c=>{if(c)compSet.add(c)}));
+   if(compSet.size)DB.competitors=[...compSet].slice(0,6);
+   DB.runs=(o.runs||[]).map(r=>{const cells={};
+    DB.questions.forEach(q=>{cells[q.id]={};ENGINES.forEach((e,i)=>{
+     const s=(r.grades[q.id]||{})[i]||0;
+     cells[q.id][i]=s===1?cel({o:3,pos:2}):s===2?cel({o:0,comps:[0]}):s===3?cel({o:1}):cel({});
+    })});
+    return{id:r.id,label:r.label,date:r.date,cells}});
+   save();
+  }
+ }catch(e){memOnly=true}
+}
+function cel(x){return Object.assign({o:0,pos:2,sent:'0',inacc:false,rec:false,comps:[],compRec:-1,url:'',samples:[]},x)}
+function getCell(run,qid,e){if(!run.cells[qid])run.cells[qid]={};if(!run.cells[qid][e])run.cells[qid][e]=cel({});return run.cells[qid][e]}
+function peekCell(run,qid,e){return (run.cells[qid]||{})[e]||cel({})}
+/* modal outcome across samples (P1 k=3); ties pessimistic */
+function modalO(c){
+ const all=[c.o,...(c.samples||[])];
+ const cnt={};all.forEach(o=>cnt[o]=(cnt[o]||0)+1);
+ let best=0,bo=0; // ascending scan + strict '>' breaks ties pessimistically (lowest outcome wins)
+ [0,1,2,3].forEach(o=>{const n=cnt[o]||0;if(n>best){best=n;bo=o}});
+ return bo;
+}
+function cellScore(c){const mo=modalO(c);let s=OSCORE[mo]+(c.rec?.2:0);if(mo>=2)s*=POSW[c.pos||2];return Math.min(1.2,s)}
+function present(c){return modalO(c)>=2}
+
+/* ---- run metrics ---- */
+function stats(run){
+ const qs=DB.questions,n=qs.length*ENGINES.length||1;
+ let inc=0,cit=0,ourApp=0,compApp=0,vis=0,rec=0,sPos=0,sNeg=0,pres=0,inacc=0;
+ const compCount=DB.competitors.map(()=>0),compRecCount=DB.competitors.map(()=>0);
+ const engInc=ENGINES.map(()=>0),engCit=ENGINES.map(()=>0);
+ let stabSum=0,stabN=0;
+ const stageAgg={aw:{p:0,n:0},co:{p:0,n:0},de:{p:0,n:0}};
+ let wSoVnum=0,wSoVden=0;
+ const domains={};
+ qs.forEach(q=>{const sw=STAGES[q.stage||'co'][1];
+  ENGINES.forEach((e,i)=>{
+   const c=peekCell(run,q.id,i),mo=modalO(c),p=mo>=2;
+   if(p){inc++;pres++;ourApp++;engInc[i]++}
+   if(mo===3){cit++;engCit[i]++;
+    if(c.url){try{const d=c.url.includes('/')?new URL(c.url.startsWith('http')?c.url:'https://'+c.url).hostname.replace('www.',''):c.url;domains[d]=(domains[d]||0)+1}catch(err){domains[c.url]=(domains[c.url]||0)+1}}}
+   vis+=cellScore(c);
+   if(c.rec)rec++;
+   if(p){if(c.sent==='+')sPos++;if(c.sent==='-')sNeg++;if(c.inacc)inacc++}
+   (c.comps||[]).forEach(k=>{compApp++;if(compCount[k]!==undefined)compCount[k]++});
+   if(c.compRec>=0&&compRecCount[c.compRec]!==undefined)compRecCount[c.compRec]++;
+   if(q.pri===1&&(c.samples||[]).length){const all=[c.o,...c.samples];const cnt={};all.forEach(o=>cnt[o]=(cnt[o]||0)+1);
+    stabSum+=Math.max(...Object.values(cnt))/all.length;stabN++}
+   const st=stageAgg[q.stage||'co'];st.n++;if(p)st.p++;
+   wSoVnum+=(p?1:0)*sw;wSoVden+=sw;
+  })});
+ const sov=ourApp+compApp>0?ourApp/(ourApp+compApp):0;
+ const compSoV=DB.competitors.map((name,k)=>({name,app:compCount[k],sov:ourApp+compApp>0?compCount[k]/(ourApp+compApp):0,rec:compRecCount[k]}));
+ const maxSoV=Math.max(sov,...compSoV.map(c=>c.sov),0.0001);
+ return{n,inclusion:inc/n,citation:cit/n,mention:inc/n,linkGap:(inc-cit)/n,sov,vis:vis/n,rec:rec/n,
+  ci:1.96*Math.sqrt((inc/n)*(1-inc/n)/n),
+  netSent:pres?(sPos-sNeg)/pres:0,inaccRate:pres?inacc/pres:0,
+  compSoV,leaderGap:sov>0?maxSoV/sov:null,
+  engInc:engInc.map(v=>v/(qs.length||1)),engCit:engCit.map(v=>v/(qs.length||1)),
+  stability:stabN?stabSum/stabN:null,stageAgg,wSoV:wSoVden?wSoVnum/wSoVden:0,domains};
+}
+function winLoss(cur,prev){
+ if(!prev)return null;
+ let w=0,l=0,m=0;
+ DB.questions.forEach(q=>ENGINES.forEach((e,i)=>{
+  const a=cellScore(peekCell(prev,q.id,i)),b=cellScore(peekCell(cur,q.id,i));m++;
+  if(b>a+.05)w++;else if(b<a-.05)l++}));
+ return{w,l,net:w-l,churn:(w+l)/m};
+}
+function presenceRate(run,q){let p=0;ENGINES.forEach((e,i)=>{if(present(peekCell(run,q.id,i)))p++});return p/ENGINES.length}
+function compPresenceRate(run,q){let p=0;ENGINES.forEach((e,i)=>{if((peekCell(run,q.id,i).comps||[]).length)p++});return p/ENGINES.length}
+function gapScore(run,q){return PRIW[q.pri]*STAGES[q.stage||'co'][1]*(1-presenceRate(run,q))*(1+compPresenceRate(run,q))}
+const latestRun=()=>DB.runs[DB.runs.length-1]||null;
+const prevRun=()=>DB.runs.length>1?DB.runs[DB.runs.length-2]:null;
+
+/* ---- render ---- */
+function render(){
+ $$('#tabs .tab').forEach(t=>t.classList.toggle('on',t.dataset.v===view));
+ const m=$('#main');
+ if(view==='dash')m.innerHTML=dashHTML();
+ else if(view==='bank'){m.innerHTML=bankHTML();wireBank()}
+ else if(view==='runs'){m.innerHTML=runsHTML();wireRuns()}
+ else if(view==='gaps'){m.innerHTML=gapsHTML();wireGaps()}
+}
+
+function delta(a,b){if(b==null)return'';const v=(a-b)*100;
+ if(Math.abs(v)<5)return `<span class="delta flat">· FLAT</span>`;
+ return `<span class="delta ${v>=0?'up':'down'}">${v>=0?'▲':'▼'}${Math.abs(v).toFixed(0)}pt</span>`}
+
+function dashHTML(){
+ const run=latestRun();
+ if(!run||!DB.questions.length)return `<div class="empty"><h3>No data yet</h3><p>Add questions and log a run — or load the demo data.</p><div style="margin-top:16px"><button class="btn primary" onclick="seed()">Load Demo Data</button></div></div>`;
+ const s=stats(run),p=prevRun(),ps=p?stats(p):null,wl=winLoss(run,p);
+ const trend=DB.runs.map((r,i)=>{const st=stats(r);
+  const bw=Math.min(44,Math.max(18,340/DB.runs.length-10)),x=24+i*(bw+16);
+  const hV=st.vis*115,hS=st.sov*115;
+  return `<rect x="${x}" y="${138-hV}" width="${bw*.45}" height="${Math.max(1,hV)}" rx="2" fill="#ff4d6b" opacity=".85"/>
+   <rect x="${x+bw*.55}" y="${138-hS}" width="${bw*.45}" height="${Math.max(1,hS)}" rx="2" fill="#34e3a4" opacity=".85"/>
+   <text x="${x+bw/2}" y="152" font-size="7.5" fill="#5d6b8f" text-anchor="middle" font-family="monospace">${esc(r.label.toUpperCase().slice(0,8))}</text>`}).join('');
+ const eng=ENGINES.map((e,i)=>`<tr><td>${e}</td>
+  <td class="r" style="color:var(--ion)">${pctf(s.engInc[i])}</td>
+  <td class="r" style="color:var(--emerald)">${pctf(s.engCit[i])}</td></tr>`).join('');
+ const stageRows=Object.entries(STAGES).map(([k,[label,w]])=>{const a=s.stageAgg[k];
+  return `<tr><td>${label} <span class="mono" style="font-size:.58rem;color:var(--faint)">×${w}</span></td><td class="r">${a.n/ENGINES.length}</td><td class="r" style="color:${a.n&&a.p/a.n<.3?'var(--crimson)':'var(--emerald)'}">${a.n?pctf(a.p/a.n):'—'}</td></tr>`}).join('');
+ const compRows=[{name:(DB.brand||'Delta Fleet').toUpperCase()+' (US)',app:null,sov:s.sov,rec:null,us:true},...s.compSoV].sort((a,b)=>b.sov-a.sov)
+  .map(c=>`<tr><td style="color:${c.us?'var(--emerald)':'var(--text)'}">${esc(c.name)}</td>
+   <td class="r" style="color:${c.us?'var(--emerald)':'var(--muted)'};font-weight:${c.us?700:400}">${pctf(c.sov)}</td>
+   <td class="r">${c.rec==null?'—':c.rec}</td></tr>`).join('');
+ const doms=Object.entries(s.domains).sort((a,b)=>b[1]-a[1]).slice(0,8)
+  .map(([d,n])=>`<tr><td class="mono" style="font-size:.76rem">${esc(d)}</td><td class="r">${n}</td></tr>`).join('');
+ return `
+ <div class="phead"><h3 style="font-size:1.12rem">${esc(DB.brand||'Delta Fleet')} · AI visibility · ${esc(run.label)}</h3>
+  <span class="chip">${DB.questions.length}Q × ${ENGINES.length}E</span><span class="spacer"></span>
+  <span class="hint print-hide" style="margin:0">Tracked brand is set in Question Bank — run decks per client.</span>
+  <button class="btn sm print-hide" onclick="window.print()">Print client report</button></div>
+ <div class="kpis">
+  <div class="kpi red"><b>${(s.vis*100).toFixed(0)}${ps?delta(s.vis,ps.vis):''}</b><span>weighted visibility /100</span><span class="sub">OUTCOME × POSITION × REC</span></div>
+  <div class="kpi"><b>${pctf(s.sov)}${ps?delta(s.sov,ps.sov):''}</b><span>true share of voice</span><span class="sub">US ÷ (US + COMP APPEARANCES)${s.leaderGap&&s.leaderGap>1.05?' · LEADER GAP '+s.leaderGap.toFixed(1)+'×':' · WE LEAD'}</span></div>
+  <div class="kpi blue"><b>${pctf(s.inclusion)}${ps?delta(s.inclusion,ps.inclusion):''}</b><span>inclusion rate ± ${(s.ci*100).toFixed(0)}pt</span><span class="sub">CITED ${pctf(s.citation)} · LINK GAP ${pctf(s.linkGap)}</span></div>
+  <div class="kpi gold"><b>${pctf(s.rec)}</b><span>recommendation rate</span><span class="sub">EXPLICIT TOP PICK = US</span></div>
+  <div class="kpi ${s.inaccRate>.05||s.netSent<0?'red':'vio'}"><b>${s.netSent>=0?'+':''}${(s.netSent*100).toFixed(0)}</b><span>net sentiment (present cells)</span><span class="sub">INACCURATE: ${pctf(s.inaccRate)}${s.inaccRate>.05?' ⚠ CORRECTIONS RUN':''}</span></div>
+ </div>
+ <div class="kpis" style="grid-template-columns:repeat(3,1fr)">
+  <div class="kpi"><b>${wl?(wl.net>=0?'+':'')+wl.net:'—'}</b><span>net movement vs ${ps?esc(p.label):'—'} (wins − losses)</span><span class="sub">${wl?`W ${wl.w} · L ${wl.l} · CHURN ${pctf(wl.churn)} — CONFIRM STATES ONLY AFTER 2 CONSECUTIVE RUNS`:'NEEDS 2 RUNS'}</span></div>
+  <div class="kpi vio"><b>${s.stability!=null?pctf(s.stability):'—'}</b><span>P1 stability index (k=3 samples)</span><span class="sub">${s.stability!=null?'SINGLE-SAMPLE CELLS INHERIT THIS NOISE FLOOR':'GRADE 3 SAMPLES ON P1 CELLS TO MEASURE'}</span></div>
+  <div class="kpi gold"><b>${pctf(s.wSoV)}</b><span>stage-weighted presence</span><span class="sub">DECISION ×3 · CONSIDERATION ×2 · AWARENESS ×1</span></div>
+ </div>
+ <div class="grid2">
+  <div class="panel"><h3>Visibility &amp; SoV · by run</h3>
+   <div class="chart" style="margin-top:12px"><h5>WEIGHTED VISIBILITY (CRIMSON) · TRUE SOV (GREEN)</h5>
+   <svg viewBox="0 0 420 158" style="width:100%"><line x1="16" y1="138" x2="408" y2="138" stroke="#22314f"/>${trend}</svg>
+   <p class="hint">Deltas under 5pt read as flat — at ${s.n} cells the 95% CI is ±${(s.ci*100).toFixed(0)}pt, and single-sample volatility runs 20–40%.</p></div>
+  </div>
+  <div class="panel"><h3>Competitive share of voice · ${esc(run.label)}</h3>
+   <table style="margin-top:10px"><thead><tr><th>Brand</th><th class="r">SoV</th><th class="r">Top pick</th></tr></thead><tbody>${compRows}</tbody></table>
+   <p class="hint">Heuristic: SoV should be ≥ your approximate market share and trending up.</p>
+  </div>
+ </div>
+ <div class="grid3">
+  <div class="panel"><h3>By engine</h3><table style="margin-top:10px"><thead><tr><th>Engine</th><th class="r">Incl.</th><th class="r">Cited</th></tr></thead><tbody>${eng}</tbody></table></div>
+  <div class="panel"><h3>By funnel stage</h3><table style="margin-top:10px"><thead><tr><th>Stage</th><th class="r">Qs</th><th class="r">Presence</th></tr></thead><tbody>${stageRows}</tbody></table>
+   <p class="hint">Gaps cluster by stage, not topic — decision-stage absence is the expensive kind.</p></div>
+  <div class="panel"><h3>Citation source ledger</h3><table style="margin-top:10px"><thead><tr><th>Domain</th><th class="r">Cites</th></tr></thead><tbody>${doms||'<tr><td colspan="2" style="color:var(--faint)">Paste cited URLs while grading to build the ledger.</td></tr>'}</tbody></table>
+   <p class="hint">Third-party domains dominating = earned-placement play, not more blog posts.</p></div>
+ </div>`;
+}
+
+function bankHTML(){
+ const rows=DB.questions.map(q=>`<tr>
+  <td style="max-width:420px"><input data-q="${q.id}" data-f="text" value="${esc(q.text)}"></td>
+  <td style="width:140px"><input data-q="${q.id}" data-f="topic" value="${esc(q.topic)}" list="topics"></td>
+  <td style="width:140px"><select data-q="${q.id}" data-f="stage">${Object.entries(STAGES).map(([k,[l]])=>`<option value="${k}" ${q.stage===k?'selected':''}>${l}</option>`).join('')}</select></td>
+  <td style="width:96px"><select data-q="${q.id}" data-f="pri"><option value="1" ${q.pri==1?'selected':''}>P1</option><option value="2" ${q.pri==2?'selected':''}>P2</option><option value="3" ${q.pri==3?'selected':''}>P3</option></select></td>
+  <td style="width:36px"><button class="btn sm danger" data-del="${q.id}">✕</button></td></tr>`).join('');
+ return `
+ <div class="panel">
+  <div class="phead"><h3>Tracked brand &amp; competitor set</h3><span class="hint">3–6 competitors, fixed for the year — SoV is normalized against these.</span><span class="spacer"></span><button class="btn sm" id="add-comp">+ Add competitor</button></div>
+  <div style="max-width:320px;margin-bottom:12px"><span class="klabel" style="display:block;margin-bottom:5px">Brand being tracked ("us")</span><input id="set-brand" value="${esc(DB.brand||'Delta Fleet')}"></div>
+  <div class="checkrow">${DB.competitors.map((c,i)=>`<label>${esc(c)} <button class="btn sm danger" data-delcomp="${i}" style="padding:1px 7px">✕</button></label>`).join('')}</div>
+ </div>
+ <div class="panel">
+  <div class="phead"><h3>Question bank</h3><span class="chip">${DB.questions.length} QUESTIONS</span><span class="spacer"></span><button class="btn primary sm" id="add-q">+ Add question</button></div>
+  <p class="hint" style="margin-bottom:12px">Real buyer questions, verbatim, from sales calls / tickets / search console. Tag funnel stage — decision-stage questions weigh 3× in the gap ranking. P1 questions get k=3 samples per engine.</p>
+  <datalist id="topics">${[...new Set(DB.questions.map(q=>q.topic))].map(t=>`<option value="${esc(t)}">`).join('')}</datalist>
+  <table><thead><tr><th>Question</th><th>Topic</th><th>Funnel stage</th><th>Priority</th><th></th></tr></thead><tbody>${rows||'<tr><td colspan="5" style="color:var(--faint)">Empty.</td></tr>'}</tbody></table>
+ </div>`;
+}
+function wireBank(){
+ $$('#main [data-q]').forEach(inp=>inp.addEventListener('change',()=>{
+  const q=DB.questions.find(x=>x.id===inp.dataset.q);if(!q)return;
+  q[inp.dataset.f]=inp.dataset.f==='pri'?+inp.value:inp.value;save()}));
+ $$('#main [data-del]').forEach(b=>b.onclick=()=>{if(!confirm('Remove this question?'))return;
+  DB.questions=DB.questions.filter(x=>x.id!==b.dataset.del);save();render()});
+ $$('#main [data-delcomp]').forEach(b=>b.onclick=e=>{e.preventDefault();
+  const k=+b.dataset.delcomp;
+  if(!confirm('Remove "'+DB.competitors[k]+'"? Its check-marks are removed from all past runs and remaining brands keep their history.'))return;
+  DB.runs.forEach(r=>Object.values(r.cells||{}).forEach(row=>Object.values(row).forEach(c=>{
+   c.comps=(c.comps||[]).filter(x=>x!==k).map(x=>x>k?x-1:x);
+   if(c.compRec===k)c.compRec=-1;else if(c.compRec>k)c.compRec--;
+  })));
+  DB.competitors.splice(k,1);save();render()});
+ $('#add-comp').onclick=()=>{if(DB.competitors.length>=6){alert('Keep the set to 6 or fewer.');return}
+  const n=prompt('Competitor brand');if(n){DB.competitors.push(n);save();render()}};
+ $('#set-brand').addEventListener('change',e=>{DB.brand=e.target.value.trim()||'Delta Fleet';save()});
+ $('#add-q').onclick=()=>{const t=prompt('Question, as a buyer would ask it:');if(!t)return;
+  DB.questions.push({id:uid(),text:t,topic:prompt('Topic')||'General',stage:'co',pri:2});save();render()};
+}
+
+function runsHTML(){
+ if(openRun){const run=DB.runs.find(r=>r.id===openRun);if(run)return gradeHTML(run)}
+ const items=[...DB.runs].reverse().map(r=>{const s=stats(r);
+  return `<div class="run-item"><button class="open" data-open="${r.id}">${esc(r.label)}</button>
+   <span class="mono" style="font-size:.6rem;color:var(--faint)">VIS ${(s.vis*100).toFixed(0)}</span>
+   <span class="sov">SOV ${pctf(s.sov)}</span>
+   <button class="btn sm danger" data-delrun="${r.id}">✕</button></div>`}).join('');
+ return `<div class="panel"><div class="phead"><h3>Audit runs</h3><span class="spacer"></span><button class="btn primary sm" onclick="newRun()">+ New Audit Run</button></div>
+  <p class="hint" style="margin-bottom:12px"><b style="color:var(--muted)">Protocol (discipline is free, matrices aren't):</b> fresh incognito session · logged out or clean account · memory/personalization off · same country/VPN · consistent web-search mode per engine · note model version if shown. P1 questions: run 3 fresh samples per engine.</p>
+  ${items||'<p style="color:var(--faint)">No runs yet.</p>'}</div>`;
+}
+function cellChip(run,q,i){
+ const c=peekCell(run,q.id,i),mo=modalO(c);
+ const mods=[];
+ if(mo>=2)mods.push('P'+(c.pos||2));
+ if(c.rec)mods.push('<span class="rec">★</span>');
+ if(mo>=2&&c.sent!=='0')mods.push(c.sent==='+'?'+':'−');
+ if(c.inacc)mods.push('⚠');
+ if((c.comps||[]).length)mods.push(`<span class="cmp">▲${c.comps.length}</span>`);
+ if(q.pri===1)mods.push(`<span style="color:var(--faint)">k${1+(c.samples||[]).length}</span>`);
+ return `<button class="cell o${mo}" data-cell="${q.id}:${i}">${ONAMES[mo]}<span class="mods">${mods.join(' ')||'&nbsp;'}</span></button>`;
+}
+function gradeHTML(run){
+ const s=stats(run);
+ const head=ENGINES.map(e=>`<th style="text-align:center">${e}</th>`).join('');
+ const rows=DB.questions.map(q=>`<tr><td class="q">${esc(q.text)}<span class="topic">${esc(q.topic)} · ${STAGES[q.stage||'co'][0]} · <span class="pri p${q.pri}">P${q.pri}</span></span></td>
+  ${ENGINES.map((e,i)=>`<td style="text-align:center">${cellChip(run,q,i)}</td>`).join('')}</tr>`).join('');
+ return `<div class="panel">
+  <div class="phead"><button class="btn sm" onclick="openRunView(null)">← All runs</button><h3>${esc(run.label)}</h3>
+   <span class="chip">VIS ${(s.vis*100).toFixed(0)}/100</span><span class="chip">SOV ${pctf(s.sov)}</span><span class="spacer"></span>
+   <button class="btn sm" onclick="renameRun('${run.id}')">Rename</button></div>
+  <div class="legend"><b>CLICK A CELL TO GRADE ·</b><span>— ABSENT</span><span class="i">INFL = OUR FRAMING, UNNAMED</span><span class="m">MENT = NAMED, NO LINK</span><span class="e">CITED = LINKED</span><span>P# POSITION</span><span class="i">★ TOP PICK</span><span class="c">▲n COMPETITORS</span><span>⚠ INACCURATE</span></div>
+  <div class="gwrap"><table class="ggrid"><thead><tr><th>Question</th>${head}</tr></thead><tbody>${rows}</tbody></table></div>
+ </div>`;
+}
+function wireRuns(){
+ $$('#main [data-open]').forEach(b=>b.onclick=()=>openRunView(b.dataset.open));
+ $$('#main [data-delrun]').forEach(b=>b.onclick=()=>{const r=DB.runs.find(x=>x.id===b.dataset.delrun);
+  if(!confirm('Delete run "'+r.label+'"?'))return;DB.runs=DB.runs.filter(x=>x.id!==r.id);save();render()});
+ $$('#main [data-cell]').forEach(b=>b.onclick=()=>{const[qid,i]=b.dataset.cell.split(':');openEditor(qid,+i)});
+}
+window.openRunView=id=>{openRun=id;view='runs';render()};
+window.renameRun=id=>{const r=DB.runs.find(x=>x.id===id);const n=prompt('Run label',r.label);if(n){r.label=n;save();render()}};
+window.newRun=()=>{
+ if(!DB.questions.length){alert('Add questions first.');return}
+ const label=prompt('Run label',new Date().toLocaleDateString('en-US',{month:'short',year:'numeric'}));
+ if(!label)return;
+ DB.runs.push({id:uid(),label,date:Date.now(),cells:{}});
+ openRun=DB.runs[DB.runs.length-1].id;view='runs';save();render();
+};
+
+/* ---- cell editor ---- */
+function openEditor(qid,ei){
+ const run=DB.runs.find(r=>r.id===openRun);if(!run)return;
+ const q=DB.questions.find(x=>x.id===qid);
+ const c=getCell(run,qid,ei);
+ const root=$('#editor-root');
+ const oBtns=(cur,attr)=>[0,1,2,3].map(o=>`<button class="${cur===o?'on '+(o===3?'good':o===0?'':'warn'):''}" data-${attr}="${o}">${['ABSENT','INFL','MENT','CITED'][o]}</button>`).join('');
+ root.innerHTML=`<div class="edit-modal" id="edit-modal"><div class="edit-sheet">
+  <h4>${esc(q.text)}</h4><p class="sub">${ENGINES[ei]} · ${esc(run.label)} · ${STAGES[q.stage||'co'][0]} · P${q.pri}</p>
+  <span class="klabel">Outcome ${q.pri===1?'· sample 1':''}</span><div class="seg" id="seg-o">${oBtns(c.o,'o')}</div>
+  ${q.pri===1?`<span class="klabel">Samples 2 &amp; 3 (fresh sessions — P1 stability)</span>
+   <div class="seg" id="seg-s2">${oBtns(c.samples[0]??-1,'s2')}<button data-s2="-1" class="${c.samples[0]==null?'on':''}">SKIP</button></div>
+   <div class="seg" id="seg-s3">${oBtns(c.samples[1]??-1,'s3')}<button data-s3="-1" class="${c.samples[1]==null?'on':''}">SKIP</button></div>`:''}
+  <span class="klabel">Position (when named)</span><div class="seg" id="seg-pos">
+   ${[1,2,3].map(p=>`<button class="${c.pos===p?'on':''}" data-pos="${p}">${p===1?'1 · LEAD':p===2?'2 · MID':'3 · TRAILING'}</button>`).join('')}</div>
+  <span class="klabel">Sentiment &amp; accuracy</span><div class="seg" id="seg-sent">
+   ${[['+','POSITIVE','good'],['0','NEUTRAL',''],['-','NEGATIVE','bad']].map(([v,l,cl])=>`<button class="${c.sent===v?'on '+cl:''}" data-sent="${v}">${l}</button>`).join('')}
+   <button class="${c.inacc?'on bad':''}" data-inacc="1">⚠ INACCURATE</button>
+   <button class="${c.rec?'on warn':''}" data-rec="1">★ WE'RE THE TOP PICK</button></div>
+  <span class="klabel">Competitors present</span><div class="checkrow" id="comp-checks">
+   ${DB.competitors.map((name,k)=>`<label><input type="checkbox" data-comp="${k}" ${c.comps.includes(k)?'checked':''}>${esc(name)}</label>`).join('')}</div>
+  <span class="klabel">Competitor recommended (top pick)</span>
+  <select id="comp-rec" style="margin:6px 0 12px"><option value="-1">None</option>${DB.competitors.map((n,k)=>`<option value="${k}" ${c.compRec===k?'selected':''}>${esc(n)}</option>`).join('')}</select>
+  <span class="klabel">Cited URL / domain (ours or theirs)</span>
+  <input id="cell-url" value="${esc(c.url)}" placeholder="deltafleet.ai/blog/… or g2.com" style="margin:6px 0 16px">
+  <div style="display:flex;gap:10px;justify-content:flex-end"><button class="btn" id="edit-close">Done</button></div>
+ </div></div>`;
+ const sync=()=>{save();openEditor(qid,ei)};
+ $$('#seg-o [data-o]').forEach(b=>b.onclick=()=>{c.o=+b.dataset.o;sync()});
+ $$('[data-s2]').forEach(b=>b.onclick=()=>{const v=+b.dataset.s2;if(v<0)c.samples.splice(0,1);else c.samples[0]=v;sync()});
+ $$('[data-s3]').forEach(b=>b.onclick=()=>{const v=+b.dataset.s3;if(v<0)c.samples.splice(1,1);else{if(c.samples[0]==null)c.samples[0]=c.o;c.samples[1]=v}sync()});
+ $$('#seg-pos [data-pos]').forEach(b=>b.onclick=()=>{c.pos=+b.dataset.pos;sync()});
+ $$('#seg-sent [data-sent]').forEach(b=>b.onclick=()=>{c.sent=b.dataset.sent;sync()});
+ $('[data-inacc]').onclick=()=>{c.inacc=!c.inacc;sync()};
+ $('[data-rec]').onclick=()=>{c.rec=!c.rec;sync()};
+ $$('#comp-checks [data-comp]').forEach(cb=>cb.onchange=()=>{const k=+cb.dataset.comp;
+  c.comps=cb.checked?[...new Set([...c.comps,k])]:c.comps.filter(x=>x!==k);save()});
+ $('#comp-rec').onchange=e=>{c.compRec=+e.target.value;save()};
+ $('#cell-url').onchange=e=>{c.url=e.target.value;save()};
+ $('#edit-close').onclick=()=>{root.innerHTML='';render()};
+ $('#edit-modal').addEventListener('click',e=>{if(e.target.id==='edit-modal'){root.innerHTML='';render()}});
+}
+
+/* ---- gap briefs ---- */
+function gapsHTML(){
+ const run=latestRun();
+ if(!run)return '<div class="empty"><h3>No runs yet</h3></div>';
+ const ranked=DB.questions.map(q=>({q,score:gapScore(run,q)})).filter(x=>x.score>0.01).sort((a,b)=>b.score-a.score);
+ /* gap-close velocity over published briefs */
+ const closed=[];let open=0;
+ Object.entries(DB.briefs).forEach(([qid,pub])=>{
+  const startIdx=DB.runs.findIndex(r=>r.id===pub.runId);if(startIdx<0)return;
+  let hit=-1;
+  for(let i=startIdx+1;i<DB.runs.length;i++){
+   const anyCited=ENGINES.some((e,k)=>modalO(peekCell(DB.runs[i],qid,k))===3);
+   if(anyCited){hit=i;break}}
+  if(hit>=0)closed.push(hit-startIdx);else open++;
+ });
+ const med=closed.length?closed.sort((a,b)=>a-b)[Math.floor(closed.length/2)]:null;
+ const cards=ranked.slice(0,12).map(({q,score})=>{
+  const pr=presenceRate(run,q),cp=compPresenceRate(run,q);
+  const compsSeen=new Set();ENGINES.forEach((e,i)=>peekCell(run,q.id,i).comps.forEach(k=>compsSeen.add(DB.competitors[k])));
+  const pub=DB.briefs[q.id];
+  const engStates=ENGINES.map((e,i)=>`${e.split(' ')[0].toUpperCase()}: ${ONAMES[modalO(peekCell(run,q.id,i))]}`).join(' · ');
+  return `<div class="brief">
+   <div style="display:flex;gap:10px;align-items:flex-start"><h4 style="flex:1">${esc(q.text)}</h4>
+    <span class="gapscore">GAP ${score.toFixed(1)}</span><span class="pri p${q.pri}">P${q.pri}</span>
+    ${pub?`<span class="chip" style="color:var(--emerald)">BRIEF PUBLISHED · ${esc(pub.label)}</span>`:`<button class="btn sm" data-pub="${q.id}">Mark brief published</button>`}
+    <button class="btn sm" data-copy="${q.id}">Copy brief</button></div>
+   <p class="st">${esc(q.topic).toUpperCase()} · ${STAGES[q.stage||'co'][0].toUpperCase()} (×${STAGES[q.stage||'co'][1]}) · PRESENT IN ${Math.round(pr*5)}/5 ENGINES · COMPETITOR PRESSURE ${pctf(cp)}${compsSeen.size?' · SEEN: '+[...compsSeen].map(esc).join(', ').toUpperCase():''}<br>${engStates}</p>
+   <ul>
+    <li>Asset answers this question <b>verbatim</b> — heading phrased as the question, Direct Answer block up top (40–80 words, commits to numbers).</li>
+    <li>First-hand evidence an engine can't generate: our data, worked example, named framework.</li>
+    <li>FAQ block + FAQPage/BlogPosting schema; entity-rich; interlink from the 2–3 closest posts.</li>
+    ${compsSeen.size?`<li>Read the cited ${[...compsSeen].map(esc).join(' / ')} pieces — match specificity, beat on evidence. If a third-party domain is cited, consider an earned-placement play there too.</li>`:''}
+   </ul>
+  </div>`}).join('');
+ return `<div class="panel"><div class="phead"><h3>Gap briefs · ranked by priority × stage × absence × competitor pressure</h3>
+  <span class="chip">${ranked.length} SCORED</span><span class="chip" style="color:var(--emerald)">CLOSE VELOCITY: ${med!=null?'~'+med+' RUN'+(med===1?'':'S'):'—'}</span><span class="chip">${open} BRIEFS OPEN</span>
+  <span class="spacer"></span><button class="btn sm" onclick="window.print()">Print top 12</button></div>
+  <p class="hint" style="margin-bottom:12px">gapScore = priority(3/2/1) × stage(3/2/1) × share of engines we're absent from × (1 + competitor presence). Expect content to start earning citations in ~1–3 runs (4–12 weeks) — faster on live-retrieval engines.</p>
+  ${cards||'<div class="empty"><h3>No open gaps 🎯</h3><p>Raise the bar: add harder decision-stage questions.</p></div>'}</div>`;
+}
+function wireGaps(){
+ $$('#main [data-pub]').forEach(b=>b.onclick=()=>{const run=latestRun();
+  DB.briefs[b.dataset.pub]={runId:run.id,label:run.label};save();render()});
+ $$('#main [data-copy]').forEach(b=>b.onclick=()=>{
+  const run=latestRun(),q=DB.questions.find(x=>x.id===b.dataset.copy);
+  const md=[`## Content brief: ${q.text}`,``,
+   `- Topic: ${q.topic} · ${STAGES[q.stage||'co'][0]} · P${q.pri} · gapScore ${gapScore(run,q).toFixed(1)} · run ${run.label}`,
+   `- Status: ${ENGINES.map((e,i)=>`${e}: ${ONAMES[modalO(peekCell(run,q.id,i))]}`).join(' · ')}`,``,
+   `### Requirements`,
+   `1. Heading = the question, answered verbatim; Direct Answer block up top (40–80 words, commits to numbers).`,
+   `2. First-hand evidence: our data / worked example / named framework.`,
+   `3. FAQ block + schema; entity-rich; interlink from closest posts.`,
+   `4. Re-grade next run; expect movement in 1–3 runs.`].join('\n');
+  navigator.clipboard?.writeText(md).then(()=>{b.textContent='Copied ✓';setTimeout(()=>b.textContent='Copy brief',1200)});
+ });
+}
+
+/* ---- demo seed ---- */
+window.seed=function(){
+ if(DB.questions.length&&!confirm('Demo data adds alongside existing. Continue?'))return;
+ DB.competitors=['AutomateIQ','FlowForge','OpsPilot'];
+ const Q=[
+  ['what is an AI agent fleet','Foundations','aw',1],['how much does AI automation cost for a mid-market company','Pricing','de',1],
+  ['AI agents vs hiring an ops person','Capacity','co',1],['is it safe to give AI agents access to our ERP','Security','de',1],
+  ['local AI vs cloud AI for business data','Infrastructure','co',2],['how to measure ROI of AI automation','Finance','co',1],
+  ['best AI automation agency','Buying','de',1],['what is answer engine optimization','Marketing','aw',2],
+  ['AI agents for quote to cash process','RevOps','de',1],['human in the loop AI approval workflow','Operations','co',2],
+  ['white label AI agents for agencies','Partners','de',3],['AI agent orchestration patterns explained','Foundations','aw',3]
+ ].map(([text,topic,stage,pri])=>({id:uid(),text,topic,stage,pri}));
+ DB.questions.push(...Q);
+ /* deterministic-ish plausible progression */
+ /* Each cell keeps a stable hash across runs so month-over-month movement is
+    realistic: most cells persist, a plausible minority upgrade each month. */
+ const mk=(label,lvl)=>{const run={id:uid(),label,date:Date.now(),cells:{}};
+  Q.forEach((q,qi)=>{run.cells[q.id]={};ENGINES.forEach((e,ei)=>{
+   const h=(qi*7+ei*3)%10;
+   let c;
+   if(lvl===0)c=h<1?cel({o:2,pos:3}):h<3?cel({o:1}):h<5?cel({o:0,comps:[h%3]}):cel({});
+   else if(lvl===1)c=h<1?cel({o:3,pos:2,url:'deltafleet.ai/blog/'+q.topic.toLowerCase()}):h<2?cel({o:2,pos:2}):h<4?cel({o:1,comps:[h%3]}):h<5?cel({o:0,comps:[h%3,(h+1)%3]}):h<6?cel({o:1}):cel({});
+   else c=h<3?cel({o:3,pos:h===0?1:2,sent:h===0?'+':'0',rec:h===0,url:h%2?'deltafleet.ai/blog/'+q.topic.toLowerCase():'g2.com'}):h<4?cel({o:2,pos:2,comps:[h%3]}):h<5?cel({o:2,pos:3,sent:'-',inacc:h===4,comps:[h%3],compRec:h%3}):h<6?cel({o:1}):h<7?cel({o:0,comps:[h%3]}):cel({});
+   if(q.pri===1&&lvl===2)c.samples=[c.o,Math.max(0,c.o-(h%4===0?1:0))];
+   run.cells[q.id][ei]=c;
+  })});return run};
+ DB.runs.push(mk('Apr 2026',0),mk('May 2026',1),mk('Jun 2026',2));
+ /* one published brief that closed */
+ const q0=Q[7];DB.briefs[q0.id]={runId:DB.runs[1].id,label:'May 2026'};
+ save();view='dash';render();
+};
+
+/* ---- io ---- */
+$('#btn-export').onclick=()=>{const blob=new Blob([JSON.stringify(DB,null,1)],{type:'application/json'});
+ const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+ a.download='df-citations-'+new Date().toISOString().slice(0,10)+'.json';a.click();URL.revokeObjectURL(a.href)};
+$('#btn-import').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;
+ f.text().then(t=>{try{const d=JSON.parse(t);if(!Array.isArray(d.questions)||!Array.isArray(d.runs))throw 0;
+  if(!d.briefs)d.briefs={};if(!Array.isArray(d.competitors))d.competitors=['Competitor A'];if(!d.brand)d.brand='Delta Fleet';
+  DB=d;openRun=null;view='dash';save();render()}catch(err){alert('Not a valid Citation Deck export.')}})});
+$('#btn-new-run').onclick=()=>newRun();
+$('#btn-seed').onclick=()=>seed();
+$$('#tabs .tab').forEach(t=>t.onclick=()=>{view=t.dataset.v;if(view!=='runs')openRun=null;render()});
+
+load();if(memOnly)flash('MEMORY ONLY');render();
+</script>
+</body>
+</html>

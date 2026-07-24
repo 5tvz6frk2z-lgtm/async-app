@@ -1,0 +1,14 @@
+[
+  { "question": "how does the append-only ledger derive its state?", "contains": "replaying the log" },
+  { "question": "what are the four kinds of typed memory?", "contains": "pattern" },
+  { "question": "when does a gate become a relaxation candidate on the trust curve?", "contains": "20" },
+  { "question": "which two actions never auto-relax?", "contains": "CRM merges" },
+  { "question": "how does dynamic model routing decide which model tier to use?", "contains": "difficulty" },
+  { "question": "what is the safety floor in model routing for high-stakes work?", "contains": "cheapest tier" },
+  { "question": "how does the shadow eval harness de-risk a corridor before launch?", "contains": "scenarios" },
+  { "question": "what does the adversarial verification layer do to a bad action?", "contains": "refute" },
+  { "question": "how does the curator keep instruction changes safe?", "contains": "measured" },
+  { "question": "what is the deterministic spine doctrine?", "contains": "plain code" },
+  { "question": "how is self-reported confidence calibrated before it can escalate a gate?", "contains": "agreement" },
+  { "question": "what is the pricing ladder for the integration studio?", "contains": "Recon" }
+]

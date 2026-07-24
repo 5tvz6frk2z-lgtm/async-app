@@ -1,0 +1,50 @@
+[
+  {
+    "id": "the-pricing-ladder",
+    "name": "The pricing ladder",
+    "summary": "Delta Fleet's pricing ladder: Daily Brief starter, then Recon audit, then a fixed-price Install, then a Flight Ops retainer.",
+    "tags": ["pricing", "ladder", "cost", "recon", "install", "flight-ops"],
+    "pointers": ["pivot-plan-4-the-productized-offer"],
+    "content": "# The pricing ladder\n\nAffordability at the bottom, moat at the top. The four rungs:\n\n1. **Daily Brief** — $99 setup + $79/month (or $49/month bring-your-own-API-key). A read-only starter agent; setup is credited toward a Recon.\n2. **Recon** — a paid workflow audit (~$2k) that produces a fixed-price plan; the fee is credited from the starter setup.\n3. **Install** — $8,000–$20,000 fixed, one to three corridors live in 30 days.\n4. **Flight Ops** — a managed retainer with a monthly Delta Proof report.\n\nLegacy marketing retainer tiers (Scout / Squadron / Armada) still apply to the marketing corridors."
+  },
+  {
+    "id": "trust-curve-gate-relaxation",
+    "name": "Trust curve & gate relaxation",
+    "summary": "A gate becomes a relaxation candidate after at least 20 verdicts with under 5% intervention over the trailing 100; two actions never auto-relax.",
+    "tags": ["trust-curve", "relaxation", "gate", "verdict", "candidate", "intervention"],
+    "pointers": ["adr-gates-are-the-platform-not-a-feature"],
+    "content": "# Trust curve & gate relaxation\n\nBrand-visible or irreversible actions start behind a human approval gate. A gate becomes a **relaxation candidate** only on measured evidence: at least **20 verdicts** in the trailing window with an intervention rate (edits + rejects) **under 5%**. Relaxations are proposals a human applies — never automatic, always reversible, always ledgered.\n\n**Two actions never auto-relax:** CRM merges and negative-review responses.\n\nThe adversarial verification layer strengthens this: a \"verified-clean\" history earns autonomy faster than raw approvals."
+  },
+  {
+    "id": "the-six-corridors",
+    "name": "The six corridors",
+    "summary": "The six installable workflows: Speed-to-Lead, Inbox & CRM Hygiene, Reporting Autopilot, Content/AEO Engine, Document Intake, and Review & Reputation, plus the Daily Brief starter.",
+    "tags": ["corridors", "workflows", "speed-to-lead", "reporting", "document-intake", "review"],
+    "pointers": [],
+    "content": "# The six corridors\n\nA corridor is one installable workflow, fully described by a blueprint. The six:\n\n1. **Speed-to-Lead** — respond to inbound leads in minutes.\n2. **Inbox & CRM Hygiene** — triage, label, keep the CRM clean.\n3. **Reporting Autopilot** — weekly reports, numbers computed not generated.\n4. **Content / AEO Engine** — answer-engine-optimized content.\n5. **Document Intake** — invoices and documents matched and posted.\n6. **Review & Reputation** — draft public responses to reviews.\n\nPlus the read-only **Daily Brief** starter (inbox + calendar, debriefed every weekday)."
+  },
+  {
+    "id": "deterministic-spine-doctrine",
+    "name": "Deterministic spine, agent joints",
+    "summary": "Anything that can be plain code IS plain code (zero tokens, reproducible); models are reserved for judgment; numbers in deliverables are computed, never generated.",
+    "tags": ["doctrine", "deterministic", "spine", "hybrid", "tokens"],
+    "pointers": ["adr-hybrid-pipelines-deterministic-spine-agent-joints-v0-3"],
+    "content": "# Deterministic spine, agent joints\n\nThe core execution doctrine. Anything that can be deterministic MUST be a script — plain code, same input same output, zero tokens. The model is reserved for judgment: classify, summarize, draft in brand voice, decide exceptions. **Numbers in client deliverables come from code, never a model** — a computed figure can't be hallucinated. This is what makes the starter tier economically real at cents per run."
+  },
+  {
+    "id": "the-memory-flywheel",
+    "name": "The memory flywheel",
+    "summary": "Every human edit or rejection at a gate is captured as per-client memory, so corrections teach the fleet and the same edit is not needed twice.",
+    "tags": ["memory", "flywheel", "correction", "learning", "moat"],
+    "pointers": ["adr-memory-typed-ledger-derived-correction-fed-v0-4"],
+    "content": "# The memory flywheel\n\nThe key learning moat. Every human `edited` or `rejected` gate verdict is auto-captured as a keyed client memory candidate; repeated corrections confirm (confidence grows) rather than duplicate. Interventions teach the fleet: the trust curve reduces gating over time, and memory reduces the need for edits at all — so the same correction is never needed twice."
+  },
+  {
+    "id": "byok-bring-your-own-key",
+    "name": "BYOK — bring your own key",
+    "summary": "When a client opts in, inference bills to their own Anthropic key via profile.byok, decoupling our margin from their token volume.",
+    "tags": ["byok", "pricing", "inference", "profile", "cost"],
+    "pointers": ["the-pricing-ladder"],
+    "content": "# BYOK — bring your own key\n\nBring-your-own-key: when the client profile opts in (`profile.byok.enabled`), inference bills to the client's own Anthropic key (env-var named in the profile) instead of ours. Their cost at cost, our margin decoupled from their token volume. It drops the Daily Brief starter from $79 to $49/month."
+  }
+]

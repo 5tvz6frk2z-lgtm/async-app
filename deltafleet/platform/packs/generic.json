@@ -1,0 +1,16 @@
+{
+  "pack": "generic",
+  "title": "General Business",
+  "terminology": {},
+  "standingRules": [
+    "Plain language over jargon; write for a busy owner reading on a phone.",
+    "When a message could be from an existing customer OR a new lead, treat it as a customer first."
+  ],
+  "urgency": [
+    "anything mentioning a deadline today",
+    "payment failures",
+    "angry escalations"
+  ],
+  "compliance": [],
+  "corridorHints": {}
+}

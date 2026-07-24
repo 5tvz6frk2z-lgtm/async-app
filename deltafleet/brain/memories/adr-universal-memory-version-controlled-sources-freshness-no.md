@@ -1,0 +1,12 @@
+---
+name: Universal memory: version-controlled sources, freshness, no bloat (v0.10)
+summary: 21. Universal memory: version-controlled sources, freshness, no bloat (v0.10). · lib/sources.js syncSource version updated ttlDays retireStale retireBelow ADR state.memorystats approver syncsource upsert
+tags: sourc, memory, bloat, version, controll, freshness
+pointers: 
+updated: 2026-07-08T00:00:00.000Z
+---
+# Universal memory: version-controlled sources, freshness, no bloat (v0.10)
+
+**21. Universal memory: version-controlled sources, freshness, no bloat (v0.10).** The scaling contract for the learning layer, made explicit and enforced. The memory architecture is universal across clients/corridors because it is *typed + scoped + provenance-tracked + budgeted*, not per-industry forks (ADR §13). This decision adds the **version-controlled sources** layer (`lib/sources.js` + `sources/*.json`): a client's durable truth (vendors, approvers, policies, catalog) lives in a **reviewable, diffable file** — the source of truth — and memory is its live projection. `syncSource` is idempotent and clean: each fact upserts under a stable key (`src:<id>:<factKey>`) so re-syncing the same file changes nothing (no duplication); editing a fact's text updates it in place; bumping the file's `version`/`updated` re-stamps provenance so **freshness tracks the file**; deleting a fact retires its memory; and a source past its `ttlDays` freshness window is stale → `retireStale` removes it so **a prompt never quotes an out-of-date source**. This is the "version-controlled files for up-to-date sources, nothing built to bloat" contract, in code and tests. Anti-bloat is structural and layered: dedupe-by-key (no double-writes), decay + `retireBelow` floor + per-scope caps in `consolidate()` (ADR §13), source-driven retirement here, and `memory.stats()` (counts by kind/scope/provenance, active vs retired) so bloat is observable before it reaches a prompt. Server: `--sources <dir>` syncs on boot and retires stale; `/api/state.memoryStats` + `.sources` surface the projection. **Scaling seam (documented, not yet needed):** at hundreds–low-thousands of entries per client the scoped scans in `retrieve()` are negligible and no embeddings are warranted (ADR §13); the raw *ledger* grows unbounded over years, so ledger snapshot/compaction (checkpoint state + replay only the tail) is the next optimization when a deployment's log gets large — the memory projection itself is already bounded by caps.
+
+_source: platform/ADR.md_

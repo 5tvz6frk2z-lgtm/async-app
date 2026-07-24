@@ -1,0 +1,19 @@
+[
+  { "question": "how does running one process per client limit the blast radius?", "contains": "blast radius" },
+  { "question": "does the platform have any runtime dependencies?", "contains": "stdlib" },
+  { "question": "what happens to a run when one of its actions needs approval?", "contains": "park" },
+  { "question": "which model does the Anthropic adapter default to?", "contains": "claude-opus-4-8" },
+  { "question": "how are dotted tool names encoded on the API wire?", "contains": "__" },
+  { "question": "what happens when an agent exceeds its step or token budget?", "contains": "loudly" },
+  { "question": "how does the specialization cascade adapt to different industries?", "contains": "Pack" },
+  { "question": "with bring-your-own-key, whose account pays for inference?", "contains": "client's own" },
+  { "question": "how do the verifier agents decide to hold an action?", "contains": "majority" },
+  { "question": "how many verdicts are needed before a gate can be relaxed?", "contains": "20" },
+  { "question": "what are the priced stages of the offering?", "contains": "Recon" },
+  { "question": "what cross-install benchmark reduction claim can we make?", "contains": "34%" },
+  { "question": "which agent callsign is permanently gated for CRM merges?", "contains": "ATHENA" },
+  { "question": "what are the six installable corridors?", "contains": "Speed-to" },
+  { "question": "how does the ledger recover from a crash in the middle of a write?", "contains": "truncate" },
+  { "question": "does the memory engine use vector embeddings at this scale?", "contains": "embeddings" },
+  { "question": "how does the shadow eval harness keep its runs isolated?", "contains": "in-memory" }
+]

@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agentloop — Delta Fleet Console</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 3 29 27H3Z' fill='none' stroke='%234fd8ff' stroke-width='2.5'/%3E%3C/svg%3E">
+<style>
+:root{
+  --void:#05070f; --deep:#080d1c; --raised:#0b1226;
+  --line:rgba(122,162,255,.14); --line-strong:rgba(122,162,255,.28);
+  --ion:#4fd8ff; --crimson:#ff4d6b; --gold:#ffc24b; --emerald:#34e3a4; --nebula:#8b7bff; --coral:#ff6a3d;
+  --text:#eaf0ff; --muted:#94a3c7; --faint:#5d6b8f;
+  --sans:'Instrument Sans','Segoe UI',system-ui,-apple-system,sans-serif;
+  --disp:'Space Grotesk','Avenir Next','Segoe UI',system-ui,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,'SFMono-Regular','Cascadia Mono',Consolas,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--void);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+::selection{background:rgba(79,216,255,.28)}
+button{font-family:inherit;cursor:pointer}
+h1,h2,h3,h4{font-family:var(--disp);font-weight:600;letter-spacing:-.01em}
+::-webkit-scrollbar{width:9px;height:9px}::-webkit-scrollbar-track{background:var(--void)}::-webkit-scrollbar-thumb{background:#1b2647;border-radius:6px}
+.klabel{font-family:var(--mono);font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--faint)}
+.mono{font-family:var(--mono)}
+
+.bar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:14px;padding:0 20px;height:58px;background:rgba(5,8,17,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.bar .logo{display:flex;align-items:center;gap:10px;font-family:var(--disp);font-weight:700;font-size:.98rem;letter-spacing:.04em}
+.bar .logo svg{width:24px;height:24px;filter:drop-shadow(0 0 6px rgba(79,216,255,.5))}
+.bar .logo small{font-family:var(--mono);font-weight:400;font-size:.56rem;letter-spacing:.26em;color:var(--ion);display:block}
+.bar .spacer{flex:1}
+.chip{font-family:var(--mono);font-size:.6rem;letter-spacing:.14em;padding:4px 10px;border:1px solid var(--line-strong);border-radius:100px;color:var(--muted)}
+.chip.live{color:var(--emerald);border-color:rgba(52,227,164,.4)}
+.btn{display:inline-flex;align-items:center;gap:8px;font-family:var(--disp);font-weight:600;font-size:.8rem;padding:8px 14px;border-radius:8px;border:1px solid var(--line-strong);background:rgba(79,216,255,.06);color:var(--text);transition:.15s}
+.btn:hover{background:rgba(79,216,255,.13)}
+.btn.primary{background:linear-gradient(135deg,#7de2ff,#22b8e6);color:#02222e;border-color:transparent}
+.btn.good{border-color:rgba(52,227,164,.5);color:var(--emerald)}
+.btn.good:hover{background:rgba(52,227,164,.1)}
+.btn.warn{border-color:rgba(255,194,75,.5);color:var(--gold)}
+.btn.warn:hover{background:rgba(255,194,75,.1)}
+.btn.bad{border-color:rgba(255,77,107,.5);color:var(--crimson)}
+.btn.bad:hover{background:rgba(255,77,107,.1)}
+.btn.sm{padding:5px 10px;font-size:.7rem}
+.btn:focus-visible,textarea:focus-visible,input:focus-visible{outline:2px solid var(--ion);outline-offset:1px}
+
+.main{padding:20px 22px 60px;max-width:1420px;margin:0 auto}
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:16px}
+.kpi{background:var(--raised);border:1px solid var(--line);border-radius:11px;padding:11px 13px}
+.kpi b{display:block;font-family:var(--disp);font-size:1.3rem;font-weight:700;color:var(--ion);font-variant-numeric:tabular-nums}
+.kpi.gold b{color:var(--gold)}.kpi.green b{color:var(--emerald)}.kpi.red b{color:var(--crimson)}.kpi.vio b{color:var(--nebula)}
+.kpi span{font-size:.68rem;color:var(--faint);display:block;line-height:1.3}
+
+.cols{display:grid;grid-template-columns:5fr 7fr;gap:16px;align-items:start}
+.panel{background:var(--raised);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:16px}
+.phead{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.phead h3{font-size:.98rem}
+.phead .spacer{flex:1}
+.count{font-family:var(--mono);font-size:.7rem;color:var(--gold);border:1px solid rgba(255,194,75,.4);border-radius:100px;padding:2px 9px}
+
+.appr{border:1px solid rgba(255,194,75,.35);border-left:3px solid var(--gold);border-radius:11px;background:var(--deep);padding:13px 14px;margin-bottom:10px}
+.appr .who{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;margin-bottom:6px}
+.appr .cs{font-family:var(--mono);font-size:.72rem;color:var(--ion);letter-spacing:.08em}
+.appr .tool{font-family:var(--mono);font-size:.78rem;color:var(--gold)}
+.appr textarea{width:100%;min-height:74px;background:var(--void);border:1px solid var(--line-strong);border-radius:8px;color:var(--text);font-family:var(--mono);font-size:.74rem;padding:8px;resize:vertical}
+.appr .row{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.appr .age{margin-left:auto;font-family:var(--mono);font-size:.6rem;color:var(--faint)}
+
+.run{border:1px solid var(--line);border-radius:11px;background:var(--deep);padding:11px 13px;margin-bottom:9px}
+.run .top{display:flex;gap:10px;align-items:center;flex-wrap:wrap;cursor:pointer}
+.run .cs{font-family:var(--mono);font-size:.76rem;color:var(--ion);letter-spacing:.08em}
+.run .bp{font-size:.8rem;color:var(--muted)}
+.st{font-family:var(--mono);font-size:.56rem;letter-spacing:.1em;padding:2px 8px;border-radius:100px;border:1px solid var(--line)}
+.st.running{color:var(--ion);border-color:rgba(79,216,255,.45)}
+.st.awaiting-approval{color:var(--gold);border-color:rgba(255,194,75,.45)}
+.st.done{color:var(--emerald);border-color:rgba(52,227,164,.4)}
+.st.error{color:var(--crimson);border-color:rgba(255,77,107,.45)}
+.st.killed,.st.killing{color:var(--coral);border-color:rgba(255,106,61,.45)}
+.run .spacer{flex:1}
+.trace{margin-top:10px;border-top:1px dashed var(--line);padding-top:8px;display:grid;gap:5px}
+.tr{display:flex;gap:8px;font-size:.78rem;color:var(--muted);align-items:baseline}
+.tr .g{font-family:var(--mono);font-size:.52rem;letter-spacing:.08em;padding:1px 6px;border-radius:5px;border:1px solid var(--line);flex-shrink:0}
+.tr .g.auto{color:var(--faint)}
+.tr .g.log{color:var(--ion);border-color:rgba(79,216,255,.4)}
+.tr .g.approve{color:var(--gold);border-color:rgba(255,194,75,.4)}
+.tr .tool{font-family:var(--mono);font-size:.72rem;color:var(--text)}
+.tr .v{font-family:var(--mono);font-size:.6rem}
+.tr .v.approved{color:var(--emerald)}.tr .v.edited{color:var(--gold)}.tr .v.rejected{color:var(--crimson)}
+.tr.note{color:var(--muted);font-style:italic}
+.tr .err{color:var(--crimson)}
+
+.bps{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.bp-card{background:var(--raised);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.bp-card h4{font-size:.95rem;margin-bottom:2px}
+.bp-card .sum{font-size:.78rem;color:var(--muted);margin-bottom:10px}
+table{width:100%;border-collapse:collapse;font-size:.78rem}
+th{font-family:var(--mono);font-size:.53rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ion);text-align:left;padding:5px 7px;border-bottom:1px solid var(--line-strong)}
+td{padding:5px 7px;border-bottom:1px solid var(--line);color:var(--muted);vertical-align:middle}
+td:first-child{color:var(--text)}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
+.up{color:var(--emerald)}.down{color:var(--crimson)}
+.gl{font-family:var(--mono);font-size:.55rem;letter-spacing:.06em;padding:1px 7px;border-radius:100px;border:1px solid var(--line)}
+.gl.auto{color:var(--faint)}.gl.log{color:var(--ion);border-color:rgba(79,216,255,.4)}.gl.approve{color:var(--gold);border-color:rgba(255,194,75,.4)}
+.agents-line{font-family:var(--mono);font-size:.62rem;color:var(--faint);letter-spacing:.06em;margin:8px 0 2px;line-height:1.8}
+.agents-line b{color:var(--ion);font-weight:400}
+.empty{border:1px dashed var(--line-strong);border-radius:12px;padding:28px 20px;text-align:center;color:var(--faint);font-size:.85rem}
+.hint{font-size:.72rem;color:var(--faint);margin-top:6px;line-height:1.5}
+.sect{margin:22px 0 12px}
+.sect h2{font-size:1.05rem}
+@media(max-width:1080px){.cols,.bps{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:640px){.kpis{grid-template-columns:1fr 1fr}.main{padding:14px 12px 40px}}
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <span class="logo">
+    <svg viewBox="0 0 32 32" fill="none"><path d="M16 3 29 27H3Z" stroke="#4fd8ff" stroke-width="2.4"/><path d="M16 11 22.5 23h-13Z" fill="#4fd8ff" opacity=".85"/></svg>
+    <span>AGENTLOOP<small>DELTA FLEET · CLIENT CONSOLE · V0.1</small></span>
+  </span>
+  <span class="chip live" id="conn">CONNECTING…</span>
+  <span class="chip" id="demo-chip" style="display:none">DEMO MODE · SIMULATED CONNECTORS</span>
+  <span class="spacer"></span>
+  <a class="btn sm" href="/report" target="_blank" style="text-decoration:none">Delta Proof report</a>
+  <button class="btn primary sm" id="btn-sim" style="display:none">▸ Run demo sortie</button>
+</header>
+
+<main class="main">
+  <div class="kpis" id="kpis"></div>
+
+  <div class="cols">
+    <div>
+      <div class="panel" id="approvals-panel">
+        <div class="phead"><h3>Approvals queue</h3><span class="count" id="appr-count">0</span><span class="spacer"></span><span class="klabel">HUMAN GATE</span></div>
+        <div id="approvals"></div>
+      </div>
+      <div class="panel">
+        <div class="phead"><h3>Client memory</h3><span class="count" id="mem-count" style="color:var(--nebula);border-color:rgba(139,123,255,.4)">0</span><span class="spacer"></span><span class="klabel" id="pack-chip">PACK</span></div>
+        <div id="memories"></div>
+        <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
+          <select id="mem-kind" style="width:auto;background:var(--deep);border:1px solid var(--line-strong);border-radius:8px;color:var(--text);font-size:.76rem;padding:6px 8px"><option value="rule">RULE</option><option value="preference">PREF</option><option value="fact">FACT</option><option value="pattern">PATTERN</option></select>
+          <input id="mem-text" placeholder="Teach the fleet something…" style="flex:1;min-width:160px;background:var(--deep);border:1px solid var(--line-strong);border-radius:8px;color:var(--text);font-size:.8rem;padding:6px 9px">
+          <button class="btn sm" id="mem-add">Add</button>
+        </div>
+        <p class="hint">Rules & preferences are standing instructions in every future run. Edits and rejections in the approvals queue teach the fleet automatically.</p>
+      </div>
+      <div class="panel">
+        <div class="phead"><h3>Gate changes</h3><span class="spacer"></span><span class="klabel">TRUST CURVE LOG</span></div>
+        <div id="gatelog"><p class="hint">No gate changes yet. Relaxation proposals appear on corridor cards when a gated tool earns them.</p></div>
+      </div>
+      <div class="panel">
+        <div class="phead"><h3>Curated instructions</h3><span class="spacer"></span><span class="klabel">MEASURED SELF-IMPROVEMENT</span></div>
+        <div id="instructions"></div>
+        <p class="hint">The Curator distills repeated corrections into a proposed instruction, A/B-tests it on eval scenarios, and only proposes it if it measurably wins. You approve; accepted overlays inject into future runs and are reversible.</p>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="phead"><h3>Run feed</h3><span class="spacer"></span><span class="klabel">EVERY ACTION LEDGERED</span></div>
+      <div id="runs"></div>
+    </div>
+  </div>
+
+  <div class="sect"><h2>Corridors</h2><p class="hint">One card per installed blueprint: proof vs baseline, gate posture, and the trust stats that justify relaxing a gate.</p><p class="hint" id="caught-stat" style="color:var(--gold)"></p></div>
+  <div class="bps" id="bps"></div>
+</main>
+
+<script>
+'use strict';
+const $=(s,c=document)=>c.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+const fmt=n=>n==null?'—':(typeof n==='number'?(Math.abs(n)>=1000?Math.round(n).toLocaleString('en-US'):(Number.isInteger(n)?n:n.toFixed(1))):n);
+const expanded=new Set();
+let lastPendingIds='';
+
+async function post(url,body){const r=await fetch(url,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)});const j=await r.json();if(!j.ok)alert(j.error||'request failed');return j}
+
+function kpisHTML(s){
+ return `
+  <div class="kpi gold"><span>Pending approvals</span><b>${s.pendingApprovals}</b></div>
+  <div class="kpi"><span>Active runs</span><b>${s.running+s.awaiting}</b></div>
+  <div class="kpi green"><span>Completed</span><b>${s.done}</b></div>
+  <div class="kpi ${s.failed+s.killed>0?'red':'green'}"><span>Exceptions (error / killed)</span><b>${s.failed+s.killed}</b></div>
+  <div class="kpi vio"><span>Clean approval rate</span><b>${s.approvalCleanRate==null?'—':Math.round(s.approvalCleanRate*100)+'%'}</b></div>
+  <div class="kpi"><span>Tokens (in / out)</span><b style="font-size:.95rem">${fmt(s.tokensIn)} / ${fmt(s.tokensOut)}</b></div>`;
+}
+
+function approvalsHTML(list){
+ if(!list.length)return '<div class="empty">Queue clear. Gated actions park here until you approve, edit or reject them.</div>';
+ return list.map(a=>`
+  <div class="appr" data-id="${a.id}">
+   <div class="who"><span class="cs">${esc(a.runInfo?.callsign||'')}</span><span class="tool">${esc(a.tool)}</span>
+     <span style="font-size:.72rem;color:var(--faint)">${esc(a.runInfo?.blueprint||'')}</span>
+     <span class="age">${new Date(a.t).toLocaleTimeString()}</span></div>
+   <textarea data-ta="${a.id}">${esc(JSON.stringify(a.input,null,1))}</textarea>
+   <div class="row">
+    <button class="btn good sm" data-approve="${a.id}">Approve</button>
+    <button class="btn warn sm" data-edit="${a.id}">Approve edited</button>
+    <button class="btn bad sm" data-reject="${a.id}">Reject</button>
+   </div>
+  </div>`).join('');
+}
+
+function traceHTML(r){
+ const items=[];
+ const acts=[...r.actions];
+ let ai=0;
+ for(const n of r.notes){items.push({t:n.t,html:`<div class="tr note">▸ ${esc(n.text)}</div>`})}
+ for(const a of acts){
+  const v=a.verdict?`<span class="v ${a.verdict}">${a.verdict.toUpperCase()}${a.verdictBy?' · '+esc(a.verdictBy):''}</span>`:(a.gate==='approve'?'<span class="v" style="color:var(--gold)">AWAITING VERDICT</span>':'');
+  const out=a.ok===false?`<span class="err">${esc(a.error||'failed')}</span>`:'';
+  items.push({t:a.t,html:`<div class="tr"><span class="g ${a.gate}">${a.gate.toUpperCase()}</span><span class="tool">${esc(a.tool)}</span>${v}${out}</div>`});
+ }
+ items.sort((x,y)=>x.t<y.t?-1:1);
+ return `<div class="trace">${items.map(i=>i.html).join('')}</div>`;
+}
+
+function runsHTML(runs){
+ if(!runs.length)return '<div class="empty">No runs yet.'+($('#btn-sim').style.display!=='none'?' Hit “Run demo sortie” to launch scripted corridor activity through the real runtime, gates and ledger.':'')+'</div>';
+ return runs.map(r=>{
+  const open=expanded.has(r.id);
+  const killable=r.status==='running'||r.status==='awaiting-approval';
+  return `<div class="run" data-run="${r.id}">
+   <div class="top" data-toggle="${r.id}">
+    <span class="cs">${esc(r.callsign)}</span>
+    <span class="bp">${esc(r.blueprint)} · ${esc(r.agent)}</span>
+    ${r.thread?`<span class="klabel" title="Crew member (multi-agent orchestration)" style="color:var(--ion)">⛓ CREW</span>`:''}
+    <span class="st ${r.status}">${r.status.toUpperCase()}</span>
+    <span class="spacer"></span>
+    <span class="klabel">${r.actions.length} ACTIONS</span>
+    ${killable?`<button class="btn bad sm" data-kill="${r.id}">KILL</button>`:''}
+    <span class="klabel">${open?'▾':'▸'}</span>
+   </div>
+   ${open?traceHTML(r):''}
+  </div>`}).join('');
+}
+
+function proofRows(bp){
+ return bp.proof.map(p=>{
+  const d=p.deltaPct==null?'—':`<span class="${p.improved?'up':'down'}">${p.deltaPct>0?'+':''}${p.deltaPct.toFixed(0)}%</span>`;
+  return `<tr><td>${esc(p.label)}</td><td class="r mono">${fmt(p.baseline)}</td><td class="r mono">${fmt(p.current)} ${esc(p.unit)}</td><td class="r">${d}</td></tr>`}).join('');
+}
+function gateRows(bp,trust,verif){
+ return Object.entries(bp.gates).filter(([t])=>t!=='*').map(([tool,g])=>{
+  const tr=trust.find(x=>x.blueprint===bp.id&&x.tool===tool);
+  const vf=verif.find(x=>x.blueprint===bp.id&&x.tool===tool);
+  let stats=tr?`${tr.verdicts} verdicts · ${(tr.interventionRate*100).toFixed(0)}% intervention`:'';
+  if(g.effective==='verify'&&vf) stats=`${vf.verifications} checks · ${(vf.cleanRate*100).toFixed(0)}% clean · ${vf.held} held`;
+  const relax=(tr&&tr.propose)||(vf&&vf.propose)?`<button class="btn warn sm" data-relax="${bp.id}|${tool}">RELAX → LOG</button>`:'';
+  const overridden=g.effective!==g.declared?` <span class="klabel">(was ${g.declared})</span>`:'';
+  return `<tr><td class="mono" style="font-size:.72rem">${esc(tool)}</td><td><span class="gl ${g.effective}">${g.effective.toUpperCase()}</span>${overridden}</td><td style="font-size:.68rem">${stats}</td><td class="r">${relax}</td></tr>`}).join('');
+}
+function bpsHTML(bps,trust,verif,demo){
+ return bps.map(bp=>`
+  <div class="bp-card">
+   <h4>${esc(bp.title)}</h4>
+   <div class="sum">${esc(bp.summary)}</div>
+   <div class="agents-line">${bp.agents.map(a=>`<b>${esc(a.callsign)}</b> ${esc(a.name)}`).join(' · ')}</div>
+   <table><thead><tr><th>Metric</th><th class="r">Baseline</th><th class="r">Current</th><th class="r">Δ</th></tr></thead><tbody>${proofRows(bp)}</tbody></table>
+   <div style="height:10px"></div>
+   <table><thead><tr><th>Tool</th><th>Gate</th><th>Trust / verification</th><th></th></tr></thead><tbody>${gateRows(bp,trust,verif)}</tbody></table>
+   <p class="hint">Rollback: ${esc(bp.rollback)}</p>
+   ${demo&&bp.hasScenario?`<button class="btn sm" style="margin-top:8px" data-sim-one="${bp.id}">▸ Simulate this corridor</button>`:''}
+  </div>`).join('');
+}
+const KINDC={rule:'var(--crimson)',preference:'var(--gold)',fact:'var(--ion)',pattern:'var(--faint)'};
+function memoriesHTML(list){
+ if(!list.length)return '<p class="hint">Nothing learned yet. Onboarding seeds, operator notes, and captured corrections land here.</p>';
+ return list.map(m=>`<div class="tr" style="margin-bottom:7px;align-items:center">
+   <span class="g" style="color:${KINDC[m.kind]};border-color:${KINDC[m.kind]}40">${m.kind.toUpperCase()}</span>
+   <span style="font-size:.78rem;flex:1">${esc(m.text)} <span class="klabel">${m.scope==='client'?'':'· '+esc(m.scope)} · ${Math.round((m.confidence||0)*100)}%${m.confirms>1?' · ×'+m.confirms:''} · ${esc(m.source?.type||'')}</span></span>
+   <button class="btn bad sm" data-mem-retire="${m.id}" title="Retire">✕</button></div>`).join('');
+}
+function instructionsHTML(list){
+ if(!list||!list.length)return '<p class="hint">No instruction proposals yet. When the Curator runs, measured proposals appear here for your approval.</p>';
+ const badge={proposed:'var(--gold)',accepted:'var(--ok)',rejected:'var(--faint)',reverted:'var(--faint)'};
+ return list.map(p=>{
+  const d=typeof p.delta==='number'?`${p.delta>=0?'+':''}${(p.delta*100).toFixed(0)}% acc`:'';
+  const rec=p.status==='proposed'?(p.recommend?'<span class="klabel" style="color:var(--ok)">A/B: RECOMMEND</span>':'<span class="klabel" style="color:var(--faint)">A/B: hold</span>'):'';
+  const controls=p.status==='proposed'
+   ?`<button class="btn sm" data-instr-accept="${p.id}">Accept</button> <button class="btn bad sm" data-instr-reject="${p.id}">Reject</button>`
+   :p.status==='accepted'?`<span class="klabel" style="color:var(--ok)">ACTIVE v${p.version||1}</span> <button class="btn bad sm" data-instr-revert="${p.id}">Revert</button>`
+   :`<span class="klabel">${p.status.toUpperCase()}</span>`;
+  return `<div class="tr" style="margin-bottom:8px;flex-wrap:wrap">
+   <span class="g" style="color:${badge[p.status]||'var(--faint)'};border-color:${(badge[p.status]||'var(--faint)')}40">${(p.blueprint||'').toUpperCase()}</span>
+   <span style="font-size:.78rem;flex:1;min-width:180px">${esc(p.overlay)} <span class="klabel">${d} ${esc(p.reason||'')}</span></span>
+   ${rec} <span style="display:flex;gap:6px">${controls}</span></div>`}).join('');
+}
+function gatelogHTML(list){
+ if(!list.length)return '<p class="hint">No gate changes yet. Relaxation proposals appear on corridor cards when a gated tool earns them.</p>';
+ return list.map(e=>`<div class="tr" style="margin-bottom:6px"><span class="g log">${new Date(e.t).toLocaleDateString()}</span><span class="tool">${esc(e.blueprint)} · ${esc(e.tool)}</span><span style="font-size:.74rem">${esc(e.from)} → <b style="color:var(--gold)">${esc(e.to)}</b> by ${esc(e.by)}${e.reason?' — '+esc(e.reason):''}</span></div>`).join('');
+}
+
+function render(st){
+ $('#kpis').innerHTML=kpisHTML(st.summary);
+ $('#appr-count').textContent=st.summary.pendingApprovals;
+ // don't clobber an approval card the operator is editing
+ const editing=document.activeElement&&document.activeElement.tagName==='TEXTAREA';
+ const ids=st.pendingApprovals.map(a=>a.id).join(',');
+ if(!editing||ids!==lastPendingIds){$('#approvals').innerHTML=approvalsHTML(st.pendingApprovals);lastPendingIds=ids}
+ $('#runs').innerHTML=runsHTML(st.runs);
+ $('#bps').innerHTML=bpsHTML(st.blueprints,st.trust,(st.verification&&st.verification.byTool)||[],st.demo);
+ const caught=st.verification&&st.verification.caught||0;
+ const cs=$('#caught-stat'); if(cs) cs.textContent=caught?`🛡 ${caught} action${caught===1?'':'s'} caught by verification before execution`:'';
+ $('#gatelog').innerHTML=gatelogHTML(st.gateChanges);
+ $('#instructions').innerHTML=instructionsHTML(st.instructions);
+ const memEditing=document.activeElement&&document.activeElement.id==='mem-text';
+ if(!memEditing)$('#memories').innerHTML=memoriesHTML(st.memories||[]);
+ $('#mem-count').textContent=(st.memories||[]).length;
+ if(st.pack)$('#pack-chip').textContent='PACK · '+st.pack.title.toUpperCase();
+ if(st.demo){$('#demo-chip').style.display='';$('#btn-sim').style.display=''}
+}
+
+document.addEventListener('click',async e=>{
+ const t=e.target;
+ if(t.dataset.toggle){expanded.has(t.dataset.toggle)?expanded.delete(t.dataset.toggle):expanded.add(t.dataset.toggle);tick();return}
+ const tg=t.closest('[data-toggle]');
+ if(tg&&!t.dataset.kill){const id=tg.dataset.toggle;expanded.has(id)?expanded.delete(id):expanded.add(id);tick();return}
+ if(t.dataset.approve)await post('/api/verdict',{action:t.dataset.approve,verdict:'approved'});
+ if(t.dataset.edit){
+  const ta=$(`[data-ta="${t.dataset.edit}"]`);
+  let input;try{input=JSON.parse(ta.value)}catch(err){alert('Edited input is not valid JSON');return}
+  await post('/api/verdict',{action:t.dataset.edit,verdict:'edited',editedInput:input});
+ }
+ if(t.dataset.reject){
+  const reason=prompt('Rejection reason (the agent sees this):')||'';
+  await post('/api/verdict',{action:t.dataset.reject,verdict:'rejected',reason});
+ }
+ if(t.dataset.kill)if(confirm('Kill this run? The agent stops at the next safe boundary.'))await post('/api/kill',{run:t.dataset.kill});
+ if(t.dataset.relax){const [blueprint,tool]=t.dataset.relax.split('|');
+  if(confirm(`Relax ${tool} → LOG for ${blueprint}? Evidence: a clean trust/verification window. Reversible via gate change.`))
+   await post('/api/gate',{blueprint,tool,to:'log',reason:'trust window earned relaxation'});
+ }
+ if(t.dataset.memRetire)await post('/api/memory/retire',{id:t.dataset.memRetire});
+ if(t.dataset.instrAccept&&confirm('Accept this curated instruction? It will inject into future runs (reversible).'))await post('/api/instruction',{action:'accept',id:t.dataset.instrAccept});
+ if(t.dataset.instrReject)await post('/api/instruction',{action:'reject',id:t.dataset.instrReject,reason:prompt('Reason (optional):')||''});
+ if(t.dataset.instrRevert&&confirm('Revert this active instruction overlay?'))await post('/api/instruction',{action:'revert',id:t.dataset.instrRevert});
+ if(t.id==='mem-add'){
+  const text=$('#mem-text').value.trim();
+  if(text){await post('/api/memory',{kind:$('#mem-kind').value,text});$('#mem-text').value=''}
+ }
+ if(t.id==='btn-sim')await post('/api/simulate',{});
+ if(t.dataset.simOne)await post('/api/simulate',{scenario:t.dataset.simOne});
+ if(t.dataset.approve||t.dataset.edit||t.dataset.reject||t.dataset.kill||t.dataset.relax||t.id==='btn-sim'||t.dataset.simOne||t.dataset.memRetire||t.id==='mem-add'||t.dataset.instrAccept||t.dataset.instrReject||t.dataset.instrRevert)tick();
+});
+
+let inflight=false;
+async function tick(){
+ if(inflight)return;inflight=true;
+ try{const r=await fetch('/api/state');render(await r.json());$('#conn').textContent='LIVE';$('#conn').className='chip live'}
+ catch(err){$('#conn').textContent='DISCONNECTED';$('#conn').className='chip';$('#conn').style.color='var(--crimson)'}
+ finally{inflight=false}
+}
+tick();setInterval(tick,1500);
+</script>
+</body>
+</html>

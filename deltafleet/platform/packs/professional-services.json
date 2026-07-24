@@ -1,0 +1,27 @@
+{
+  "pack": "professional-services",
+  "title": "Professional Services (legal, accounting, consulting)",
+  "terminology": {
+    "lead": "inquiry",
+    "deal": "engagement",
+    "customer": "client"
+  },
+  "standingRules": [
+    "Never state legal, tax or financial conclusions in outbound drafts \u2014 frame as 'the team will advise'.",
+    "Capture referral sources verbatim; referrals are the dominant channel and the referrer gets thanked.",
+    "New-client scheduling waits for the conflict-of-interest check unless the profile says otherwise."
+  ],
+  "urgency": [
+    "court or filing deadlines",
+    "regulator correspondence",
+    "anything marked privileged"
+  ],
+  "compliance": [
+    "Client communications may be privileged \u2014 never quote their content into third-party tools or notifications beyond the firm's own channels."
+  ],
+  "corridorHints": {
+    "speed-to-lead": "Inquiries often describe sensitive situations; acknowledge carefully, never diagnose.",
+    "document-intake": "Engagement letters and signed retainers route to the responsible partner, never auto-file.",
+    "reporting-autopilot": "Report utilization and realization alongside pipeline; partners think in billable terms."
+  }
+}

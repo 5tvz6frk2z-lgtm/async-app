@@ -1,0 +1,12 @@
+{
+  "name": "deltafleet-platform",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Delta Fleet Agentloop platform — blueprint spec, run ledger, gate engine, agent runtime, client console. Zero dependencies.",
+  "scripts": {
+    "start": "node server.js",
+    "demo": "node server.js --demo",
+    "test": "node --test test/*.test.js"
+  }
+}

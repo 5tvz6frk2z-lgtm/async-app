@@ -1,0 +1,133 @@
+{
+  "blueprint": "content-aeo-engine",
+  "title": "Content / AEO Engine",
+  "summary": "Answer-first content produced against the citation-gap list and published through approval gates.",
+  "trigger": {
+    "type": "queue",
+    "source": "gapbrief.approved",
+    "description": "A ranked gap brief from the Citation Deck is approved for production."
+  },
+  "agents": [
+    {
+      "name": "researcher",
+      "callsign": "ODIN",
+      "role": "Assembles sources, entities, numbers and the question set the piece must answer; drafts the Direct Answer block first.",
+      "tools": [
+        "web.lookup",
+        "docs.write"
+      ]
+    },
+    {
+      "name": "drafter-answer",
+      "callsign": "CALLIOPE",
+      "role": "Writes an answer-first draft: the Direct Answer up top, question-shaped headings, extractable blocks.",
+      "tools": [
+        "docs.read",
+        "docs.write"
+      ]
+    },
+    {
+      "name": "drafter-example",
+      "callsign": "BRAGI",
+      "role": "Writes an example-led draft: concrete client scenarios and specific numbers carry the argument.",
+      "tools": [
+        "docs.read",
+        "docs.write"
+      ]
+    },
+    {
+      "name": "drafter-concise",
+      "callsign": "SAGA",
+      "role": "Writes the tightest possible draft: the shortest path from question to a citable answer.",
+      "tools": [
+        "docs.read",
+        "docs.write"
+      ]
+    },
+    {
+      "name": "editor",
+      "callsign": "THEMIS",
+      "role": "Judges the three competing drafts against the citability checklist and picks or synthesizes the most citable, on-brand version.",
+      "tools": [
+        "docs.read",
+        "docs.write"
+      ]
+    },
+    {
+      "name": "optimizer",
+      "callsign": "APOLLO",
+      "role": "Applies AEO structure: question-shaped headings, extractable blocks, FAQ, schema markup; runs the citability checklist.",
+      "tools": [
+        "docs.read",
+        "docs.write",
+        "seo.audit"
+      ]
+    },
+    {
+      "name": "publisher",
+      "callsign": "HELIOS",
+      "role": "Stages the piece in the CMS with schema and internal links; publishes only through the gate.",
+      "tools": [
+        "cms.stage",
+        "cms.publish"
+      ]
+    }
+  ],
+  "gates": {
+    "*": "log",
+    "web.lookup": "auto",
+    "docs.read": "auto",
+    "docs.write": "log",
+    "seo.audit": "auto",
+    "cms.stage": "log",
+    "cms.publish": "approve"
+  },
+  "connectors": [
+    "gdocs-mcp",
+    "wordpress-mcp",
+    "search-console-mcp"
+  ],
+  "metrics": {
+    "baseline": [
+      {
+        "key": "pieces_per_month",
+        "label": "Publish cadence",
+        "unit": "count",
+        "direction": "up"
+      },
+      {
+        "key": "hours_per_piece",
+        "label": "Human hours per piece",
+        "unit": "h",
+        "direction": "down"
+      },
+      {
+        "key": "citation_sov_pct",
+        "label": "AI citation share of voice",
+        "unit": "%",
+        "direction": "up"
+      }
+    ],
+    "targets": {
+      "hours_per_piece": "< 1.5 human",
+      "citation_sov_pct": "measured monthly in Citation Deck"
+    }
+  },
+  "rollback": "Stop pulling from the gap-brief queue; staged drafts remain in the CMS as drafts. Published pieces are never auto-retracted — archive-don't-delete.",
+  "orchestration": {
+    "type": "sequential",
+    "agents": [
+      "researcher",
+      {
+        "judge": [
+          "drafter-answer",
+          "drafter-example",
+          "drafter-concise"
+        ],
+        "by": "editor"
+      },
+      "optimizer",
+      "publisher"
+    ]
+  }
+}

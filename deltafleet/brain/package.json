@@ -1,0 +1,13 @@
+{
+  "name": "cortex-second-brain",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Cortex — a zero-dependency second brain for Claude Code. Deterministic index-first retrieval: strip to keywords, score the catalogue without opening files, open only the best file, pull only the answering section, hand the model pre-attached evidence.",
+  "bin": { "brain": "bin/brain.js" },
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "serve": "node server.js",
+    "bench": "node bin/brain.js bench"
+  }
+}

@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fleet Ledger — Delta Fleet Internal</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 3 29 27H3Z' fill='none' stroke='%23ffc24b' stroke-width='2.5'/%3E%3C/svg%3E">
+<style>
+:root{
+  --void:#05070f; --deep:#080d1c; --raised:#0b1226;
+  --line:rgba(122,162,255,.14); --line-strong:rgba(122,162,255,.28);
+  --ion:#4fd8ff; --crimson:#ff4d6b; --gold:#ffc24b; --emerald:#34e3a4; --nebula:#8b7bff; --coral:#ff6a3d;
+  --text:#eaf0ff; --muted:#94a3c7; --faint:#5d6b8f;
+  --sans:'Instrument Sans','Segoe UI',system-ui,-apple-system,sans-serif;
+  --disp:'Space Grotesk','Avenir Next','Segoe UI',system-ui,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,'SFMono-Regular','Cascadia Mono',Consolas,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--void);color:var(--text);font-family:var(--sans);font-size:15.5px;line-height:1.55;-webkit-font-smoothing:antialiased}
+::selection{background:rgba(255,194,75,.28)}
+button{font-family:inherit;cursor:pointer}
+h1,h2,h3,h4{font-family:var(--disp);font-weight:600;letter-spacing:-.01em}
+::-webkit-scrollbar{width:9px;height:9px}::-webkit-scrollbar-track{background:var(--void)}::-webkit-scrollbar-thumb{background:#1b2647;border-radius:6px}
+.klabel{font-family:var(--mono);font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--faint)}
+.mono{font-family:var(--mono)}
+
+.bar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:14px;padding:0 20px;height:58px;background:rgba(5,8,17,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.bar .logo{display:flex;align-items:center;gap:10px;font-family:var(--disp);font-weight:700;font-size:.98rem;letter-spacing:.04em}
+.bar .logo svg{width:24px;height:24px;filter:drop-shadow(0 0 6px rgba(255,194,75,.5))}
+.bar .logo small{font-family:var(--mono);font-weight:400;font-size:.56rem;letter-spacing:.26em;color:var(--gold);display:block}
+.bar .spacer{flex:1}
+.chip{font-family:var(--mono);font-size:.6rem;letter-spacing:.14em;padding:4px 10px;border:1px solid var(--line-strong);border-radius:100px;color:var(--muted)}
+
+.btn{display:inline-flex;align-items:center;gap:8px;font-family:var(--disp);font-weight:600;font-size:.82rem;padding:9px 16px;border-radius:8px;border:1px solid var(--line-strong);background:rgba(79,216,255,.06);color:var(--text);transition:.2s}
+.btn:hover{background:rgba(79,216,255,.13);transform:translateY(-1px)}
+.btn.primary{background:linear-gradient(135deg,#ffd98a,#ffb020);color:#2a1a02;border-color:transparent}
+.btn.danger:hover{border-color:var(--crimson);color:var(--crimson);background:rgba(255,77,107,.08)}
+.btn.sm{padding:6px 11px;font-size:.74rem}
+.btn:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,tr[data-id]:focus-visible{outline:2px solid var(--ion);outline-offset:1px}
+
+.tabs{display:flex;gap:6px;padding:14px 20px 0;border-bottom:1px solid var(--line);background:var(--deep)}
+.tab{background:none;border:1px solid transparent;border-bottom:none;color:var(--muted);font-family:var(--disp);font-weight:600;font-size:.86rem;padding:10px 18px;border-radius:10px 10px 0 0}
+.tab:hover{color:var(--text)}
+.tab.on{background:var(--void);border-color:var(--line);color:var(--gold)}
+.main{padding:22px 24px 60px;max-width:1320px;margin:0 auto}
+
+.panel{background:var(--raised);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:16px}
+.panel h3{font-size:1.02rem}
+.phead{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.phead .spacer{flex:1}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:14px}
+.kpi{background:var(--deep);border:1px solid var(--line);border-radius:11px;padding:12px 13px}
+.kpi b{display:block;font-family:var(--disp);font-size:1.35rem;font-weight:700;color:var(--emerald);font-variant-numeric:tabular-nums}
+.kpi.red b{color:var(--crimson)}.kpi.gold b{color:var(--gold)}.kpi.blue b{color:var(--ion)}.kpi.vio b{color:var(--nebula)}
+.kpi span{font-size:.7rem;color:var(--faint);display:block;line-height:1.3}
+.kpi .sub{font-family:var(--mono);font-size:.56rem;color:var(--faint);margin-top:3px;display:block}
+.kpi .delta{font-family:var(--mono);font-size:.6rem;margin-left:5px}
+.up{color:var(--emerald)}.down{color:var(--crimson)}.flat{color:var(--faint)}
+
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th{font-family:var(--mono);font-size:.57rem;letter-spacing:.13em;text-transform:uppercase;color:var(--gold);text-align:left;padding:8px 9px;border-bottom:1px solid var(--line-strong)}
+td{padding:8px 9px;border-bottom:1px solid var(--line);color:var(--muted);vertical-align:middle}
+td:first-child{color:var(--text)}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
+tr[data-id]{cursor:pointer}
+tr[data-id]:hover td{background:rgba(79,216,255,.04)}
+input,select,textarea{background:var(--deep);border:1px solid var(--line-strong);border-radius:8px;padding:9px 11px;color:var(--text);font-family:var(--sans);font-size:.9rem;width:100%}
+input:focus,select:focus,textarea:focus{border-color:var(--ion)}
+textarea{resize:vertical;min-height:60px}
+
+.chart{background:var(--deep);border:1px solid var(--line);border-radius:11px;padding:14px}
+.chart h5{font-family:var(--mono);font-size:.58rem;letter-spacing:.18em;color:var(--faint);text-transform:uppercase;margin-bottom:10px}
+.bars{display:flex;align-items:flex-end;gap:5px;height:110px}
+.bars .b{flex:1;background:linear-gradient(180deg,rgba(255,194,75,.85),rgba(255,194,75,.25));border-radius:3px 3px 0 0;min-height:2px;position:relative}
+.bars .b.cur{background:linear-gradient(180deg,rgba(52,227,164,.9),rgba(52,227,164,.3))}
+.bars .b i{position:absolute;top:-15px;left:50%;transform:translateX(-50%);font-style:normal;font-family:var(--mono);font-size:.5rem;color:var(--faint);white-space:nowrap}
+.bars-x{display:flex;gap:5px;margin-top:5px}
+.bars-x span{flex:1;text-align:center;font-family:var(--mono);font-size:.5rem;color:var(--faint)}
+.hbar{margin-bottom:9px}
+.hbar .lab{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.6rem;letter-spacing:.06em;color:var(--muted);margin-bottom:3px}
+.hbar .trk{height:8px;background:rgba(122,162,255,.08);border-radius:5px;overflow:hidden}
+.hbar .fil{height:100%;border-radius:5px}
+
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;vertical-align:middle}
+.dot.g{background:var(--emerald);box-shadow:0 0 6px rgba(52,227,164,.6)}
+.dot.y{background:var(--gold);box-shadow:0 0 6px rgba(255,194,75,.6)}
+.dot.r{background:var(--crimson);box-shadow:0 0 6px rgba(255,77,107,.6)}
+.tag{font-family:var(--mono);font-size:.55rem;letter-spacing:.1em;padding:2px 8px;border-radius:100px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.tag.scout{color:var(--ion);border-color:rgba(79,216,255,.4)}
+.tag.squadron{color:var(--gold);border-color:rgba(255,194,75,.4)}
+.tag.armada{color:var(--nebula);border-color:rgba(139,123,255,.4)}
+.tag.wl{color:var(--coral);border-color:rgba(255,106,61,.4)}
+.tag.st-active{color:var(--emerald);border-color:rgba(52,227,164,.4)}
+.tag.st-onboarding{color:var(--ion);border-color:rgba(79,216,255,.4)}
+.tag.st-pipeline{color:var(--faint)}
+.tag.st-paused{color:var(--gold);border-color:rgba(255,194,75,.4)}
+.tag.st-churned{color:var(--crimson);border-color:rgba(255,77,107,.4)}
+.svc{font-family:var(--mono);font-size:.5rem;letter-spacing:.06em;padding:1px 6px;border-radius:4px;border:1px solid var(--line);color:var(--muted);margin-right:3px;white-space:nowrap}
+
+.edit-modal{position:fixed;inset:0;z-index:300;display:grid;place-items:center;padding:20px;background:rgba(4,6,14,.75);backdrop-filter:blur(6px)}
+.edit-sheet{width:min(560px,94vw);max-height:90vh;overflow-y:auto;background:linear-gradient(180deg,#0d1530,#080d1c);border:1px solid var(--line-strong);border-radius:16px;padding:24px}
+.edit-sheet h4{font-size:1rem;margin-bottom:2px}
+.edit-sheet .sub{font-family:var(--mono);font-size:.6rem;letter-spacing:.14em;color:var(--faint);text-transform:uppercase;margin-bottom:16px}
+.seg{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 14px}
+.seg button{background:var(--deep);border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:7px 12px;font-family:var(--mono);font-size:.62rem;letter-spacing:.08em}
+.seg button.on{background:rgba(79,216,255,.14);border-color:var(--ion);color:var(--ion)}
+.seg button.on.good{background:rgba(52,227,164,.14);border-color:var(--emerald);color:var(--emerald)}
+.seg button.on.bad{background:rgba(255,77,107,.14);border-color:var(--crimson);color:var(--crimson)}
+.seg button.on.warn{background:rgba(255,194,75,.14);border-color:var(--gold);color:var(--gold)}
+.edit-sheet .klabel{display:block;margin-top:10px}
+.checkrow{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 10px}
+.checkrow label{display:flex;gap:6px;align-items:center;font-size:.82rem;color:var(--muted);border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer}
+.checkrow input{width:auto}
+
+.empty{border:1px dashed var(--line-strong);border-radius:14px;padding:50px 30px;text-align:center;color:var(--faint)}
+.hint{font-size:.74rem;color:var(--faint);margin-top:6px;line-height:1.5}
+.mv{font-family:var(--mono);font-size:.58rem;letter-spacing:.08em;padding:2px 8px;border-radius:100px;border:1px solid var(--line)}
+.mv.new{color:var(--emerald);border-color:rgba(52,227,164,.4)}
+.mv.exp{color:var(--ion);border-color:rgba(79,216,255,.4)}
+.mv.con{color:var(--gold);border-color:rgba(255,194,75,.4)}
+.mv.chn{color:var(--crimson);border-color:rgba(255,77,107,.4)}
+@media(max-width:900px){.grid2,.grid3,.kpis{grid-template-columns:1fr}}
+@media print{.bar,.tabs,.btn,.print-hide{display:none!important}body{background:#fff;color:#111}.main{padding:0}
+ .panel{background:none;border:1px solid #bbc;padding:10px 12px;page-break-inside:avoid}
+ .panel h3,.phead h3{color:#111}
+ .kpi,.chart{background:#fff;border:1px solid #99a}
+ .kpi b{color:#111}.kpi span,.kpi .sub,.chart h5,.hint{color:#445}
+ th{color:#334;border-color:#99a}td{color:#223;border-color:#ccd}td:first-child{color:#111}
+ .chip,.tag,.svc,.mv{color:#334;border-color:#99a}
+ .up{color:#0a7a4a}.down{color:#b3223f}.flat{color:#667}
+ .bars .b{background:#d9c27a}.bars .b.cur{background:#7ac7a0}}
+
+/* ---- mobile hardening ---- */
+html{-webkit-text-size-adjust:100%}
+button,a,label{-webkit-tap-highlight-color:rgba(79,216,255,.12);touch-action:manipulation}
+@media(max-width:820px){
+ input,select,textarea{font-size:16px!important}
+ table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch}
+ th,td{min-width:90px}
+ .bar{flex-wrap:wrap;height:auto;padding:10px 14px;gap:8px}
+ .tabs{overflow-x:auto;flex-wrap:nowrap}
+ .kpis{grid-template-columns:1fr 1fr!important}
+ [style*="grid-template-columns"]{grid-template-columns:1fr!important}
+}
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <span class="logo">
+    <svg viewBox="0 0 32 32" fill="none"><path d="M16 3 29 27H3Z" stroke="#ffc24b" stroke-width="2.4"/><path d="M16 11 22.5 23h-13Z" fill="#ffc24b" opacity=".85"/></svg>
+    <span>FLEET LEDGER<small>DELTA FLEET · INTERNAL · REVOPS · V1</small></span>
+  </span>
+  <span class="chip" id="save-state">LOCAL · SAVED</span>
+  <span class="spacer"></span>
+  <button class="btn sm" id="btn-seed">Load Demo Data</button>
+  <button class="btn sm" id="btn-export">Export JSON</button>
+  <label class="btn sm" style="position:relative;overflow:hidden">Import JSON<input type="file" id="btn-import" accept=".json" style="position:absolute;inset:0;opacity:0;cursor:pointer"></label>
+  <button class="btn primary sm" id="btn-new">+ Add Client</button>
+</header>
+
+<nav class="tabs" id="tabs">
+  <button class="tab on" data-v="dash">Dashboard</button>
+  <button class="tab" data-v="clients">Clients</button>
+  <button class="tab" data-v="moves">Movements</button>
+  <button class="tab" data-v="report">Report</button>
+</nav>
+
+<main class="main" id="main"></main>
+<div id="editor-root"></div>
+
+<script>
+'use strict';
+/* ============ FLEET LEDGER v1 ============
+   The commercial backbone: client roster, retainer/MRR history, movement
+   waterfall (new/expansion/contraction/churn), trailing-12 NRR, gross margin
+   per account (retainer − agents×infra − human-hours×blended rate),
+   anniversary/renewal radar, delivery capacity. Sits after Audit Cockpit
+   (pre-sale case) and beside Citation Deck (delivery proof).
+   Every retainer change writes a {month, value} history entry per client;
+   all MRR math derives from that series — carry-forward, month-granular.
+   Deliberately excluded: invoicing/payments, tax, cash-basis accounting,
+   forecast models. This is an ops ledger, not a finance system. */
+const $=(s,c=document)=>c.querySelector(s), $$=(s,c=document)=>[...c.querySelectorAll(s)];
+const KEY='df-ledger-v1';
+const TIERS={scout:'SCOUT',squadron:'SQUADRON',armada:'ARMADA',wl:'WHITE-LABEL'};
+const STATUSES={pipeline:'PIPELINE',onboarding:'ONBOARDING',active:'ACTIVE',paused:'PAUSED',churned:'CHURNED'};
+const SVCS={aeo:'AEO',content:'CONTENT',lifecycle:'LIFECYCLE',analytics:'ANALYTICS',data:'DATA',web:'WEB/CRO'};
+const money=n=>'$'+Math.round(n).toLocaleString('en-US');
+const pct=n=>(n*100).toFixed(0)+'%';
+const esc=s=>String(s??'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+const uid=()=>Math.random().toString(36).slice(2,9);
+
+let DB={clients:[],settings:{agentCost:22,hourCost:45,hoursCap:320}};
+let view='dash', memOnly=false;
+function flash(t){const el=$('#save-state');el.textContent=t;el.style.color='var(--emerald)';setTimeout(()=>el.style.color='',900)}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(DB));flash('LOCAL · SAVED')}catch(e){memOnly=true;flash('MEMORY ONLY')}}
+function load(){try{const r=localStorage.getItem(KEY);if(r){DB=JSON.parse(r);if(!DB.settings)DB.settings={agentCost:22,hourCost:45,hoursCap:320}}}catch(e){memOnly=true}}
+
+/* ---- month math: 'YYYY-MM' <-> integer index ---- */
+const mi=s=>{const[y,m]=s.split('-').map(Number);return y*12+(m-1)};
+const ms=i=>`${Math.floor(i/12)}-${String(i%12+1).padStart(2,'0')}`;
+const nowMi=()=>{const d=new Date();return d.getFullYear()*12+d.getMonth()};
+const mLabel=i=>['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][i%12];
+
+/* MRR of client c at month index m: last history entry at or before m (carry-forward) */
+function mrrAt(c,m){
+ let v=0;
+ (c.hist||[]).forEach(h=>{if(mi(h.m)<=m)v=h.ret});
+ return v;
+}
+/* write this month's effective retainer into history (replace same-month entry) */
+function stamp(c){
+ const m=ms(nowMi());
+ const eff=c.status==='active'?(+c.ret||0):0;
+ c.hist=(c.hist||[]).filter(h=>h.m!==m);
+ const last=c.hist.length?c.hist[c.hist.length-1].ret:0;
+ if(eff!==last||!c.hist.length&&eff>0)c.hist.push({m,ret:eff});
+ c.hist.sort((a,b)=>mi(a.m)-mi(b.m));
+}
+const totalAt=m=>DB.clients.reduce((s,c)=>s+mrrAt(c,m),0);
+function movements(m){
+ const out=[];
+ DB.clients.forEach(c=>{
+  const prev=mrrAt(c,m-1),cur=mrrAt(c,m);
+  if(prev===0&&cur>0)out.push({c,type:'new',amt:cur});
+  else if(prev>0&&cur===0)out.push({c,type:'chn',amt:-prev});
+  else if(cur>prev)out.push({c,type:'exp',amt:cur-prev});
+  else if(cur<prev)out.push({c,type:'con',amt:cur-prev});
+ });
+ return out;
+}
+function nrr(){
+ const m=nowMi(),cohort=DB.clients.filter(c=>mrrAt(c,m-12)>0);
+ const den=cohort.reduce((s,c)=>s+mrrAt(c,m-12),0);
+ if(!den)return null;
+ return cohort.reduce((s,c)=>s+mrrAt(c,m),0)/den;
+}
+function cost(c){return (+c.agents||0)*DB.settings.agentCost+(+c.hours||0)*DB.settings.hourCost}
+function renewIn(c){ /* months until next annual anniversary of start */
+ if(!c.start||c.status!=='active')return null;
+ const age=nowMi()-mi(c.start);
+ if(age<0)return null;
+ const r=(12-(age%12))%12;
+ return r===0?12:r; /* anniversary this month counts as just renewed → 12 */
+}
+const ageMo=c=>c.start?Math.max(0,nowMi()-mi(c.start)):0;
+
+/* ---- render ---- */
+function render(){
+ $$('#tabs .tab').forEach(t=>t.classList.toggle('on',t.dataset.v===view));
+ const m=$('#main');
+ if(view==='dash')m.innerHTML=dashHTML();
+ else if(view==='clients')m.innerHTML=clientsHTML();
+ else if(view==='moves')m.innerHTML=movesHTML();
+ else if(view==='report'){m.innerHTML=reportHTML();wireReport()}
+ $$('tr[data-id]',m).forEach(tr=>{
+  tr.tabIndex=0;
+  tr.addEventListener('click',()=>openEditor(tr.dataset.id));
+  tr.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openEditor(tr.dataset.id)}});
+ });
+}
+function delta(a,b){const v=a-b;
+ if(Math.abs(v)<1)return `<span class="delta flat">· FLAT</span>`;
+ return `<span class="delta ${v>=0?'up':'down'}">${v>=0?'▲':'▼'}${money(Math.abs(v)).slice(1)}</span>`}
+
+function kpisHTML(){
+ const m=nowMi(),mrr=totalAt(m),prev=totalAt(m-1);
+ const act=DB.clients.filter(c=>c.status==='active');
+ const marg=act.reduce((s,c)=>s+((+c.ret||0)-cost(c)),0);
+ const n=nrr();
+ return `<div class="kpis">
+  <div class="kpi"><span>MRR</span><b>${money(mrr)}${delta(mrr,prev)}</b><span class="sub">ARR RUN-RATE ${money(mrr*12)}</span></div>
+  <div class="kpi blue"><span>Active clients</span><b>${act.length}</b><span class="sub">${DB.clients.filter(c=>c.status==='onboarding').length} ONBOARDING · ${DB.clients.filter(c=>c.status==='pipeline').length} PIPELINE</span></div>
+  <div class="kpi gold"><span>Avg retainer</span><b>${act.length?money(mrr/act.length):'—'}</b><span class="sub">RANGE ${act.length?money(Math.min(...act.map(c=>+c.ret||0)))+'–'+money(Math.max(...act.map(c=>+c.ret||0))):'—'}</span></div>
+  <div class="kpi ${mrr&&marg/mrr<.5?'red':''}"><span>Blended gross margin</span><b>${mrr?pct(marg/mrr):'—'}</b><span class="sub">${money(marg)}/MO AFTER DELIVERY COST</span></div>
+  <div class="kpi vio"><span>NRR (trailing 12)</span><b>${n==null?'—':pct(n)}</b><span class="sub">${n==null?'NEEDS 12 MO OF HISTORY':'COHORT ACTIVE 12 MO AGO'}</span></div>
+ </div>`;
+}
+function trendHTML(){
+ const m=nowMi(),pts=[];for(let k=11;k>=0;k--)pts.push({i:m-k,v:totalAt(m-k)});
+ const max=Math.max(...pts.map(p=>p.v),1);
+ return `<div class="chart"><h5>MRR — trailing 12 months</h5>
+  <div class="bars">${pts.map((p,ix)=>`<div class="b${ix===11?' cur':''}" style="height:${Math.max(2,p.v/max*100)}%">${ix===11||p.v===max&&p.v>0?`<i>${money(p.v)}</i>`:''}</div>`).join('')}</div>
+  <div class="bars-x">${pts.map(p=>`<span>${mLabel(p.i)}</span>`).join('')}</div></div>`;
+}
+function waterfallHTML(){
+ const mv=movements(nowMi());
+ const net=mv.reduce((s,x)=>s+x.amt,0);
+ const NAMES={new:'NEW',exp:'EXPANSION',con:'CONTRACTION',chn:'CHURN'};
+ return `<div class="chart"><h5>MRR movements — this month</h5>
+  ${mv.length?`<table><tbody>${mv.map(x=>`<tr><td>${esc(x.c.name)}</td><td><span class="mv ${x.type}">${NAMES[x.type]}</span></td><td class="r ${x.amt>=0?'up':'down'} mono">${x.amt>=0?'+':'−'}${money(Math.abs(x.amt)).slice(1)}</td></tr>`).join('')}
+  <tr><td><b>Net new MRR</b></td><td></td><td class="r ${net>=0?'up':'down'} mono"><b>${net>=0?'+':'−'}${money(Math.abs(net)).slice(1)}</b></td></tr></tbody></table>`:
+  `<p class="hint">No movements logged this month. Retainer edits stamp the current month automatically.</p>`}</div>`;
+}
+function tierMixHTML(){
+ const m=nowMi(),tot=totalAt(m)||1;
+ const COLORS={scout:'var(--ion)',squadron:'var(--gold)',armada:'var(--nebula)',wl:'var(--coral)'};
+ return `<div class="chart"><h5>MRR by tier</h5>${Object.keys(TIERS).map(t=>{
+  const v=DB.clients.filter(c=>c.tier===t).reduce((s,c)=>s+mrrAt(c,m),0);
+  return `<div class="hbar"><div class="lab"><span>${TIERS[t]}</span><span>${money(v)} · ${pct(v/tot)}</span></div>
+   <div class="trk"><div class="fil" style="width:${v/tot*100}%;background:${COLORS[t]}"></div></div></div>`}).join('')}</div>`;
+}
+function capacityHTML(){
+ const act=DB.clients.filter(c=>c.status==='active'||c.status==='onboarding');
+ const agents=act.reduce((s,c)=>s+(+c.agents||0),0);
+ const hours=act.reduce((s,c)=>s+(+c.hours||0),0);
+ const u=hours/(DB.settings.hoursCap||1);
+ return `<div class="chart"><h5>Delivery capacity</h5>
+  <div class="hbar"><div class="lab"><span>HUMAN HOURS / MO</span><span>${hours} / ${DB.settings.hoursCap} · ${pct(u)}</span></div>
+   <div class="trk"><div class="fil" style="width:${Math.min(100,u*100)}%;background:${u>.85?'var(--crimson)':u>.7?'var(--gold)':'var(--emerald)'}"></div></div></div>
+  <p class="hint">${agents} agents deployed across ${act.length} accounts. Strategist hours are the constraint — agents scale, approvals don't. ${u>.85?'<b style="color:var(--crimson)">Over 85%: hire or raise gate autonomy before the next signing.</b>':u>.7?'Above 70%: plan the next strategist hire now.':'Headroom for new signings.'}</p></div>`;
+}
+function renewalsHTML(){
+ const soon=DB.clients.map(c=>({c,r:renewIn(c)})).filter(x=>x.r!=null&&x.r<=3).sort((a,b)=>a.r-b.r);
+ return `<div class="chart"><h5>Renewal radar — next 90 days</h5>
+  ${soon.length?`<table><tbody>${soon.map(x=>`<tr><td>${esc(x.c.name)}</td><td><span class="tag ${x.c.tier}">${TIERS[x.c.tier]}</span></td><td class="r mono">${money(+x.c.ret||0)}/mo</td><td class="r mono">${x.r} MO</td><td><span class="dot ${x.c.health||'g'}"></span></td></tr>`).join('')}</tbody></table>
+  <p class="hint">Book the renewal review 60 days out with the latest Citation Deck report attached — renew on proof, not goodwill.</p>`:
+  `<p class="hint">No anniversaries inside 90 days.</p>`}</div>`;
+}
+function riskHTML(){
+ const risky=DB.clients.filter(c=>(c.status==='active'||c.status==='paused')&&(c.health==='r'||c.health==='y'));
+ return `<div class="chart"><h5>Accounts needing attention</h5>
+  ${risky.length?risky.map(c=>`<div class="hbar"><div class="lab"><span><span class="dot ${c.health}"></span>&nbsp; ${esc(c.name)} · ${money(+c.ret||0)}/mo</span></div>
+   <p class="hint" style="margin-top:2px">${esc(c.note||'No note — add the risk and the play.')}</p></div>`).join(''):
+  `<p class="hint">All green. Health is set per account in the editor — be honest, this list is the churn early-warning.</p>`}</div>`;
+}
+function dashHTML(){
+ if(!DB.clients.length)return `<div class="empty"><h3>No clients yet</h3><p>Add your first client — or load the demo book to see the ledger working.</p><div style="margin-top:16px"><button class="btn primary" onclick="seed()">Load Demo Data</button></div></div>`;
+ return kpisHTML()+`<div class="grid2">${trendHTML()}${waterfallHTML()}</div>
+ <div class="grid2" style="margin-top:16px">${tierMixHTML()}${capacityHTML()}</div>
+ <div class="grid2" style="margin-top:16px">${renewalsHTML()}${riskHTML()}</div>`;
+}
+
+function clientsHTML(){
+ if(!DB.clients.length)return `<div class="empty"><h3>No clients yet</h3><p>Use “+ Add Client”, or load the demo book.</p></div>`;
+ const ORDER={active:0,onboarding:1,pipeline:2,paused:3,churned:4};
+ const rows=[...DB.clients].sort((a,b)=>(ORDER[a.status]-ORDER[b.status])||((+b.ret||0)-(+a.ret||0)));
+ return `<div class="panel"><div class="phead"><h3>Client book</h3><span class="chip">${DB.clients.length} ACCOUNTS</span><span class="spacer"></span><span class="hint print-hide">Click a row to edit. Retainer edits stamp this month's MRR history.</span></div>
+ <div style="overflow-x:auto"><table><thead><tr><th>Client</th><th>Tier</th><th>Status</th><th>Services</th><th class="r">Retainer</th><th class="r">Margin</th><th class="r">Age</th><th class="r">Renews</th><th>Health</th></tr></thead>
+ <tbody>${rows.map(c=>{
+  const mg=(+c.ret||0)-cost(c),mp=(+c.ret||0)>0?mg/(+c.ret):0,r=renewIn(c);
+  return `<tr data-id="${c.id}"><td><b>${esc(c.name)}</b>${c.owner?`<span class="hint" style="margin:0;display:block">${esc(c.owner)}</span>`:''}</td>
+  <td><span class="tag ${c.tier}">${TIERS[c.tier]||'—'}</span></td>
+  <td><span class="tag st-${c.status}">${STATUSES[c.status]}</span></td>
+  <td>${(c.services||[]).map(s=>`<span class="svc">${SVCS[s]||s}</span>`).join('')}</td>
+  <td class="r mono">${c.status==='pipeline'?'('+money(+c.ret||0)+')':money(+c.ret||0)}</td>
+  <td class="r mono ${c.status==='active'?(mp<.4?'down':mp<.55?'':'up'):''}">${c.status==='active'?pct(mp):'—'}</td>
+  <td class="r mono">${c.start?ageMo(c)+' mo':'—'}</td>
+  <td class="r mono">${r!=null?r+' mo':'—'}</td>
+  <td><span class="dot ${c.health||'g'}"></span></td></tr>`}).join('')}</tbody></table></div></div>`;
+}
+
+function movesHTML(){
+ const m=nowMi();
+ let rows='';
+ for(let k=0;k<12;k++){
+  const mm=m-k,mv=movements(mm);
+  if(!mv.length&&k>0)continue;
+  const net=mv.reduce((s,x)=>s+x.amt,0);
+  const NAMES={new:'NEW',exp:'EXPANSION',con:'CONTRACTION',chn:'CHURN'};
+  rows+=`<div class="panel"><div class="phead"><h3>${mLabel(mm)} ${Math.floor(mm/12)}</h3><span class="chip">MRR ${money(totalAt(mm))}</span><span class="spacer"></span><span class="mono ${net>=0?'up':'down'}" style="font-size:.8rem">NET ${net>=0?'+':'−'}${money(Math.abs(net)).slice(1)}</span></div>
+  ${mv.length?`<table><tbody>${mv.map(x=>`<tr><td>${esc(x.c.name)}</td><td><span class="mv ${x.type}">${NAMES[x.type]}</span></td><td class="r ${x.amt>=0?'up':'down'} mono">${x.amt>=0?'+':'−'}${money(Math.abs(x.amt)).slice(1)}</td></tr>`).join('')}</tbody></table>`:`<p class="hint">No movements.</p>`}</div>`;
+ }
+ return `<p class="hint" style="margin-bottom:14px">Derived from each client's retainer history — every edit stamps the current month; the series carries forward between stamps. NRR = MRR today from the cohort that was paying 12 months ago ÷ what they paid then.</p>`+(rows||`<div class="empty"><h3>No history yet</h3></div>`);
+}
+
+function reportHTML(){
+ const s=DB.settings,m=nowMi();
+ return `<div class="panel print-hide"><div class="phead"><h3>Cost assumptions</h3><span class="spacer"></span><button class="btn primary sm" id="btn-print">Print monthly report</button></div>
+  <div class="grid3">
+   <label><span class="klabel">Infra cost / agent / mo ($)</span><input type="number" id="set-agent" value="${s.agentCost}" min="0"></label>
+   <label><span class="klabel">Blended human hour ($)</span><input type="number" id="set-hour" value="${s.hourCost}" min="0"></label>
+   <label><span class="klabel">Strategist hours capacity / mo</span><input type="number" id="set-cap" value="${s.hoursCap}" min="1"></label>
+  </div>
+  <p class="hint">Margins across the ledger recompute from these. Loaded strategist cost belongs in the hourly rate, not agent infra.</p></div>
+ <div class="panel">
+  <div class="phead"><h3>Monthly ops report — ${mLabel(m)} ${Math.floor(m/12)}</h3><span class="chip">DELTA FLEET · CONFIDENTIAL</span></div>
+  ${kpisHTML()}
+  <div class="grid2">${waterfallHTML()}${renewalsHTML()}</div>
+  <div class="grid2" style="margin-top:16px">${riskHTML()}${capacityHTML()}</div>
+  <p class="hint">Local-only data. Export JSON for backup; nothing leaves this browser.</p>
+ </div>`;
+}
+function wireReport(){
+ $('#btn-print').addEventListener('click',()=>window.print());
+ [['set-agent','agentCost'],['set-hour','hourCost'],['set-cap','hoursCap']].forEach(([id,k])=>{
+  $('#'+id).addEventListener('change',e=>{DB.settings[k]=Math.max(0,+e.target.value||0);save();render()});
+ });
+}
+
+/* ---- editor ---- */
+function blankClient(){return{id:uid(),name:'',owner:'',tier:'squadron',status:'pipeline',services:['aeo'],ret:1000,fee:12000,agents:4,hours:6,start:'',health:'g',note:'',hist:[]}}
+function openEditor(id){
+ const c=id?DB.clients.find(x=>x.id===id):blankClient();
+ if(!c)return;
+ const isNew=!id;
+ const root=$('#editor-root');
+ root.innerHTML=`<div class="edit-modal" id="em"><div class="edit-sheet" role="dialog" aria-modal="true" aria-label="Edit client">
+  <h4>${isNew?'New client':esc(c.name)}</h4><div class="sub">${isNew?'ADD TO THE BOOK':'EDIT · HISTORY PRESERVED'}</div>
+  <span class="klabel">Client name</span><input id="f-name" value="${esc(c.name)}" placeholder="Acme Robotics">
+  <span class="klabel">Account owner (strategist)</span><input id="f-owner" value="${esc(c.owner||'')}" placeholder="K. Voss">
+  <span class="klabel">Tier</span><div class="seg" id="f-tier">${Object.keys(TIERS).map(t=>`<button data-k="${t}" class="${c.tier===t?'on warn':''}">${TIERS[t]}</button>`).join('')}</div>
+  <span class="klabel">Status</span><div class="seg" id="f-status">${Object.keys(STATUSES).map(t=>`<button data-k="${t}" class="${c.status===t?(t==='active'?'on good':t==='churned'?'on bad':'on'):''}">${STATUSES[t]}</button>`).join('')}</div>
+  <span class="klabel">Services</span><div class="checkrow" id="f-svcs">${Object.keys(SVCS).map(s=>`<label><input type="checkbox" data-k="${s}" ${(c.services||[]).includes(s)?'checked':''}>${SVCS[s]}</label>`).join('')}</div>
+  <div class="grid3">
+   <label><span class="klabel">Retainer $/mo</span><input type="number" id="f-ret" value="${+c.ret||0}" min="0" step="50"></label>
+   <label><span class="klabel">Build fee $ (one-time)</span><input type="number" id="f-fee" value="${+c.fee||0}" min="0" step="500"></label>
+   <label><span class="klabel">Start month</span><input type="month" id="f-start" value="${esc(c.start||'')}"></label>
+  </div>
+  <div class="grid3">
+   <label><span class="klabel">Agents deployed</span><input type="number" id="f-agents" value="${+c.agents||0}" min="0"></label>
+   <label><span class="klabel">Human hours / mo</span><input type="number" id="f-hours" value="${+c.hours||0}" min="0"></label>
+   <label><span class="klabel">Health</span><div class="seg" id="f-health" style="margin:6px 0 0">${['g','y','r'].map(h=>`<button data-k="${h}" class="${(c.health||'g')===h?(h==='g'?'on good':h==='y'?'on warn':'on bad'):''}">${h==='g'?'GREEN':h==='y'?'AMBER':'RED'}</button>`).join('')}</div></label>
+  </div>
+  <span class="klabel">Note (risk / play / context)</span><textarea id="f-note">${esc(c.note||'')}</textarea>
+  <div style="display:flex;gap:10px;margin-top:18px">
+   <button class="btn primary" id="f-save">${isNew?'Add client':'Save'}</button>
+   <button class="btn" id="f-cancel">Cancel</button>
+   <span style="flex:1"></span>
+   ${isNew?'':'<button class="btn danger" id="f-del">Delete</button>'}
+  </div>
+ </div></div>`;
+ const seg=(id)=>{$$('#'+id+' button').forEach(b=>b.addEventListener('click',()=>{
+  $$('#'+id+' button').forEach(x=>x.className='');
+  const k=b.dataset.k;
+  b.className=id==='f-status'?(k==='active'?'on good':k==='churned'?'on bad':'on'):id==='f-health'?(k==='g'?'on good':k==='y'?'on warn':'on bad'):'on warn';
+ }))};
+ seg('f-tier');seg('f-status');seg('f-health');
+ const close=()=>{root.innerHTML=''};
+ $('#f-cancel').addEventListener('click',close);
+ $('#em').addEventListener('click',e=>{if(e.target.id==='em')close()});
+ document.addEventListener('keydown',function esch(e){if(e.key==='Escape'){close();document.removeEventListener('keydown',esch)}});
+ if(!isNew)$('#f-del').addEventListener('click',()=>{
+  if(confirm('Delete '+c.name+'? History goes with it — churned clients should stay in the book instead.')){
+   DB.clients=DB.clients.filter(x=>x.id!==c.id);save();close();render();
+  }});
+ $('#f-save').addEventListener('click',()=>{
+  c.name=$('#f-name').value.trim()||'Unnamed';
+  c.owner=$('#f-owner').value.trim();
+  c.tier=($('#f-tier button.on')||{}).dataset?.k||c.tier;
+  c.status=($('#f-status button.on')||{}).dataset?.k||c.status;
+  c.health=($('#f-health button.on')||{}).dataset?.k||'g';
+  c.services=$$('#f-svcs input:checked').map(i=>i.dataset.k);
+  c.ret=Math.max(0,+$('#f-ret').value||0);
+  c.fee=Math.max(0,+$('#f-fee').value||0);
+  c.start=$('#f-start').value;
+  c.agents=Math.max(0,+$('#f-agents').value||0);
+  c.hours=Math.max(0,+$('#f-hours').value||0);
+  c.note=$('#f-note').value.trim();
+  stamp(c);
+  if(isNew)DB.clients.push(c);
+  save();close();render();
+ });
+ $('#f-name').focus();
+}
+
+/* ---- demo seed ---- */
+function seed(){
+ const m=nowMi(),M=k=>ms(m-k);
+ DB.clients=[
+  {id:uid(),name:'Meridian SaaS',owner:'K. Voss',tier:'squadron',status:'active',services:['aeo','content','analytics'],ret:1450,fee:16000,agents:7,hours:7,start:M(7),health:'g',note:'Expanded to full Squadron this month after AEO SoV doubled.',hist:[{m:M(7),ret:950},{m:M(0),ret:1450}]},
+  {id:uid(),name:'NovaPay',owner:'K. Voss',tier:'armada',status:'active',services:['aeo','content','lifecycle','analytics','data'],ret:2800,fee:24000,agents:12,hours:11,start:M(8),health:'g',note:'Two brands live; third brand scoped for Q4.',hist:[{m:M(8),ret:2200},{m:M(2),ret:2800}]},
+  {id:uid(),name:'Atlas Legal',owner:'R. Imura',tier:'squadron',status:'active',services:['content','lifecycle'],ret:1200,fee:14000,agents:6,hours:6,start:M(6),health:'y',note:'Contracted from $1,400 — trimmed lifecycle scope. Reporting cadence slipped twice; fix before renewal.',hist:[{m:M(6),ret:1400},{m:M(0),ret:1200}]},
+  {id:uid(),name:'Corvid Studios',owner:'R. Imura',tier:'wl',status:'active',services:['aeo','content'],ret:1900,fee:0,agents:9,hours:5,start:M(6),health:'g',note:'White-label — 4 end-clients under their brand at wholesale.',hist:[{m:M(6),ret:1300},{m:M(3),ret:1900}]},
+  {id:uid(),name:'Vantage Realty Group',owner:'K. Voss',tier:'squadron',status:'active',services:['lifecycle','analytics','web'],ret:1100,fee:12000,agents:5,hours:6,start:M(3),health:'r',note:'Champion left. Exec review booked with Citation Deck report + speed-to-lead numbers.',hist:[{m:M(3),ret:1100}]},
+  {id:uid(),name:'Harbor & Pine',owner:'R. Imura',tier:'scout',status:'active',services:['aeo'],ret:650,fee:10000,agents:3,hours:3,start:M(5),health:'g',note:'Scout → Squadron upsell conversation queued for the renewal window.',hist:[{m:M(5),ret:650}]},
+  {id:uid(),name:'Bluegrain Analytics',owner:'K. Voss',tier:'scout',status:'active',services:['aeo','analytics'],ret:550,fee:10000,agents:3,hours:3,start:M(0),health:'g',note:'Signed off the AEO Grader lead magnet. Measurement baseline running.',hist:[{m:M(0),ret:550}]},
+  {id:uid(),name:'Summit Wellness',owner:'R. Imura',tier:'scout',status:'churned',services:['content'],ret:0,fee:10000,agents:0,hours:0,start:M(6),health:'r',note:'Churned — acquired; new owner consolidated vendors. Exit interview done, case study approved.',hist:[{m:M(6),ret:600},{m:M(0),ret:0}]},
+  {id:uid(),name:'Quill & Query',owner:'K. Voss',tier:'squadron',status:'onboarding',services:['aeo','content'],ret:900,fee:13000,agents:4,hours:8,start:M(0),health:'g',note:'Build phase — go-live next month; retainer starts then.',hist:[]},
+  {id:uid(),name:'Ironvale Manufacturing',owner:'R. Imura',tier:'squadron',status:'pipeline',services:['aeo','lifecycle'],ret:1400,fee:15000,agents:0,hours:0,start:'',health:'g',note:'Audit Cockpit case sent — P50 payback 9 mo. Decision expected in 3 weeks.',hist:[]},
+ ];
+ save();view='dash';render();flash('DEMO LOADED');
+}
+
+/* ---- io & boot ---- */
+$('#btn-seed').addEventListener('click',()=>{if(!DB.clients.length||confirm('Replace current data with the demo book?'))seed()});
+$('#btn-new').addEventListener('click',()=>openEditor(null));
+$('#btn-export').addEventListener('click',()=>{
+ const blob=new Blob([JSON.stringify(DB,null,1)],{type:'application/json'});
+ const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+ a.download='fleet-ledger-'+ms(nowMi())+'.json';a.click();URL.revokeObjectURL(a.href);
+});
+$('#btn-import').addEventListener('change',e=>{
+ const f=e.target.files[0];if(!f)return;
+ const rd=new FileReader();
+ rd.onload=()=>{try{const d=JSON.parse(rd.result);
+  if(!Array.isArray(d.clients))throw new Error('bad shape');
+  DB=d;if(!DB.settings)DB.settings={agentCost:22,hourCost:45,hoursCap:320};
+  save();render();flash('IMPORTED');
+ }catch(err){alert('Import failed: '+err.message)}};
+ rd.readAsText(f);e.target.value='';
+});
+$('#tabs').addEventListener('click',e=>{const t=e.target.closest('.tab');if(t){view=t.dataset.v;render()}});
+load();render();
+</script>
+</body>
+</html>

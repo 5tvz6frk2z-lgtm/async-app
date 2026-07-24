@@ -1,0 +1,17 @@
+{
+  "_comment": "Example MCP client config (e.g. Claude Code's .mcp.json). Instead of pointing the client straight at an MCP server, point it at the Tollgate proxy and pass the real server as the downstream command after `--`. Every tools/list is drift-checked and every tools/call is policy-gated, with all traffic logged to the shared spine that `fleetdeck serve` visualizes.",
+  "mcpServers": {
+    "cortex-guarded": {
+      "command": "node",
+      "args": [
+        "deltafleet/fleetdeck/bin/tollgate-proxy.js",
+        "--spine", "fleetdeck.jsonl",
+        "--config", "deltafleet/fleetdeck/examples/manifest.json",
+        "--server", "cortex",
+        "--agent", "claude",
+        "--",
+        "node", "deltafleet/fleetdeck/bin/cortex-mcp.js"
+      ]
+    }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "blueprint": "daily-brief",
+  "title": "Daily Brief",
+  "summary": "Read-only morning brief from email + calendar: reply debt, what's slipping, today's shape — numbers computed by code, narrative written in your voice.",
+  "callsign": "VOR",
+  "tier": "starter",
+  "trigger": { "type": "schedule", "source": "cron: 0 7 * * 1-5", "description": "Weekday mornings 07:00 client-local." },
+  "agents": [
+    { "name": "narrator", "callsign": "VOR", "role": "Turns the computed brief stats into a sharp, warm morning note in the client's voice. States only figures present in the input; leads with what needs attention.", "model": "claude-haiku-4-5", "tools": [] }
+  ],
+  "pipeline": [
+    { "script": "pull.email_stats", "input": { "window": "24h" }, "save": "email" },
+    { "script": "pull.calendar_today", "save": "calendar" },
+    { "script": "compute.brief", "input": { "email": "$results.email", "calendar": "$results.calendar" }, "save": "stats" },
+    { "infer": "narrator", "task": "Write the morning brief: 1) the one thing to handle first, 2) reply debt with the oldest thread named, 3) today's shape (meetings, free blocks), 4) one pattern worth noticing. Under 160 words.", "input": { "stats": "$results.stats", "needsReply": "$results.email.needsReply" }, "save": "narrative" },
+    { "script": "deliver.brief", "input": { "to": "$profile.briefTo", "narrative": "$results.narrative", "stats": "$results.stats" } }
+  ],
+  "gates": {
+    "*": "log",
+    "pull.email_stats": "auto",
+    "pull.calendar_today": "auto",
+    "compute.brief": "auto",
+    "deliver.brief": "log"
+  },
+  "connectors": ["gmail-mcp (read-only scope)", "gcal-mcp (read-only scope)"],
+  "metrics": {
+    "baseline": [
+      { "key": "briefs_on_time_pct", "label": "Briefs delivered on time", "unit": "%", "direction": "up" },
+      { "key": "overdue_replies", "label": "Replies overdue > 24h", "unit": "count", "direction": "down" }
+    ],
+    "targets": { "briefs_on_time_pct": "100", "overdue_replies": "trending down" }
+  },
+  "rollback": "Disable the schedule; disconnect the read-only OAuth grants. Nothing was ever written to any client system."
+}

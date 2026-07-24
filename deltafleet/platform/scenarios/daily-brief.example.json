@@ -1,0 +1,22 @@
+[
+  {
+    "id": "weekday-standard",
+    "note": "A normal weekday inbox: 3 threads waiting, one older than 24h.",
+    "trigger": { "schedule": "weekday-0700" },
+    "groundTruth": {
+      "results.stats.replyDebt": 3,
+      "results.stats.overdue": 1,
+      "results.stats.meetings": 3,
+      "results.stats.meetingMins": 90
+    }
+  },
+  {
+    "id": "inout-rollup",
+    "note": "The in/out volume line is computed from the pulled counts.",
+    "trigger": { "schedule": "weekday-0700" },
+    "groundTruth": {
+      "results.stats.inOut": "47 in / 19 out",
+      "results.stats.oldest.ageH": 31
+    }
+  }
+]
