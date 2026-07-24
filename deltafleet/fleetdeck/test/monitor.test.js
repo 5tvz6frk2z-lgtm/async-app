@@ -117,6 +117,29 @@ test('a detector that throws does not break the check', () => {
   assert.equal(r.alerts.length, 1, 'the throwing rule is swallowed; the good rule still fires');
 });
 
+test('schema evolution: a metric absent from the OLD check does not false-alert', () => {
+  const m = mon();
+  // an older check taken before `llmsTxt`/`likelyShell` were tracked
+  m.record('agent-ready', 'u', { metrics: { score: 80, grade: 'B', blockedCrawlers: 0, jsonLdValid: 2 } });
+  const r = m.record('agent-ready', 'u', { metrics: { score: 80, grade: 'B', blockedCrawlers: 0, jsonLdValid: 2, likelyShell: 0, llmsTxt: 1 } });
+  assert.equal(r.alerts.length, 0, 'newly-present metrics must not read as a regression');
+});
+
+test('malformed metrics never throw and never fabricate an alert', () => {
+  const m = mon();
+  m.record('agent-ready', 'u', { metrics: { score: 'oops', blockedCrawlers: null, jsonLdValid: undefined } });
+  assert.doesNotThrow(() => m.record('agent-ready', 'u', { metrics: {} }));
+  const r = m.record('agent-ready', 'u', { metrics: { score: NaN, blockedCrawlers: undefined } });
+  assert.ok(Array.isArray(r.alerts), 'still returns cleanly');
+});
+
+test('record with no metrics key is tolerated (treated as empty)', () => {
+  const m = mon();
+  assert.doesNotThrow(() => m.record('ai-register', 'fleet', { summary: 'x' }));
+  const r = m.record('ai-register', 'fleet', {});
+  assert.equal(r.alerts.length, 0);
+});
+
 test('targets are isolated — one URL\'s history does not leak into another', () => {
   const m = mon();
   m.record('agent-ready', 'a.com', { metrics: { score: 90, grade: 'A', blockedCrawlers: 0, jsonLdValid: 1, likelyShell: 0, llmsTxt: 0 } });
