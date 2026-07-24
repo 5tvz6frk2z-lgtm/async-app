@@ -150,6 +150,26 @@ test('audit: a same-count SWAP of training crawlers fires the crawler-access war
   assert.match(a.message, /Amazonbot/);
 });
 
+test('audit2: a bot already blocked, merely re-tagged as retrieval, does NOT alert', () => {
+  const m = mon();
+  // OAI-SearchBot blocked in BOTH checks; only its role tag flips to retrieval (a
+  // registry reclassification between cron checks) — robots.txt/access did not change
+  const base = { score: 40, blockedCrawlers: 1, blockedRetrieval: 0, blockedList: ['OAI-SearchBot'], blockedRetrievalList: [] };
+  m.record('agent-ready', 'u', { metrics: base });
+  const r = m.record('agent-ready', 'u', { metrics: { ...base, blockedRetrieval: 1, blockedRetrievalList: ['OAI-SearchBot'] } });
+  assert.equal(r.alerts.find((x) => x.signal === 'retrieval-access'), undefined, 'a role re-tag on an already-blocked bot is not an access regression');
+});
+
+test('audit2: a garbage prev count does not fire, but an ABSENT prev count (schema evolution) does', () => {
+  const m1 = mon();
+  m1.record('agent-ready', 'u', { metrics: { blockedRetrieval: 'two' } });    // present but unparseable
+  assert.equal(m1.record('agent-ready', 'u', { metrics: { blockedRetrieval: 1 } }).alerts.length, 0, "'two'->1 is uncomparable, no alert");
+  const m2 = mon();
+  m2.record('agent-ready', 'u', { metrics: { score: 50 } });                   // absent blockedRetrieval (old schema)
+  const r = m2.record('agent-ready', 'u', { metrics: { score: 50, blockedRetrieval: 1 } });
+  assert.ok(r.alerts.some((x) => x.signal === 'retrieval-access'), 'absent->1 is a real new block from a 0 baseline');
+});
+
 test('audit: a string-count IMPROVEMENT does not fabricate a critical (numeric coercion)', () => {
   const m = mon();
   m.record('agent-ready', 'u', { metrics: { blockedRetrieval: '10' } });

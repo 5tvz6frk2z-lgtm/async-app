@@ -131,13 +131,22 @@ export const AGENT_READY_RULES = [
   // swap; numeric-coerced count fallback for legacy/injected metrics that predate the list.
   (p, c) => {
     if (Array.isArray(p.blockedRetrievalList) && Array.isArray(c.blockedRetrievalList)) {
-      const was = strSet(p.blockedRetrievalList);
-      const newly = c.blockedRetrievalList.map(String).filter((n) => !was.has(n));
+      // "newly blocked" = a retrieval bot NOT already blocked overall last check. Keying
+      // off p.blockedList (fallback p.blockedRetrievalList) means a mere role-tag flip on
+      // an already-blocked bot (a registry reclassification, not an access change) stays
+      // silent — access didn't slip, so no alert.
+      const wasBlocked = strSet(Array.isArray(p.blockedList) ? p.blockedList : p.blockedRetrievalList);
+      const newly = c.blockedRetrievalList.map(String).filter((n) => !wasBlocked.has(n));
       return newly.length
         ? { signal: 'retrieval-access', severity: 'critical', from: p.blockedRetrievalList, to: c.blockedRetrievalList, message: `Answer-engine RETRIEVAL bot(s) newly blocked: ${newly.join(', ')} — kills AI-search citations` }
         : null;
     }
-    const pr = num(p.blockedRetrieval), cr = num(c.blockedRetrieval);
+    // Count fallback. An ABSENT count (old check predating the metric) is a 0 baseline
+    // so a new block from nothing still fires; a PRESENT but non-numeric count ('two')
+    // is uncomparable and must not coerce to 0 (which would misread an improvement).
+    const pr = p.blockedRetrieval == null ? 0 : Number(p.blockedRetrieval);
+    const cr = c.blockedRetrieval == null ? 0 : Number(c.blockedRetrieval);
+    if (!Number.isFinite(pr) || !Number.isFinite(cr)) return null;
     return cr > pr
       ? { signal: 'retrieval-access', severity: 'critical', from: p.blockedRetrieval, to: c.blockedRetrieval, message: `${cr - pr} more answer-engine RETRIEVAL bot(s) now blocked — kills AI-search citations` }
       : null;

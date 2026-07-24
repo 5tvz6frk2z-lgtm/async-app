@@ -130,6 +130,26 @@ test('initialize is forwarded and the server name is marked as firewalled', asyn
   assert.equal(r.result.serverInfo.name, 'tollgate:fake');
 });
 
+test('audit2: an approval cannot be consumed by a payload differing only in the null-family', async () => {
+  const spine = new Spine(null, { indexBy: ['agent', 'server'] });
+  const gate = new Tollgate({ spine, manifest: { default: 'deny', agents: { client: { fake: { review: ['create_*'] } } } } });
+  const inbox = new Approvals({ spine });
+  const down = new FakeServer(TOOLS);
+  const proxy = new TollgateProxy({ gate, downstream: inProcessDownstream(down), server: 'fake', agent: 'client', approvals: inbox });
+  // human reviews and approves a specific payload with a null field
+  await proxy.handle(callMsg('create_issue', { to: 'alice', amount: null }, 1));
+  inbox.approve(inbox.pending()[0].ref, 'jacob', 'ok');
+  const before = spine.query({ kind: 'tool.result' }).length;
+  // attacker retries with amount:Infinity — used to collide with null under canonical()
+  const r = await proxy.handle(callMsg('create_issue', { to: 'alice', amount: Infinity }, 2));
+  assert.equal(r.result.isError, true, 'Infinity payload must not ride the null approval');
+  assert.match(r.result.content[0].text, /Held for human approval/);
+  assert.equal(spine.query({ kind: 'tool.result' }).length, before, 'nothing executed downstream');
+  // the exact approved payload still goes through
+  const good = await proxy.handle(callMsg('create_issue', { to: 'alice', amount: null }, 3));
+  assert.equal(good.result.isError, false);
+});
+
 test('onAlert fires (once) on critical drift — clean/warn refreshes stay silent', async () => {
   const raised = [];
   const spine = new Spine(null, { indexBy: ['agent', 'server'] });

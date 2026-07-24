@@ -35,9 +35,15 @@ export function validateManifest(m) {
   }
   const agents = m.agents || {};
   if (typeof agents !== 'object') return ['manifest.agents must be an object'];
+  // Agent/server KEYS are matched exact-or-literal-'*' (they are not globbed). A
+  // partial-glob key like 'git*' would silently match nothing, so a deny/review scoped
+  // to it gives no protection — reject it loudly rather than let it fail open.
+  const badKey = (k) => k !== '*' && k.includes('*');
   for (const [agent, servers] of Object.entries(agents)) {
+    if (badKey(agent)) errs.push(`agent key "${agent}" cannot contain '*' except as the whole key (keys are not globbed)`);
     if (typeof servers !== 'object' || servers === null) { errs.push(`agent "${agent}" must map servers to rules`); continue; }
     for (const [server, rule] of Object.entries(servers)) {
+      if (badKey(server)) errs.push(`${agent}: server key "${server}" cannot contain '*' except as the whole key (keys are not globbed)`);
       if (typeof rule !== 'object' || rule === null) { errs.push(`${agent}/${server} rule must be an object`); continue; }
       for (const key of Object.keys(rule)) {
         if (!['allow', 'review', 'deny'].includes(key)) errs.push(`${agent}/${server}: unknown rule key "${key}" (allow|review|deny)`);
@@ -81,6 +87,13 @@ function applicableRules(manifest, agent, server) {
  */
 export function decide(manifest, agent, server, tool) {
   const fallback = manifest.default || 'deny';
+  // FAIL CLOSED on a tool name that isn't a clean string: a control character
+  // (newline/CR/etc.) lets a decorated name like "drop_table\nHIDDEN" slip past an
+  // anchored deny pattern while a broad allow:['*'] still matches it — a deny bypass.
+  // Real MCP tool names are simple identifiers, so any control char is denied outright.
+  if (typeof tool !== 'string' || /[\x00-\x1f\x7f]/.test(tool)) {
+    return { decision: 'deny', reason: `${agent}/${server}: tool name is not a clean identifier (control characters)`, matched: 'deny' };
+  }
   const rules = applicableRules(manifest, agent, server);
   const anyScope = (list) => rules.some((r) => (r[list] || []).some((p) => globMatch(p, tool)));
   // deny floor, then review floor — both union across every applicable scope.
@@ -94,15 +107,38 @@ export function decide(manifest, agent, server, tool) {
 
 // ---- tool-set fingerprinting -------------------------------------------------
 
-/** Canonical JSON with sorted keys — so equal objects always hash equal. */
+/** Canonical JSON with sorted keys — so equal objects always hash equal. Crucially
+ *  INJECTIVE for the null-family: undefined / NaN / ±Infinity each get a distinct
+ *  unquoted token (which JSON.stringify of a real string can never produce), so an
+ *  approval bound to one payload can't be consumed by a payload that differs only by
+ *  one of those values — JSON.stringify collapses all of them to 'null'. */
 export function canonical(value) {
-  if (value === null || typeof value !== 'object') return JSON.stringify(value) ?? 'null';
+  if (value === undefined) return '@undef';
+  if (typeof value === 'number' && !Number.isFinite(value)) return value !== value ? '@nan' : (value > 0 ? '@inf' : '@ninf');
+  if (value === null || typeof value !== 'object') return JSON.stringify(value) ?? '@undef';
   if (Array.isArray(value)) return '[' + value.map(canonical).join(',') + ']';
   const keys = Object.keys(value).sort();
   return '{' + keys.map((k) => JSON.stringify(k) + ':' + canonical(value[k])).join(',') + '}';
 }
 
 function sha(s) { return crypto.createHash('sha256').update(s).digest('hex').slice(0, 16); }
+
+// JSON-Schema `required` and `enum` are SETS (order carries no meaning), so a server
+// merely re-serializing them in a different order must not read as a rug-pull. Sort
+// exactly those two arrays before fingerprinting; every other array stays order-
+// sensitive (a positional tuple/`prefixItems`/`examples` reorder IS a real change).
+function normSchema(v) {
+  if (Array.isArray(v)) return v.map(normSchema);
+  if (v && typeof v === 'object') {
+    const out = {};
+    for (const k of Object.keys(v)) {
+      const nv = normSchema(v[k]);
+      out[k] = (k === 'required' || k === 'enum') && Array.isArray(nv) ? [...nv].sort() : nv;
+    }
+    return out;
+  }
+  return v;
+}
 
 /**
  * Fingerprint one tool descriptor. We hash the three fields an attacker would
@@ -114,7 +150,7 @@ export function fingerprintTool(tool) {
   const name = tool.name || '';
   const title = tool.title || '';
   const description = tool.description || '';
-  const schema = tool.inputSchema || tool.input_schema || {};
+  const schema = normSchema(tool.inputSchema || tool.input_schema || {});
   const annotations = tool.annotations || {};
   return {
     name,
