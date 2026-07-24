@@ -42,6 +42,8 @@ Node ≥22, standard library only. No npm dependencies. No telemetry leaves the 
 ## Run it
 
 ```bash
+node examples/demo-guarded-cortex.mjs   # ← start here: the whole suite, end-to-end
+
 node bin/fleetdeck.js seed          # play the demo scenario onto a spine
 node bin/fleetdeck.js serve         # operator UI + JSON API at http://localhost:7420
 node bin/cortex-mcp.js              # serve the second brain as an MCP server (stdio)
@@ -49,6 +51,13 @@ node bin/cortex-mcp.js              # serve the second brain as an MCP server (s
 # put the firewall in a real MCP path — guard the memory server:
 node bin/tollgate-proxy.js --server cortex --agent claude -- node bin/cortex-mcp.js
 ```
+
+`examples/demo-guarded-cortex.mjs` is the fastest way to *see* the design pay
+off. It spawns the real Tollgate proxy in front of the real Cortex MCP server,
+speaks MCP to it (read tools are **forwarded** to Cortex and answered; a write is
+**held** for a human), then renders that one spine through three operator lenses —
+Flight Recorder, Approvals Inbox, AI Register — and approves the held action.
+Real proxy, real server, real policy; no synthetic events, nothing leaves the box.
 
 Other CLI verbs: `timeline`, `alerts`, `meter`, `inbox`, `approve/reject`,
 `register [pack] [--csv]`, `preflight`, `context`, `monitor`, `check <url>`.
