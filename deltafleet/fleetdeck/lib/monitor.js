@@ -101,6 +101,9 @@ export function agentReadyMetrics(rep) {
     gradeNum,
     blockedCrawlers: blocked,
     blockedRetrieval: rep.robots?.blockedRetrieval ?? 0, // answer-engine bots — the citation-killer
+    // The SET of blocked retrieval bots, not just the count — so a swap (one unblocked
+    // as another is blocked, count flat) still trips the alert. Count is kept for fallback.
+    blockedRetrievalList: Object.entries(rep.robots?.agents || {}).filter(([, a]) => a.blocked && a.role === 'retrieval').map(([name]) => name).sort(),
     jsonLdValid: rep.signals?.jsonLd?.valid ?? 0,
     likelyShell: rep.signals?.contentDensity?.likelyShell ? 1 : 0,
     llmsTxt: rep.llms?.valid ? 1 : 0,
@@ -109,18 +112,34 @@ export function agentReadyMetrics(rep) {
 
 // Detector rules — each fires only on a worsening CHANGE between two checks.
 export const AGENT_READY_RULES = [
+  // A missing score must NOT read as 0 (that would fabricate an 80→undefined "critical").
   (p, c) => {
-    const drop = (p.score ?? 0) - (c.score ?? 0);
+    if (typeof p.score !== 'number' || typeof c.score !== 'number') return null;
+    const drop = p.score - c.score;
     if (drop >= 15) return { signal: 'score', severity: 'critical', from: p.score, to: c.score, message: `Agent-Ready score fell ${drop} points (${p.score}→${c.score})` };
     if (drop >= 5) return { signal: 'score', severity: 'warning', from: p.score, to: c.score, message: `Agent-Ready score fell ${drop} points (${p.score}→${c.score})` };
     return null;
   },
   // A newly-blocked ANSWER-ENGINE retrieval bot is the citation-killer (impact rank #1) — critical.
-  (p, c) => ((c.blockedRetrieval ?? 0) > (p.blockedRetrieval ?? 0)
-    ? { signal: 'retrieval-access', severity: 'critical', from: p.blockedRetrieval, to: c.blockedRetrieval, message: `${c.blockedRetrieval - p.blockedRetrieval} more answer-engine RETRIEVAL bot(s) now blocked (OAI-SearchBot/Claude-SearchBot/PerplexityBot) — kills AI-search citations` }
-    : null),
-  // Any other newly-blocked crawler (training/user) is a warning, not critical.
+  // Set comparison when both checks carry the list (catches a same-count swap); count fallback otherwise.
   (p, c) => {
+    if (Array.isArray(p.blockedRetrievalList) && Array.isArray(c.blockedRetrievalList)) {
+      const was = new Set(p.blockedRetrievalList);
+      const newly = c.blockedRetrievalList.filter((n) => !was.has(n));
+      return newly.length
+        ? { signal: 'retrieval-access', severity: 'critical', from: p.blockedRetrievalList, to: c.blockedRetrievalList, message: `Answer-engine RETRIEVAL bot(s) newly blocked: ${newly.join(', ')} — kills AI-search citations` }
+        : null;
+    }
+    return (c.blockedRetrieval ?? 0) > (p.blockedRetrieval ?? 0)
+      ? { signal: 'retrieval-access', severity: 'critical', from: p.blockedRetrieval, to: c.blockedRetrieval, message: `${(c.blockedRetrieval ?? 0) - (p.blockedRetrieval ?? 0)} more answer-engine RETRIEVAL bot(s) now blocked — kills AI-search citations` }
+      : null;
+  },
+  // Any other newly-blocked crawler (training/user) is a warning. Requires the TOTAL
+  // blocked count to actually rise, so a metric going missing or a retrieval/other
+  // reclassification at flat total (e.g. "2→2") never fabricates a bogus "N more blocked".
+  (p, c) => {
+    if (typeof p.blockedCrawlers !== 'number' || typeof c.blockedCrawlers !== 'number') return null;
+    if (c.blockedCrawlers <= p.blockedCrawlers) return null;
     const newOther = (c.blockedCrawlers - (c.blockedRetrieval ?? 0)) - (p.blockedCrawlers - (p.blockedRetrieval ?? 0));
     return newOther > 0
       ? { signal: 'crawler-access', severity: 'warning', from: p.blockedCrawlers, to: c.blockedCrawlers, message: `${newOther} more AI crawler(s) now blocked in robots.txt (${p.blockedCrawlers}→${c.blockedCrawlers})` }
@@ -164,6 +183,15 @@ export const AI_REGISTER_RULES = [
     : null),
   (p, c) => (c.gap > p.gap
     ? { signal: 'gap-count', severity: 'critical', from: p.gap, to: c.gap, message: `${c.gap - p.gap} more control(s) now failing (gap ${p.gap}→${c.gap})` }
+    : null),
+  // WATCH FOR A CONTROL LEAVING 'satisfied': when overall is already 'attention' and a
+  // second control degrades from satisfied → attention (gap and overall-rank unchanged),
+  // the two rules above are blind — e.g. a critical tool-poisoning drift pushing
+  // supply-chain to attention. The regression signal is that SATISFIED dropped (a control
+  // left the clean tier); attention merely rising can also be an improvement (gap →
+  // attention), which must stay silent.
+  (p, c) => (typeof c.satisfied === 'number' && typeof p.satisfied === 'number' && c.satisfied < p.satisfied && c.attention > p.attention
+    ? { signal: 'attention-count', severity: 'warning', from: p.satisfied, to: c.satisfied, message: `${p.satisfied - c.satisfied} control(s) left 'satisfied' for 'attention' (satisfied ${p.satisfied}→${c.satisfied})` }
     : null),
 ];
 

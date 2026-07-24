@@ -34,22 +34,26 @@ export function redact(url) {
  */
 export async function deliver(alerts, config = {}, { fetchImpl = fetch, timeoutMs = 8000 } = {}) {
   if (!alerts || !alerts.length) return { delivered: 0, results: [] };
-  const targets = [];
-  if (config.slack) targets.push({ channel: 'slack', url: config.slack, body: slackBody(alerts, { title: config.title }) });
-  if (config.webhook) targets.push({ channel: 'webhook', url: config.webhook, body: { title: config.title, alerts } });
+  // build() is deferred INTO the per-channel try so a malformed alert (e.g. a null
+  // element that throws in slackBody) is caught and reported, never propagated —
+  // deliver() must never throw, as documented.
+  const channels = [];
+  if (config.slack) channels.push({ channel: 'slack', url: config.slack, build: () => slackBody(alerts, { title: config.title }) });
+  if (config.webhook) channels.push({ channel: 'webhook', url: config.webhook, build: () => ({ title: config.title, alerts }) });
 
   const results = [];
-  for (const t of targets) {
+  for (const ch of channels) {
     try {
+      const body = ch.build();
       const ctl = new AbortController();
       const timer = setTimeout(() => ctl.abort(), timeoutMs);
       let res;
       try {
-        res = await fetchImpl(t.url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(t.body), signal: ctl.signal });
+        res = await fetchImpl(ch.url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body), signal: ctl.signal });
       } finally { clearTimeout(timer); }
-      results.push({ channel: t.channel, url: redact(t.url), ok: !!res.ok, status: res.status });
+      results.push({ channel: ch.channel, url: redact(ch.url), ok: !!(res && res.ok), status: res && res.status });
     } catch (e) {
-      results.push({ channel: t.channel, url: redact(t.url), ok: false, error: e.message });
+      results.push({ channel: ch.channel, url: redact(ch.url), ok: false, error: e.message });
     }
   }
   return { delivered: results.filter((r) => r.ok).length, results };
