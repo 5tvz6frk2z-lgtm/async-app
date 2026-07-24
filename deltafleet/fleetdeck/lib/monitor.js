@@ -141,7 +141,11 @@ export const AGENT_READY_RULES = [
     const retCount = (m) => Array.isArray(m.blockedRetrievalList) ? m.blockedRetrievalList.length
       : m.blockedRetrieval != null ? Number(m.blockedRetrieval)
       : Array.isArray(m.blockedList) ? m.blockedList.filter((n) => AI_AGENT_ROLES[n] === 'retrieval').length
-      : 0;
+      // No retrieval-specific signal at all. If the legacy metric still recorded SOME blocking
+      // (blockedCrawlers > 0) we cannot know how many were retrieval bots — return UNKNOWN (NaN)
+      // so a steady state doesn't read as a 0→N block. Only a truly blank prev (nothing blocked/
+      // recorded) is a real 0 baseline, so a genuine first-seen block from nothing still fires.
+      : (Number(m.blockedCrawlers) > 0 ? NaN : 0);
     // IDENTITY comparison — only when we can NAME the blocked bots on BOTH sides: cur carries
     // the retrieval list AND prev carries some identity (its blockedList and/or retrieval
     // list). Subtracting identities lets a role re-tag on an already-blocked bot, or a

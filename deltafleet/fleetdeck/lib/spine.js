@@ -169,6 +169,13 @@ export class Spine {
     if (kind !== undefined) constraints.push(['kind', kind]);
     for (const [field, value] of Object.entries(where)) constraints.push([field, value]);
 
+    // Validate EVERY where-field is indexed up front — before the intersection loop, whose
+    // `break` on an empty result would otherwise skip validating a later typo'd/renamed field
+    // (silently returning wrong rows instead of the documented throw).
+    for (const [field] of constraints) {
+      if (field !== 'kind' && !this._index.has(field)) throw new Error(`query where.${field}: not an indexed field (indexBy: ${this._indexFields.join(', ')})`);
+    }
+
     let positions = null; // null = "all events"; otherwise ARRAY POSITIONS into this.events
     for (const [field, value] of constraints) {
       const bucket = this._index.get(field);

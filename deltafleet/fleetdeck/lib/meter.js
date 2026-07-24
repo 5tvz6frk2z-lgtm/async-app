@@ -15,15 +15,21 @@ const usageBearing = (e) => e.tokensIn != null || e.tokensOut != null || e.costU
 
 /** Cost of one event: its own costUsd if present, else tokens × pricing[model].
  *  pricing is USD per 1e6 tokens: { 'claude-fable-5': { in: 3, out: 15 } }. */
+// Sanitize an untrusted usage number: coerce (so a provider's stringified "10" counts), then
+// reject anything not a FINITE, NON-NEGATIVE value. A NaN/±Infinity would poison the total (and
+// every budget comparison against NaN is false — silently disabling alarms); a NEGATIVE would
+// drive the total down and silence an exceeded alarm; a string would be dropped to 0 or, for
+// tokens, string-concatenated into garbage. `null`/`undefined`/`absent` returns NaN so the
+// caller can distinguish "no value" (fall back to token pricing) from "zero".
+const money = (v) => { const n = Number(v); return v != null && Number.isFinite(n) && n >= 0 ? n : NaN; };
+const tokens = (v) => { const n = Number(v); return Number.isFinite(n) && n >= 0 ? n : 0; };
+
 export function costOf(e, pricing = {}) {
-  // Number.isFinite, NOT typeof==='number': a costUsd of NaN/±Infinity is typeof 'number' but
-  // would poison the running total forever, and every budget comparison against NaN is false —
-  // silently disabling ALL overspend alarms. A non-finite cost falls through to the token/price
-  // path (or 0), so one malformed usage event can't defeat the whole cost meter.
-  if (Number.isFinite(e.costUsd)) return e.costUsd;
+  const c = money(e.costUsd);
+  if (Number.isFinite(c)) return c; // a valid (incl. numeric-string) non-negative cost wins
   const p = pricing[e.model];
   if (!p) return 0;
-  return ((e.tokensIn || 0) / 1e6) * (p.in || 0) + ((e.tokensOut || 0) / 1e6) * (p.out || 0);
+  return (tokens(e.tokensIn) / 1e6) * (p.in || 0) + (tokens(e.tokensOut) / 1e6) * (p.out || 0);
 }
 
 const SCOPES = new Set(['total', 'agent', 'model']);
@@ -63,9 +69,10 @@ export class Meter {
         const agent = e.agent || 'unknown';
         const model = e.model || 'unknown';
         const d = day(e.ts);
+        const tIn = tokens(e.tokensIn), tOut = tokens(e.tokensOut); // coerce/clamp: a string token would string-concatenate the accumulator
         for (const bucket of [st.total, at(st.byAgent, agent), at(st.byModel, model), at(st.byDay, d)]) {
-          bucket.tokensIn += e.tokensIn || 0;
-          bucket.tokensOut += e.tokensOut || 0;
+          bucket.tokensIn += tIn;
+          bucket.tokensOut += tOut;
           bucket.costUsd += cost;
           bucket.calls += 1;
         }

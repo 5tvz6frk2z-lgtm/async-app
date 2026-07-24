@@ -149,7 +149,7 @@ export class Recorder {
   /** A compact, human-readable timeline for the CLI. */
   render(filter = {}) {
     return this.timeline(filter).map((x) => {
-      const when = x.ts.slice(11, 19);
+      const when = (typeof x.ts === 'string' ? x.ts : '').slice(11, 19) || '--:--:--'; // a loaded/foreign event may lack a sliceable ts
       const who = x.agent ? ` ${x.agent}` : '';
       const dur = x.durationMs != null ? ` ${x.durationMs}ms` : '';
       const cost = x.costUsd ? ` $${x.costUsd}` : '';
@@ -163,7 +163,7 @@ function summarize(e) {
   switch (e.kind) {
     case 'tool.call': return `${e.tool}@${e.server} → ${e.decision}`;
     case 'tool.result': return `${e.tool}@${e.server} ${e.ok === false ? 'error' : 'ok'}`;
-    case 'mcp.drift': return `DRIFT ${e.server} [${e.severity}] ${(e.changes || []).map((c) => `${c.type}:${c.tool}`).join(', ')}`;
+    case 'mcp.drift': return `DRIFT ${e.server} [${e.severity}] ${(Array.isArray(e.changes) ? e.changes : []).map((c) => `${c.type}:${c.tool}`).join(', ')}`;
     case 'mcp.pin': return `pinned ${e.server} (${e.count} tools)`;
     case 'mcp.snapshot': return `snapshot ${e.server}${e.drifted ? ' (drift!)' : ''}`;
     default: return e.text || e.kind;

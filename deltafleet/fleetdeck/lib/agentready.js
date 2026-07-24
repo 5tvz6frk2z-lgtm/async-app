@@ -105,8 +105,11 @@ function analyzeHtml(html) {
   // non-indexable for every agent — as authoritative as, and MORE common than, the
   // X-Robots-Tag HTTP header. Catch it here so the noindex signal isn't blind to the
   // predominant declaration form.
-  const robotsMeta = metas.find((a) => (a.name || '').toLowerCase() === 'robots');
-  const robotsMetaContent = robotsMeta ? (robotsMeta.content || '') : '';
+  // Crawlers COMBINE every <meta name="robots"> directive and honor the most restrictive, so
+  // aggregate all of them — a trailing noindex after an index,follow tag still makes the page
+  // non-indexable (reading only the first tag would miss it).
+  const robotsMetaContent = metas.filter((a) => (a.name || '').toLowerCase() === 'robots')
+    .map((a) => a.content || '').join(', ');
   const metaNoindex = /\b(noindex|none)\b/i.test(robotsMetaContent);
 
   // JSON-LD blocks: parse each, tolerate garbage, collect types + sameAs.

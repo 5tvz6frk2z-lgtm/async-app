@@ -28,6 +28,17 @@ export class Approvals {
             st.open.delete(e.ref);
             st.resolved.push({ ...req, verdict: e.verdict, by: e.by ?? null, note: e.note ?? null, resolvedAt: e.ts });
           }
+        } else if (e.kind === 'approval.consumed') {
+          // A retry that consumed an existing approval logs its OWN fresh tool.call(review)
+          // (the proxy re-guards on every attempt). Without this, that retry lingers as a
+          // phantom OPEN item — re-approving it would mint a SECOND single-use token, turning
+          // one human approval into unlimited re-executions. The retry is the newest open review
+          // for its (agent,server,tool) at consume time, so drop that one.
+          let newest = null;
+          for (const [id, req] of st.open) {
+            if (req.agent === (e.agent ?? null) && req.server === (e.server ?? null) && req.tool === (e.tool ?? null) && (!newest || req.seq > newest.seq)) newest = { id, seq: req.seq };
+          }
+          if (newest) st.open.delete(newest.id);
         }
       },
     });

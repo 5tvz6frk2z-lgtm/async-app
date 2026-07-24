@@ -333,8 +333,13 @@ export class Tollgate {
   inspect(server, toolsList) {
     const fresh = fingerprintServer(toolsList);
     const pinned = this.pinnedFor(server);
-    if (!pinned) {
-      this.spine.append('mcp.pin', { server, setHash: fresh.setHash, count: fresh.count, snapshot: fresh.tools });
+    // Establish a baseline on first sight OR when the existing pin is EMPTY. An empty pin
+    // protects nothing: it would classify every tool the server advertises AFTERWARD as merely
+    // 'added' forever, so a later description/schema poisoning of one of those tools would never
+    // register as critical drift. And only pin a NON-empty listing — pinning [] just re-creates
+    // that exploitable empty baseline.
+    if (!pinned || pinned.count === 0) {
+      if (fresh.count > 0) this.spine.append('mcp.pin', { server, setHash: fresh.setHash, count: fresh.count, snapshot: fresh.tools });
       return { drifted: false, firstSeen: true, severity: 'none', changes: [] };
     }
     const report = diffSnapshots(pinned, fresh);

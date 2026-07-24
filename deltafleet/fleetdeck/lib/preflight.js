@@ -32,7 +32,10 @@ export function previewManifest(spine, candidate) {
   // restrictive means any re-decision to a more permissive `now` is still counted as a
   // loosening — so the preview FAILS SAFE (over-flags) instead of fail-OPEN (rank[was] used
   // to be undefined → dir NaN → loosened never incremented → verdict wrongly reported safe).
-  const rankOf = (d) => rank[d] ?? rank.deny;
+  // Own-property check: a decision token that is an Object.prototype key ('toString',
+  // 'constructor', '__proto__', …) would make rank[d] resolve an inherited function, not
+  // undefined, so `?? rank.deny` wouldn't fire and dir would go NaN → fail-open.
+  const rankOf = (d) => (Object.hasOwn(rank, d) ? rank[d] : rank.deny);
   const summary = { unchanged: 0, newlyDenied: 0, newlyAllowed: 0, newlyReview: 0, otherChange: 0, loosened: 0, tightened: 0 };
 
   for (const c of calls) {

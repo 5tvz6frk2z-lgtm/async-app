@@ -38,8 +38,11 @@ function scrubError(e, url) {
   const forms = new Set([url]);
   try { forms.add(new URL(url).href); } catch { /* malformed URL — raw form only */ }
   for (const f of forms) if (typeof f === 'string' && f) msg = msg.split(f).join(hidden);
-  // 2) Sweep any remaining well-formed http(s) URL down to its host — catches a normalized
-  //    form (port/case) the transport emitted that differs from the config string.
+  // 2) Redact the URL's PATH (where the Slack/webhook secret actually lives) wherever it
+  //    appears — path is invariant under host/scheme/port normalization, so this scrubs the
+  //    token even when the transport emits a form that matches neither the raw nor the href.
+  try { const u = new URL(url); if (u.pathname && u.pathname !== '/') msg = msg.split(u.pathname + u.search).join('/…').split(u.pathname).join('/…'); } catch { /* malformed URL — steps 1 & 3 cover it */ }
+  // 3) Sweep any remaining well-formed http(s) URL down to its host.
   msg = msg.replace(/https?:\/\/[^\s"'<>]+/gi, (m) => redact(m));
   return msg;
 }
@@ -50,15 +53,21 @@ function scrubError(e, url) {
  * Never throws — a channel failure is reported, not propagated (one dead webhook
  * must not sink a check).
  */
-export async function deliver(alerts, config = {}, { fetchImpl = fetch, timeoutMs = 8000 } = {}) {
+export async function deliver(alerts, config, opts) {
   if (!alerts || !alerts.length) return { delivered: 0, results: [] };
-  config = config || {}; // the `= {}` default only fires for undefined; an explicit null must not throw (never-throws contract)
+  // The `= {}` param default only fires for undefined; an explicit null (config OR opts) must
+  // not throw — deliver()'s contract is NEVER throws. Normalize both here.
+  config = config || {};
+  const { fetchImpl = fetch, timeoutMs = 8000 } = opts || {};
   // build() is deferred INTO the per-channel try so a malformed alert (e.g. a null
-  // element that throws in slackBody) is caught and reported, never propagated —
-  // deliver() must never throw, as documented.
+  // element that throws in slackBody) is caught and reported, never propagated.
   const channels = [];
-  if (config.slack) channels.push({ channel: 'slack', url: config.slack, build: () => slackBody(alerts, { title: config.title }) });
-  if (config.webhook) channels.push({ channel: 'webhook', url: config.webhook, build: () => ({ title: config.title, alerts }) });
+  // Reading config.slack/webhook can itself throw (a getter/Proxy config); guard it so even a
+  // hostile config object can't defeat the never-throws guarantee.
+  try {
+    if (config.slack) channels.push({ channel: 'slack', url: config.slack, build: () => slackBody(alerts, { title: config.title }) });
+    if (config.webhook) channels.push({ channel: 'webhook', url: config.webhook, build: () => ({ title: config.title, alerts }) });
+  } catch { /* malformed/hostile config — deliver nothing rather than throw */ }
 
   const results = [];
   for (const ch of channels) {
