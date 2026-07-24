@@ -145,11 +145,16 @@ export const AGENT_READY_RULES = [
         ? { signal: 'retrieval-access', severity: 'critical', from: p.blockedRetrievalList, to: c.blockedRetrievalList, message: `Answer-engine RETRIEVAL bot(s) newly blocked: ${newly.join(', ')} — kills AI-search citations` }
         : null;
     }
-    // Count fallback. An ABSENT count (old check predating the metric) is a 0 baseline
-    // so a new block from nothing still fires; a PRESENT but non-numeric count ('two')
-    // is uncomparable and must not coerce to 0 (which would misread an improvement).
-    const pr = p.blockedRetrieval == null ? 0 : Number(p.blockedRetrieval);
-    const cr = c.blockedRetrieval == null ? 0 : Number(c.blockedRetrieval);
+    // Count fallback (one side lacks the list). The blockedRetrievalList, when present,
+    // is the AUTHORITATIVE count — so a side that carries the list but omits the count
+    // must be read from the list, not defaulted to 0 (that ignored an already-blocked
+    // bot and misread a no-change 1→1 as a new 0→1 block). Only a truly absent metric
+    // (no list AND no count — a check predating the metric) is a 0 baseline, so a new
+    // block from nothing still fires; a PRESENT but non-numeric count ('two') stays
+    // uncomparable and must not coerce to 0 (which would misread an improvement).
+    const retCount = (m) => Array.isArray(m.blockedRetrievalList) ? m.blockedRetrievalList.length
+      : m.blockedRetrieval == null ? 0 : Number(m.blockedRetrieval);
+    const pr = retCount(p), cr = retCount(c);
     if (!Number.isFinite(pr) || !Number.isFinite(cr)) return null;
     return cr > pr
       ? { signal: 'retrieval-access', severity: 'critical', from: p.blockedRetrieval, to: c.blockedRetrieval, message: `${cr - pr} more answer-engine RETRIEVAL bot(s) now blocked — kills AI-search citations` }

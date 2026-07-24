@@ -125,25 +125,45 @@ export function canonical(value) {
 
 function sha(s) { return crypto.createHash('sha256').update(s).digest('hex').slice(0, 16); }
 
-// JSON-Schema `required` and `enum` are SETS (order carries no meaning), so a server
-// merely re-serializing them in a different order must not read as a rug-pull. Sort
-// exactly those two arrays before fingerprinting; every other array stays order-
-// sensitive (a positional tuple/`prefixItems`/`examples` reorder IS a real change).
-function normSchema(v) {
-  if (Array.isArray(v)) return v.map(normSchema);
-  if (v && typeof v === 'object') {
-    const out = {};
-    for (const k of Object.keys(v)) {
-      const nv = normSchema(v[k]);
-      // required/enum are sets; a union `type` array (e.g. ['string','null']) is also
-      // order-insensitive per the JSON Schema spec. Sort those three; keep every other
-      // array order-sensitive (a positional tuple/prefixItems reorder IS a real change).
-      out[k] = (k === 'required' || k === 'enum' || k === 'type') && Array.isArray(nv) ? [...nv].sort() : nv;
-    }
-    return out;
+// Canonicalize an inputSchema so two schemas fingerprint equal IFF they mean the same
+// thing to a tool consumer. The JSON Schema spec makes some arrays UNORDERED sets —
+// `required`, a union `type` (['string','null']), `enum`, and the `anyOf`/`oneOf`/
+// `allOf` applicators — so a server merely re-serializing them differently must NOT
+// read as a rug-pull. But order carries meaning everywhere else: positional tuples
+// (`items`/`prefixItems`) AND — critically — anything inside an instance-DATA region
+// (`default`/`const`/`examples`), where an array that happens to be named `type` is
+// just data, not a schema keyword.
+//
+// The old version decided purely by key NAME at any depth. That was wrong in BOTH
+// directions: it sorted a `default.type`/`const.type` data array (hiding a real
+// accepted-value change = a drift false-negative), and it left `anyOf` order-sensitive
+// (crying CRITICAL wolf on a cosmetic reorder = a false-positive). We track POSITION
+// instead — a keyword is only a keyword at a schema position, never inside a data value
+// nor as a property NAME under `properties`.
+const _SCHEMA_SET_KEY = new Set(['anyOf', 'oneOf', 'allOf']); // arrays of subschemas = unordered sets
+const _SCHEMA_MAP_KEY = new Set(['properties', 'patternProperties', 'definitions', '$defs', 'dependentSchemas']); // name -> subschema
+const _DATA_KEY = new Set(['default', 'const', 'examples']); // value is instance data, order-sensitive
+const _byCanonical = (a, b) => { const x = canonical(a), y = canonical(b); return x < y ? -1 : x > y ? 1 : 0; };
+
+function normNode(v, mode) {
+  if (Array.isArray(v)) return v.map((x) => normNode(x, mode));
+  if (!v || typeof v !== 'object') return v;
+  const out = {};
+  for (const k of Object.keys(v)) {
+    const val = v[k];
+    if (mode === 'data') { out[k] = normNode(val, 'data'); continue; } // in data: never sort, preserve order
+    if ((k === 'required' || k === 'type') && Array.isArray(val)) out[k] = [...val].sort();
+    else if (k === 'enum' && Array.isArray(val)) out[k] = val.map((x) => normNode(x, 'data')).sort(_byCanonical);
+    else if (_SCHEMA_SET_KEY.has(k) && Array.isArray(val)) out[k] = val.map((x) => normNode(x, 'schema')).sort(_byCanonical);
+    else if (_SCHEMA_MAP_KEY.has(k) && val && typeof val === 'object' && !Array.isArray(val)) {
+      const m = {}; for (const name of Object.keys(val)) m[name] = normNode(val[name], 'schema'); out[k] = m;
+    } else if (_DATA_KEY.has(k)) out[k] = normNode(val, 'data');
+    else out[k] = normNode(val, 'schema'); // tuples (items/prefixItems) recurse here — order preserved
   }
-  return v;
+  return out;
 }
+
+function normSchema(v) { return normNode(v, 'schema'); }
 
 /**
  * Fingerprint one tool descriptor. We hash the three fields an attacker would

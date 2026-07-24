@@ -72,6 +72,41 @@ test('audit4: zero-width / bidi / NBSP decorations are denied; visible punctuati
   assert.equal(decide(m2, 'a', 's', 'a(b)c').decision, 'allow', 'parens matched literally, not denied');
 });
 
+test('audit5: reordering an array inside a `default`/`const` DATA region IS drift (not a schema keyword)', () => {
+  // A field named `type` inside instance data (default/const) is plain data — its order
+  // carries meaning, so reordering it is a real accepted-value change and must drift.
+  const pinDefault = [{ name: 'deploy', description: 'd', inputSchema: { type: 'object', properties: { pipeline: { type: 'object', default: { type: ['build', 'test', 'ship'], env: 'prod' } } } } }];
+  const atkDefault = [{ name: 'deploy', description: 'd', inputSchema: { type: 'object', properties: { pipeline: { type: 'object', default: { type: ['ship', 'build', 'test'], env: 'prod' } } } } }];
+  const d1 = diffSnapshots(fingerprintServer(pinDefault), fingerprintServer(atkDefault));
+  assert.equal(d1.drifted, true, 'default.type reorder must drift');
+  assert.equal(d1.severity, 'critical');
+
+  const pinConst = [{ name: 'run', description: 'd', inputSchema: { type: 'object', properties: { op: { const: { type: ['read', 'list'] } } } } }];
+  const atkConst = [{ name: 'run', description: 'd', inputSchema: { type: 'object', properties: { op: { const: { type: ['list', 'read'] } } } } }];
+  assert.equal(diffSnapshots(fingerprintServer(pinConst), fingerprintServer(atkConst)).drifted, true, 'const.type reorder must drift');
+});
+
+test('audit5: reordering anyOf/oneOf/allOf members is NOT drift (unordered subschema sets)', () => {
+  const a = [{ name: 'q', description: 'd', inputSchema: { type: 'object', properties: { v: { anyOf: [{ type: 'string' }, { type: 'number' }] }, w: { oneOf: [{ const: 1 }, { const: 2 }] }, x: { allOf: [{ type: 'string' }, { minLength: 1 }] } } } }];
+  const b = [{ name: 'q', description: 'd', inputSchema: { type: 'object', properties: { v: { anyOf: [{ type: 'number' }, { type: 'string' }] }, w: { oneOf: [{ const: 2 }, { const: 1 }] }, x: { allOf: [{ minLength: 1 }, { type: 'string' }] } } } }];
+  assert.equal(diffSnapshots(fingerprintServer(a), fingerprintServer(b)).drifted, false);
+  // but a genuinely new anyOf member still drifts
+  const c = [{ name: 'q', description: 'd', inputSchema: { type: 'object', properties: { v: { anyOf: [{ type: 'string' }, { type: 'number' }, { type: 'boolean' }] } } } }];
+  assert.equal(diffSnapshots(fingerprintServer(a), fingerprintServer(c)).drifted, true, 'a new anyOf member is real drift');
+});
+
+test('audit5: a schema keyword is only a keyword at a schema position — a property NAMED "type" stays set-normalized', () => {
+  // `properties.type` is a subschema for a property literally named "type", not the union
+  // keyword; its enum is still an unordered set, and a tuple in it stays order-sensitive.
+  const a = [{ name: 't', description: 'd', inputSchema: { type: 'object', properties: { type: { enum: ['x', 'y'] }, default: { type: 'string' } } } }];
+  const b = [{ name: 't', description: 'd', inputSchema: { type: 'object', properties: { type: { enum: ['y', 'x'] }, default: { type: 'string' } } } }];
+  assert.equal(diffSnapshots(fingerprintServer(a), fingerprintServer(b)).drifted, false);
+  // and a positional tuple reorder (prefixItems) is still a real change
+  const p = [{ name: 't', description: 'd', inputSchema: { properties: { v: { prefixItems: [{ const: 'a' }, { const: 'b' }] } } } }];
+  const q = [{ name: 't', description: 'd', inputSchema: { properties: { v: { prefixItems: [{ const: 'b' }, { const: 'a' }] } } } }];
+  assert.equal(diffSnapshots(fingerprintServer(p), fingerprintServer(q)).drifted, true, 'prefixItems tuple reorder must drift');
+});
+
 test('audit3: reordering a union `type` array is NOT drift', () => {
   const a = [{ name: 't', description: 'd', inputSchema: { type: 'object', properties: { x: { type: ['string', 'null'] } } } }];
   const b = [{ name: 't', description: 'd', inputSchema: { type: 'object', properties: { x: { type: ['null', 'string'] } } } }];

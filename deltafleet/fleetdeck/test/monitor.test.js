@@ -164,6 +164,25 @@ test('audit4: a retrieval->non-retrieval reclassification (still blocked) does n
   assert.equal(r.alerts.find((x) => x.signal === 'crawler-access'), undefined, 'R stayed blocked — a role re-tag, not a new block');
 });
 
+test('audit5: retrieval-access count fallback reads the list length as baseline, not 0', () => {
+  const retrieval = AGENT_READY_RULES[1];
+  // Mixed-shape metrics (prev carries the list but omits the count; cur carries the count
+  // but omits the list). 1 blocked before, 1 blocked after = NO change; must stay silent.
+  assert.equal(
+    retrieval({ blockedRetrievalList: ['GPTBot'], blockedList: ['GPTBot'], blockedRetrieval: undefined }, { blockedRetrieval: 1 }),
+    null,
+    'a no-change 1→1 must not fabricate a critical newly-blocked alert',
+  );
+  // A genuinely new block from a pre-metric check (no list, no count) still fires.
+  const evo = retrieval({}, { blockedRetrieval: 1 });
+  assert.equal(evo && evo.severity, 'critical', 'a real 0→1 block from a pre-metric baseline still fires');
+  // prev count vs cur bigger list is a real increase — fires.
+  const up = retrieval({ blockedRetrieval: 1 }, { blockedRetrievalList: ['a', 'b'], blockedList: ['a', 'b'] });
+  assert.equal(up && up.severity, 'critical', '1→2 across count/list shapes still fires');
+  // a present-but-non-numeric count stays uncomparable (no coercion to 0).
+  assert.equal(retrieval({}, { blockedRetrieval: 'two' }), null, "garbage count 'two' is uncomparable");
+});
+
 test('audit3: a page going noindex fires critical even when the net score RISES', () => {
   const m = mon();
   // score improves 63->79 (markup added) but the page became non-indexable
