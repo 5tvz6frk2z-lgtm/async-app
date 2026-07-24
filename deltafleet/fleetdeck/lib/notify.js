@@ -26,12 +26,21 @@ export function redact(url) {
   try { const u = new URL(url); return `${u.protocol}//${u.host}/…`; } catch { return 'webhook'; }
 }
 
-// A Slack/webhook URL IS the secret, and transport errors embed it verbatim ("request to
-// <url> failed…", "Failed to parse URL from <url>"). Scrub every occurrence of the raw URL
-// out of an error message before it reaches the returned result (which the CLI logs).
+// A Slack/webhook URL IS the secret, and transport errors embed it ("request to <url>
+// failed…", "Failed to parse URL from <url>"). Scrub it out of an error message before it
+// reaches the returned result (which the CLI logs) — covering BOTH the raw config string and
+// the NORMALIZED forms a transport builds from the parsed URL (default :443 dropped, host
+// case-folded), which are not byte-identical to the config.
 function scrubError(e, url) {
   let msg = (e && e.message) || String(e);
-  if (url) msg = msg.split(url).join(redact(url));
+  const hidden = redact(url);
+  // 1) The raw config URL and its normalized href (covers a malformed URL the sweep can't match).
+  const forms = new Set([url]);
+  try { forms.add(new URL(url).href); } catch { /* malformed URL — raw form only */ }
+  for (const f of forms) if (typeof f === 'string' && f) msg = msg.split(f).join(hidden);
+  // 2) Sweep any remaining well-formed http(s) URL down to its host — catches a normalized
+  //    form (port/case) the transport emitted that differs from the config string.
+  msg = msg.replace(/https?:\/\/[^\s"'<>]+/gi, (m) => redact(m));
   return msg;
 }
 

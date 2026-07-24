@@ -173,12 +173,17 @@ export const AGENT_READY_RULES = [
   // — a training bot that could read the page yesterday is blocked today. Count fallback
   // requires the TOTAL to rise, so a flat total never fabricates a bogus "N more blocked".
   (p, c) => {
+    // Retrieval bots the rule above owns — derived from the list if present, else by role from
+    // blockedList (symmetric with retrieval-access's retCount; without this a retrieval bot
+    // named only in c.blockedList leaks through and is mislabeled a generic crawler).
+    const retrievalNames = (m) => Array.isArray(m.blockedRetrievalList) ? m.blockedRetrievalList
+      : Array.isArray(m.blockedList) ? m.blockedList.filter((n) => AI_AGENT_ROLES[n] === 'retrieval') : [];
     if (Array.isArray(p.blockedList) && Array.isArray(c.blockedList)) {
       // Union both lists (as the retrieval rule does) so a bot blocked-as-retrieval last
       // check and merely reclassified non-retrieval this check (still blocked, no access
       // change) isn't misread as a newly-blocked crawler.
       const wasAll = strSet([...p.blockedList, ...(p.blockedRetrievalList || [])]);
-      const retrievalNow = strSet(c.blockedRetrievalList || []);
+      const retrievalNow = strSet(retrievalNames(c));
       const newlyOther = c.blockedList.map(String).filter((n) => !wasAll.has(n) && !retrievalNow.has(n));
       return newlyOther.length
         ? { signal: 'crawler-access', severity: 'warning', from: p.blockedList, to: c.blockedList, message: `${newlyOther.length} more AI crawler(s) now blocked in robots.txt: ${newlyOther.join(', ')}` }
@@ -186,15 +191,16 @@ export const AGENT_READY_RULES = [
     }
     if (typeof p.blockedCrawlers !== 'number' || typeof c.blockedCrawlers !== 'number') return null;
     if (c.blockedCrawlers <= p.blockedCrawlers) return null;
-    // Subtract the retrieval bots (rule above owns them) ONLY when both retrieval counts are
-    // known finite numbers. A MISSING count (null/undefined) must read as unknown, NOT 0 —
-    // Number(null)===0 is finite and would inflate the "other" delta beyond the real total
-    // increase, so a missing side falls back to the gross blockedCrawlers rise (never over-counts).
+    // "Newly blocked NON-retrieval crawlers" = (cur non-retrieval) − (prev non-retrieval),
+    // where non-retrieval = blockedCrawlers − retrieval. When a side's retrieval count is
+    // UNKNOWN (null), bound conservatively so we never over-count the crawler delta: assume the
+    // unknown side is ALL retrieval on cur (min cur non-retrieval) and NONE on prev (max prev
+    // non-retrieval). Fire only if even that lower bound is positive — so a change that is purely
+    // a retrieval block (owned by the rule above) never also cries a bogus crawler warning.
     const retNum = (m) => m.blockedRetrieval == null ? NaN : Number(m.blockedRetrieval);
-    const pRet = retNum(p), cRet = retNum(c);
-    const newOther = (Number.isFinite(pRet) && Number.isFinite(cRet))
-      ? (c.blockedCrawlers - cRet) - (p.blockedCrawlers - pRet)
-      : (c.blockedCrawlers - p.blockedCrawlers);
+    const cRet = Number.isFinite(retNum(c)) ? retNum(c) : c.blockedCrawlers;
+    const pRet = Number.isFinite(retNum(p)) ? retNum(p) : 0;
+    const newOther = (c.blockedCrawlers - cRet) - (p.blockedCrawlers - pRet);
     return newOther > 0
       ? { signal: 'crawler-access', severity: 'warning', from: p.blockedCrawlers, to: c.blockedCrawlers, message: `${newOther} more AI crawler(s) now blocked in robots.txt (${p.blockedCrawlers}→${c.blockedCrawlers})` }
       : null;

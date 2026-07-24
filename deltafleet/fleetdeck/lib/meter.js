@@ -79,19 +79,17 @@ export class Meter {
   report({ day: onDay } = {}) {
     const r = this.rollup;
     const budgets = this.budgets.map((b) => this.#status(b, onDay));
-    const byAgent = mapRound(r.byAgent);
-    const total = round(r.total);
-    // Reconcile the grand total's cost to the sum of the rounded parts an operator actually
-    // adds up. Rounding each bucket independently can make the raw total round UP (0.0000008 →
-    // 0.000001) while every part rounds DOWN (0.0000004 → 0), so total ≠ Σparts. byAgent
-    // partitions every event (each carries an agent, 'unknown' fallback), so it's the canonical
-    // partition; summing its rounded costs keeps total === Σ(byAgent) exactly.
-    total.costUsd = round2(Object.values(byAgent).reduce((s, b) => s + b.costUsd, 0));
+    const total = round(r.total); // total.costUsd = round2(raw grand total)
+    // EVERY partition (by agent/model/day) must sum to the grand total. Independent 6-decimal
+    // rounding breaks that at sub-micro-dollar magnitudes (0.0000005 rounds UP to 0.000001 in
+    // its own single-event bucket, so N parts sum to more than the once-rounded total). Round
+    // each bucket, then apply the residual (rounded total − Σ rounded parts) to the largest
+    // bucket — the largest-remainder method — so Σ parts === total exactly for each partition.
     return {
       total,
-      byAgent,
-      byModel: mapRound(r.byModel),
-      byDay: mapRound(r.byDay),
+      byAgent: reconcileRound(r.byAgent, total.costUsd),
+      byModel: reconcileRound(r.byModel, total.costUsd),
+      byDay: reconcileRound(r.byDay, total.costUsd),
       latestDay: r.latestDay,
       budgets,
       alarms: budgets.filter((b) => b.state !== 'ok'),
@@ -130,3 +128,19 @@ function at(map, key) { return (map[key] ||= empty()); }
 function round(b) { return { ...b, costUsd: round2(b.costUsd) }; }
 function mapRound(m) { const o = {}; for (const k of Object.keys(m)) o[k] = round(m[k]); return o; }
 function round2(n) { return Math.round(n * 1e6) / 1e6; } // sub-cent precision, no float drift in display
+
+// Round a partition's buckets, then nudge the largest-cost bucket by the residual so the parts
+// sum EXACTLY to `totalCost` (largest-remainder). A no-op for realistic costs (residual 0); it
+// only matters below the 1e-6 rounding granularity, where independent rounding would drift.
+function reconcileRound(m, totalCost) {
+  const out = mapRound(m);
+  const keys = Object.keys(out);
+  if (!keys.length) return out;
+  const residual = round2(totalCost - keys.reduce((s, k) => s + out[k].costUsd, 0));
+  if (residual !== 0) {
+    let big = keys[0];
+    for (const k of keys) if (out[k].costUsd > out[big].costUsd) big = k;
+    out[big] = { ...out[big], costUsd: round2(out[big].costUsd + residual) };
+  }
+  return out;
+}

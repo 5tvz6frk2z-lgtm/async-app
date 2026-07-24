@@ -166,7 +166,11 @@ export class Register {
     const out = [];
     for (const c of this.pack.controls) {
       const ev = CONTROLS[c.control](this.spine);
-      for (const item of ev.items) out.push({ control: c.id, name: c.name, ...item });
+      // control/name are AUTHORITATIVE law-pack identifiers — spread the (possibly
+      // event-derived) item FIRST so a logged payload field named `control`/`name` (e.g. a
+      // disclosure recording the AI system's name) can't overwrite them and either re-file
+      // the evidence under a fabricated control id or make the CSV disagree with register().
+      for (const item of ev.items) out.push({ ...item, control: c.id, name: c.name });
     }
     return out;
   }

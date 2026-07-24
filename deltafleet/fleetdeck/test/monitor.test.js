@@ -210,11 +210,11 @@ test('audit7: retrieval-access uses count comparison when prev is legacy count-o
 
 test('audit7: crawler-access count fallback does not inflate when a retrieval count is missing', () => {
   const crawler = AGENT_READY_RULES[2];
-  // prev has 1 crawler / 1 retrieval; cur has 2 crawlers but a MISSING retrieval count.
-  // The total rose by exactly 1, so the alert must report "1 more", not "2 more".
-  const r = crawler({ blockedCrawlers: 1, blockedRetrieval: 1 }, { blockedCrawlers: 2, blockedRetrieval: null });
-  assert.ok(r && /\b1 more\b/.test(r.message), `expected "1 more", got: ${r && r.message}`);
-  // the both-counts-known path is unchanged: 2 crawlers, 1 retrieval -> 1 other.
+  // prev has 1 crawler / 1 retrieval (0 non-retrieval); cur has 2 crawlers but a MISSING
+  // retrieval count — the extra block could be entirely a retrieval bot (owned by the rule
+  // above), so we can't confirm a NON-retrieval block: stay silent rather than over-count.
+  assert.equal(crawler({ blockedCrawlers: 1, blockedRetrieval: 1 }, { blockedCrawlers: 2, blockedRetrieval: null }), null);
+  // the both-counts-known path is unchanged: 2 crawlers, 1 retrieval -> 1 non-retrieval other.
   const r2 = crawler({ blockedCrawlers: 0, blockedRetrieval: 0 }, { blockedCrawlers: 2, blockedRetrieval: 1 });
   assert.ok(r2 && /\b1 more\b/.test(r2.message));
 });

@@ -226,9 +226,22 @@ export function fingerprintTool(tool) {
 /** Fingerprint a whole tools/list response into a stable per-server snapshot. */
 export function fingerprintServer(toolsList) {
   const tools = {};
-  for (const t of toolsList) tools[t.name] = fingerprintTool(t);
-  const setHash = sha(Object.keys(tools).sort().map((n) => n + ':' + tools[n].full).join('|'));
-  return { setHash, tools, count: Object.keys(tools).length };
+  const seen = new Set();
+  const dupNames = new Set();
+  const perEntry = []; // EVERY advertised (name:full), duplicates included
+  for (const t of toolsList) {
+    const fp = fingerprintTool(t);
+    perEntry.push(t.name + ':' + fp.full);
+    // FIRST-wins for the per-tool diff map, so a poisoned FIRST copy of a duplicated name is
+    // caught by the per-tool description/schema diff; a duplicate name is recorded so the diff
+    // can flag it (a poisoned copy hiding behind a benign LAST copy is caught that way).
+    if (seen.has(t.name)) dupNames.add(t.name);
+    else { seen.add(t.name); tools[t.name] = fp; }
+  }
+  // setHash covers every advertised entry (dupes included), so a duplicate-name poisoning
+  // changes it even when the per-tool map doesn't.
+  const setHash = sha(perEntry.slice().sort().join('|'));
+  return { setHash, tools, count: toolsList.length, dupNames: [...dupNames].sort() };
 }
 
 /**
@@ -267,6 +280,12 @@ export function diffSnapshots(pinned, fresh) {
   }
   for (const name of pinnedNames) {
     if (!freshNames.has(name)) changes.push({ type: 'removed', tool: name, severity: 'info' });
+  }
+  // A duplicate tool NAME in the fresh listing is itself the rug-pull signature — an MCP server
+  // never legitimately advertises two tools with the same name, and last-wins dedup would let a
+  // poisoned copy hide behind a benign one. Flag it critical (both orderings surface here).
+  for (const name of (fresh.dupNames || [])) {
+    changes.push({ type: 'duplicate-name', tool: name, severity: 'critical' });
   }
 
   const rank = { none: 0, info: 1, warn: 2, critical: 3 };

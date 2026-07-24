@@ -70,7 +70,7 @@ export class Spine {
         throw new Error(`spine ${path.basename(file)} corrupt at line ${i + 1}: ${why}`);
       }
       this.events.push(e);
-      this.#index(e);
+      this.#index(e, this.events.length - 1);
       this.version++;
     }
     // If the file's last complete record lost only its trailing newline (a plausible
@@ -95,7 +95,7 @@ export class Spine {
     }
     this.events.push(e);
     this.version++;
-    this.#index(e);
+    this.#index(e, this.events.length - 1);
     // Advance every registered projection BEFORE listeners fire, so a listener
     // that reads view() sees a state that already accounts for this event.
     for (const p of this._projections.values()) this.#advance(p, e);
@@ -103,14 +103,18 @@ export class Spine {
     return e;
   }
 
-  #index(e) {
+  #index(e, pos) {
+    // Store the ARRAY POSITION, not e.seq. query() resolves hits via this.events[pos], and a
+    // log whose seq values are not their array position (duplicate seqs from two writers sharing
+    // one file, or a gapped/reordered seq in a restored log) would otherwise make query() drop
+    // real rows or crash on this.events[missingSeq]. Position is always the true slot.
     for (const field of this._indexFields) {
       const v = e[field];
       if (v === undefined || v === null) continue;
       const bucket = this._index.get(field);
       const key = String(v);
       if (!bucket.has(key)) bucket.set(key, []);
-      bucket.get(key).push(e.seq);
+      bucket.get(key).push(pos);
     }
   }
 
@@ -165,7 +169,7 @@ export class Spine {
     if (kind !== undefined) constraints.push(['kind', kind]);
     for (const [field, value] of Object.entries(where)) constraints.push([field, value]);
 
-    let seqs = null; // null = "all events"
+    let positions = null; // null = "all events"; otherwise ARRAY POSITIONS into this.events
     for (const [field, value] of constraints) {
       const bucket = this._index.get(field);
       if (!bucket) throw new Error(`query where.${field}: not an indexed field (indexBy: ${this._indexFields.join(', ')})`);
@@ -175,11 +179,11 @@ export class Spine {
       // any non-null constraints still narrow via the index.
       if (value === null || value === undefined) continue;
       const hits = bucket.get(String(value)) || [];
-      seqs = seqs === null ? hits.slice() : intersectSorted(seqs, hits);
-      if (seqs.length === 0) break;
+      positions = positions === null ? hits.slice() : intersectSorted(positions, hits);
+      if (positions.length === 0) break;
     }
 
-    let out = seqs === null ? this.events.slice() : seqs.map((s) => this.events[s]);
+    let out = positions === null ? this.events.slice() : positions.map((p) => this.events[p]);
 
     // Index keys are String(value), so values that stringify alike (number 1 vs
     // string "1", true vs "true") share a bucket. Re-verify every constraint with

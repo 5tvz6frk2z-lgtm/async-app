@@ -44,7 +44,10 @@ export class Contextsmith {
     const a = this.#artifact(name);
     if (a) {
       const latest = a.versions[a.versions.length - 1];
-      if (latest.sha === digest) return { name, version: latest.version, sha: digest, deduped: true };
+      // Dedup only on TRUE identity. The stored sha is truncated to 48 bits for display, so a
+      // digest match alone would let a birthday collision silently drop a real content change
+      // from the audit trail — compare the full content too before treating it as a no-op.
+      if (latest.sha === digest && latest.content === content) return { name, version: latest.version, sha: digest, deduped: true };
     }
     const version = a ? a.versions.length + 1 : 1;
     this.spine.append('context.version', { name, version, sha: digest, content });

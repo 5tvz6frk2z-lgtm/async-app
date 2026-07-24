@@ -64,8 +64,11 @@ export class Recorder {
         else if (e.decision === 'review') enq(heldReview, key(e), entry); // eligible only once consumed
         else enq(pending, key(e), entry); // allow (or any executing decision): eligible now
       } else if (e.kind === 'approval.consumed') {
-        // A human approved this held review; promote the oldest one for its key to eligible.
-        const promoted = (heldReview.get(key(e)) || []).shift();
+        // A human approved a held review; the proxy logs a FRESH review tool.call on the retry
+        // that actually executes, so the executor is the MOST RECENT held attempt (the retry),
+        // not the first (which Tollgate blocked and never forwarded). Promote newest (pop), so
+        // the result — and its tokens/cost/duration — binds to the call that really ran.
+        const promoted = (heldReview.get(key(e)) || []).pop();
         if (promoted) enq(pending, key(e), promoted);
       } else if (isResult(e)) {
         const q = pending.get(key(e));
