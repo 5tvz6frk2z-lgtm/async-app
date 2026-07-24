@@ -41,14 +41,24 @@ test('agent-ready: a big score drop is a critical alert; a small drop is a warni
   assert.equal(r2.alerts.find((x) => x.signal === 'score').severity, 'warning');
 });
 
-test('agent-ready: a newly-blocked AI crawler is critical', () => {
+test('agent-ready: a newly-blocked RETRIEVAL bot is critical; a training bot is only a warning', () => {
   const m = mon();
-  const base = { score: 80, grade: 'B', blockedCrawlers: 0, jsonLdValid: 2, likelyShell: 0, llmsTxt: 0 };
+  const base = { score: 80, grade: 'B', blockedCrawlers: 0, blockedRetrieval: 0, jsonLdValid: 2, likelyShell: 0, llmsTxt: 0 };
   m.record('agent-ready', 'u', { metrics: base });
-  const r = m.record('agent-ready', 'u', { metrics: { ...base, blockedCrawlers: 2 } });
-  const a = r.alerts.find((x) => x.signal === 'crawler-access');
-  assert.equal(a.severity, 'critical');
-  assert.match(a.message, /2 more AI crawler/);
+  // block 2 crawlers, one of which is an answer-engine retrieval bot
+  const r = m.record('agent-ready', 'u', { metrics: { ...base, blockedCrawlers: 2, blockedRetrieval: 1 } });
+  const ret = r.alerts.find((x) => x.signal === 'retrieval-access');
+  assert.equal(ret.severity, 'critical');
+  assert.match(ret.message, /RETRIEVAL bot/);
+  const other = r.alerts.find((x) => x.signal === 'crawler-access');
+  assert.equal(other.severity, 'warning', 'the 1 non-retrieval block is a warning');
+
+  // blocking ONLY training/user bots (no retrieval) never escalates to critical
+  const m2 = mon();
+  m2.record('agent-ready', 'u', { metrics: base });
+  const r2 = m2.record('agent-ready', 'u', { metrics: { ...base, blockedCrawlers: 3, blockedRetrieval: 0 } });
+  assert.equal(r2.alerts.find((x) => x.signal === 'crawler-access').severity, 'warning');
+  assert.equal(r2.alerts.find((x) => x.signal === 'retrieval-access'), undefined);
 });
 
 test('agent-ready: structured data disappearing and JS-shell regressions fire', () => {

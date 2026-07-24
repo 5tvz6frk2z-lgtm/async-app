@@ -119,13 +119,13 @@ export const LAW_PACKS = {
   'eu-ai-act': {
     id: 'eu-ai-act',
     framework: 'EU AI Act (illustrative article mapping — not legal advice)',
-    note: 'Maps operational evidence to Articles 12/14/15/50. A compliance professional owns the determination.',
+    note: 'Maps operational evidence to Articles 12/14/15/50. Timeline (per 2026-07 research, verify against the Official Journal): Art. 50 transparency applies 2 Aug 2026; the high-risk Art. 12/14 obligations were deferred by the Digital Omnibus to 2 Dec 2027 (Annex III) / 2 Aug 2028 (product-embedded). A compliance professional owns the determination.',
     controls: [
-      { id: 'Art.14', name: 'Human oversight', requirement: 'Art. 14 — natural persons can oversee and intervene in the system.', control: 'humanOversight' },
-      { id: 'Art.12', name: 'Record-keeping (logging)', requirement: 'Art. 12 — automatic recording of events over the system lifetime.', control: 'recordKeeping' },
+      { id: 'Art.50', name: 'Transparency to users (applies 2 Aug 2026)', requirement: 'Art. 50 — inform natural persons they are interacting with an AI system.', control: 'transparencyDisclosure' },
+      { id: 'Art.14', name: 'Human oversight (high-risk, deferred to 2027/28)', requirement: 'Art. 14 — natural persons can oversee and intervene in the system.', control: 'humanOversight' },
+      { id: 'Art.12', name: 'Record-keeping / logging (high-risk, deferred)', requirement: 'Art. 12 — automatic recording of events over the system lifetime (EU: logs kept ≥6 months).', control: 'recordKeeping' },
       { id: 'Art.15', name: 'Accuracy, robustness & cybersecurity', requirement: 'Art. 15 — resilience against manipulation of the system (incl. tooling).', control: 'supplyChainIntegrity' },
       { id: 'Art.15b', name: 'Risk controls', requirement: 'Art. 15 — measures preventing unsafe actions.', control: 'dangerousActionControl' },
-      { id: 'Art.50', name: 'Transparency to users', requirement: 'Art. 50 — inform natural persons they are interacting with an AI system.', control: 'transparencyDisclosure' },
     ],
   },
 };

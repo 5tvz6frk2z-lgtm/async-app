@@ -95,9 +95,9 @@ export function seed(deck) {
   // a redesign quietly blocked an AI crawler and dropped the structured data.
   const M = deck.monitor;
   const site = 'https://acme.example';
-  M.record('agent-ready', site, { summary: '88/100 (grade B)', metrics: { score: 88, grade: 'B', gradeNum: 4, blockedCrawlers: 0, jsonLdValid: 3, likelyShell: 0, llmsTxt: 1 } });
-  M.record('agent-ready', site, { summary: '86/100 (grade B)', metrics: { score: 86, grade: 'B', gradeNum: 4, blockedCrawlers: 0, jsonLdValid: 3, likelyShell: 0, llmsTxt: 1 } });
-  M.record('agent-ready', site, { summary: '68/100 (grade D)', metrics: { score: 68, grade: 'D', gradeNum: 2, blockedCrawlers: 2, jsonLdValid: 0, likelyShell: 0, llmsTxt: 1 } });
+  M.record('agent-ready', site, { summary: '88/100 (grade B)', metrics: { score: 88, grade: 'B', gradeNum: 4, blockedCrawlers: 0, blockedRetrieval: 0, jsonLdValid: 3, likelyShell: 0, llmsTxt: 1 } });
+  M.record('agent-ready', site, { summary: '86/100 (grade B)', metrics: { score: 86, grade: 'B', gradeNum: 4, blockedCrawlers: 0, blockedRetrieval: 0, jsonLdValid: 3, likelyShell: 0, llmsTxt: 1 } });
+  M.record('agent-ready', site, { summary: '68/100 (grade D)', metrics: { score: 68, grade: 'D', gradeNum: 2, blockedCrawlers: 2, blockedRetrieval: 1, jsonLdValid: 0, likelyShell: 0, llmsTxt: 1 } });
   // 10) A compliance snapshot on the fleet itself (baseline).
   M.record('ai-register', 'fleet', registerProbe(deck.register));
 

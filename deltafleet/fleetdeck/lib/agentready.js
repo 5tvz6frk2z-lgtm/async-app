@@ -28,21 +28,20 @@ export const MAX_SCORE = Object.values(WEIGHTS).reduce((a, b) => a + b, 0); // 1
 // Known AI-crawler / answer-engine user-agent tokens (exact, case-insensitive).
 // Split intentionally: `training` bots fetch corpus, `search` bots power live
 // answer engines — both matter, we report per-agent regardless of bucket.
-export const AI_AGENTS = [
-  'GPTBot',            // OpenAI — training crawler
-  'OAI-SearchBot',     // OpenAI — search/answer crawler
-  'ChatGPT-User',      // OpenAI — live user-triggered fetch
-  'ClaudeBot',         // Anthropic — training crawler
-  'Claude-User',       // Anthropic — live user-triggered fetch
-  'Claude-SearchBot',  // Anthropic — search/answer crawler
-  'PerplexityBot',     // Perplexity — index crawler
-  'Perplexity-User',   // Perplexity — live user-triggered fetch
-  'Google-Extended',   // Google — Gemini/Vertex training opt-out token (robots-only, no live UA)
-  'meta-externalagent',// Meta — AI crawler
-  'Meta-ExternalFetcher', // Meta — live user-triggered fetch
-  'Amazonbot',         // Amazon — crawler (Alexa/AI)
-  'Applebot-Extended', // Apple — AI training opt-out token (robots-only)
-];
+// Role matters: blocking a RETRIEVAL/answer crawler (the bot that fetches a page to
+// cite it in a live answer) is what actually costs you AI-search citations — far more
+// than blocking a TRAINING crawler or a per-user fetch. Detectors weight these
+// differently. (research: Cloud/AEO 2026 — retrieval-block ≈ citations collapse.)
+export const AI_AGENT_ROLES = {
+  GPTBot: 'training', 'OAI-SearchBot': 'retrieval', 'ChatGPT-User': 'user',
+  ClaudeBot: 'training', 'Claude-SearchBot': 'retrieval', 'Claude-User': 'user',
+  PerplexityBot: 'retrieval', 'Perplexity-User': 'user',
+  DuckAssistBot: 'retrieval',
+  GrokBot: 'training', 'MistralAI-User': 'user',
+  'Google-Extended': 'optout', 'meta-externalagent': 'training',
+  'Meta-ExternalFetcher': 'user', Amazonbot: 'training', 'Applebot-Extended': 'optout',
+};
+export const AI_AGENTS = Object.keys(AI_AGENT_ROLES);
 
 // JSON-LD @types we treat as high-value for agents, with common subtypes folded in.
 const SCHEMA_TARGETS = {
@@ -216,21 +215,23 @@ function analyzeRobots(robotsTxt) {
   const present = String(robotsTxt || '').trim().length > 0;
   const groups = parseRobots(robotsTxt);
   const agentsRep = {};
-  let blockedCount = 0;
+  let blockedCount = 0, blockedRetrieval = 0;
   for (const agent of AI_AGENTS) {
     const g = groupFor(groups, agent);
     const via = g ? (g.agents.find((a) => a.toLowerCase() === agent.toLowerCase()) ? agent : '*') : null;
     const allowed = g ? pathAllowed(g, '/') : true; // no applicable group ⇒ default-allow
-    if (!allowed) blockedCount++;
-    agentsRep[agent] = { allowed, blocked: !allowed, via };
+    const role = AI_AGENT_ROLES[agent];
+    if (!allowed) { blockedCount++; if (role === 'retrieval') blockedRetrieval++; }
+    agentsRep[agent] = { allowed, blocked: !allowed, via, role };
   }
   return {
     present,
     knownCount: AI_AGENTS.length,
     blockedCount,
+    blockedRetrieval, // blocking an answer-engine RETRIEVAL bot is the citation-killer
     allowedCount: AI_AGENTS.length - blockedCount,
     agents: agentsRep,
-    summary: `blocks ${blockedCount} of ${AI_AGENTS.length} known AI agents`,
+    summary: `blocks ${blockedCount} of ${AI_AGENTS.length} known AI agents${blockedRetrieval ? ` (incl. ${blockedRetrieval} answer-engine retrieval bot${blockedRetrieval > 1 ? 's' : ''})` : ''}`,
   };
 }
 
@@ -290,9 +291,13 @@ export function analyze({ url = '', html = '', robotsTxt = '', llmsTxt = '', hea
   const add = (signal, weight, earned, detail) =>
     breakdown.push({ signal, weight, earned: round1(clamp(earned, 0, weight)), detail });
 
-  // AI crawler access — proportion of known agents allowed in; an X-Robots noindex
-  // caps it hard (the page may be reachable but is being told to vanish).
-  let access = WEIGHTS.AI_CRAWLER_ACCESS * (robots.allowedCount / robots.knownCount);
+  // AI crawler access — proportion of known agents allowed in, with an EXTRA penalty
+  // for blocking answer-engine RETRIEVAL bots (blocking those is the citation-killer,
+  // far worse than blocking a training crawler). An X-Robots noindex caps it hard.
+  const retrievalTotal = Object.values(AI_AGENT_ROLES).filter((r) => r === 'retrieval').length;
+  let accessFrac = robots.allowedCount / robots.knownCount;
+  if (robots.blockedRetrieval > 0) accessFrac = Math.max(0, accessFrac - 0.4 * (robots.blockedRetrieval / retrievalTotal));
+  let access = WEIGHTS.AI_CRAWLER_ACCESS * accessFrac;
   if (hdr.blocks) access = Math.min(access, WEIGHTS.AI_CRAWLER_ACCESS * 0.25);
   add('AI_CRAWLER_ACCESS', WEIGHTS.AI_CRAWLER_ACCESS, access,
     hdr.blocks ? `${robots.summary}; X-Robots-Tag blocks indexing` : robots.summary);

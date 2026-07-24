@@ -100,6 +100,7 @@ export function agentReadyMetrics(rep) {
     grade: rep.grade,
     gradeNum,
     blockedCrawlers: blocked,
+    blockedRetrieval: rep.robots?.blockedRetrieval ?? 0, // answer-engine bots — the citation-killer
     jsonLdValid: rep.signals?.jsonLd?.valid ?? 0,
     likelyShell: rep.signals?.contentDensity?.likelyShell ? 1 : 0,
     llmsTxt: rep.llms?.valid ? 1 : 0,
@@ -114,14 +115,23 @@ export const AGENT_READY_RULES = [
     if (drop >= 5) return { signal: 'score', severity: 'warning', from: p.score, to: c.score, message: `Agent-Ready score fell ${drop} points (${p.score}→${c.score})` };
     return null;
   },
-  (p, c) => (c.blockedCrawlers > p.blockedCrawlers
-    ? { signal: 'crawler-access', severity: 'critical', from: p.blockedCrawlers, to: c.blockedCrawlers, message: `${c.blockedCrawlers - p.blockedCrawlers} more AI crawler(s) now blocked in robots.txt (${p.blockedCrawlers}→${c.blockedCrawlers})` }
+  // A newly-blocked ANSWER-ENGINE retrieval bot is the citation-killer (impact rank #1) — critical.
+  (p, c) => ((c.blockedRetrieval ?? 0) > (p.blockedRetrieval ?? 0)
+    ? { signal: 'retrieval-access', severity: 'critical', from: p.blockedRetrieval, to: c.blockedRetrieval, message: `${c.blockedRetrieval - p.blockedRetrieval} more answer-engine RETRIEVAL bot(s) now blocked (OAI-SearchBot/Claude-SearchBot/PerplexityBot) — kills AI-search citations` }
+    : null),
+  // Any other newly-blocked crawler (training/user) is a warning, not critical.
+  (p, c) => {
+    const newOther = (c.blockedCrawlers - (c.blockedRetrieval ?? 0)) - (p.blockedCrawlers - (p.blockedRetrieval ?? 0));
+    return newOther > 0
+      ? { signal: 'crawler-access', severity: 'warning', from: p.blockedCrawlers, to: c.blockedCrawlers, message: `${newOther} more AI crawler(s) now blocked in robots.txt (${p.blockedCrawlers}→${c.blockedCrawlers})` }
+      : null;
+  },
+  // A page turning into a JS shell is impact rank #2 (agents don't run JS) — critical.
+  (p, c) => (p.likelyShell === 0 && c.likelyShell === 1
+    ? { signal: 'content-density', severity: 'critical', from: 'content', to: 'shell', message: 'Page now reads as a JS shell — AI crawlers do not run JS and may see nothing' }
     : null),
   (p, c) => (p.jsonLdValid > 0 && c.jsonLdValid === 0
     ? { signal: 'structured-data', severity: 'warning', from: p.jsonLdValid, to: 0, message: 'All JSON-LD structured data disappeared' }
-    : null),
-  (p, c) => (p.likelyShell === 0 && c.likelyShell === 1
-    ? { signal: 'content-density', severity: 'warning', from: 'content', to: 'shell', message: 'Page now reads as a JS shell — agents may not see the content' }
     : null),
   (p, c) => (p.llmsTxt === 1 && c.llmsTxt === 0
     ? { signal: 'llms-txt', severity: 'info', from: 1, to: 0, message: '/llms.txt is no longer present or valid' }
