@@ -46,6 +46,23 @@ test('decide: deny takes precedence over allow/review in the same rule', () => {
   assert.equal(decide(m, 'a', 's', 'safe').decision, 'allow');
 });
 
+test('audit: a broad-scope review is a FLOOR — a narrow allow cannot bypass it', () => {
+  // Operator intent: agentA may call tool_x on srv, BUT any/all use of tool_x needs review.
+  const m1 = { default: 'deny', agents: { agentA: { srv: { allow: ['tool_x'] }, '*': { review: ['tool_x'] } } } };
+  assert.equal(decide(m1, 'agentA', 'srv', 'tool_x').decision, 'review', 'broad review wins over narrow allow');
+  // also across the server/global wildcard scopes
+  const m2 = { default: 'deny', agents: { agentA: { srv: { allow: ['tool_x'] } }, '*': { srv: { review: ['tool_x'] } } } };
+  assert.equal(decide(m2, 'agentA', 'srv', 'tool_x').decision, 'review');
+  const m3 = { default: 'deny', agents: { agentA: { srv: { allow: ['tool_x'] } }, '*': { '*': { review: ['tool_x'] } } } };
+  assert.equal(decide(m3, 'agentA', 'srv', 'tool_x').decision, 'review');
+  // deny still outranks review across scopes
+  const m4 = { default: 'deny', agents: { agentA: { srv: { allow: ['tool_x'] }, '*': { review: ['tool_x'], deny: ['tool_x'] } } } };
+  assert.equal(decide(m4, 'agentA', 'srv', 'tool_x').decision, 'deny');
+  // a plain allow with no broader review/deny is still allowed
+  const m5 = { default: 'deny', agents: { agentA: { srv: { allow: ['tool_x'] } } } };
+  assert.equal(decide(m5, 'agentA', 'srv', 'tool_x').decision, 'allow');
+});
+
 test('decide: unknown agent falls to wildcard, which allows nothing -> default deny', () => {
   assert.equal(decide(MANIFEST, 'stranger', 'gh-mcp', 'get_issue').decision, 'deny');
 });

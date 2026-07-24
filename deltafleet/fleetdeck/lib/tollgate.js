@@ -71,24 +71,24 @@ function applicableRules(manifest, agent, server) {
 /**
  * Decide whether `agent` may call `tool` on `server`, purely from the manifest.
  *
- * DENY IS A HARD FLOOR: a deny at ANY applicable scope (agent, server, or global)
- * blocks the call, so a narrow per-agent allow can never widen past a broad deny.
- * This makes a defense-in-depth global deny ("nobody touches prod-db") expressible.
- * review/allow are then taken from the most-specific matching rule. No match at all
- * -> the manifest default (default: 'deny'). Returns { decision, reason, matched }.
+ * DENY AND REVIEW ARE HARD FLOORS: a deny (or, failing that, a review) at ANY
+ * applicable scope (agent, server, or global) governs the call, so a narrow per-agent
+ * allow can never widen past a broad deny OR silently bypass a broad "this needs human
+ * review". Precedence deny > review > allow is enforced ACROSS scopes, not just within
+ * the most-specific rule. `allow` is granted only by the most-specific matching rule
+ * (so a narrow rule stays free to be MORE restrictive by not listing the tool). No
+ * match at all -> the manifest default (default: 'deny'). Returns { decision, reason, matched }.
  */
 export function decide(manifest, agent, server, tool) {
   const fallback = manifest.default || 'deny';
   const rules = applicableRules(manifest, agent, server);
-  // deny wins across every scope, not just the most-specific rule.
-  if (rules.some((r) => (r.deny || []).some((p) => globMatch(p, tool)))) {
-    return { decision: 'deny', reason: `${agent}/${server}: "${tool}" matches a deny pattern`, matched: 'deny' };
-  }
+  const anyScope = (list) => rules.some((r) => (r[list] || []).some((p) => globMatch(p, tool)));
+  // deny floor, then review floor — both union across every applicable scope.
+  if (anyScope('deny')) return { decision: 'deny', reason: `${agent}/${server}: "${tool}" matches a deny pattern`, matched: 'deny' };
+  if (anyScope('review')) return { decision: 'review', reason: `${agent}/${server}: "${tool}" matches a review pattern`, matched: 'review' };
   const rule = rules[0] || null;
   if (!rule) return { decision: fallback, reason: `no rule for ${agent}/${server}; default ${fallback}`, matched: null };
-  const hit = (list) => (rule[list] || []).some((p) => globMatch(p, tool));
-  if (hit('review')) return { decision: 'review', reason: `${agent}/${server}: "${tool}" matches a review pattern`, matched: 'review' };
-  if (hit('allow')) return { decision: 'allow', reason: `${agent}/${server}: "${tool}" matches an allow pattern`, matched: 'allow' };
+  if ((rule.allow || []).some((p) => globMatch(p, tool))) return { decision: 'allow', reason: `${agent}/${server}: "${tool}" matches an allow pattern`, matched: 'allow' };
   return { decision: fallback, reason: `${agent}/${server}: "${tool}" matches no pattern; default ${fallback}`, matched: null };
 }
 
