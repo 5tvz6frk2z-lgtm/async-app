@@ -150,6 +150,20 @@ test('audit: a same-count SWAP of training crawlers fires the crawler-access war
   assert.match(a.message, /Amazonbot/);
 });
 
+test('audit4: a JS-shell regression fires even when the prev check predates likelyShell', () => {
+  const m = mon();
+  m.record('agent-ready', 'u', { metrics: { score: 80 } }); // old check: no likelyShell key
+  const r = m.record('agent-ready', 'u', { metrics: { score: 80, likelyShell: 1 } });
+  assert.ok(r.alerts.some((x) => x.signal === 'content-density' && x.severity === 'critical'), 'shell schema-evolution must not be silent');
+});
+
+test('audit4: a retrieval->non-retrieval reclassification (still blocked) does not fire crawler-access', () => {
+  const m = mon();
+  m.record('agent-ready', 'u', { metrics: { blockedCrawlers: 1, blockedRetrieval: 1, blockedList: [], blockedRetrievalList: ['R'] } });
+  const r = m.record('agent-ready', 'u', { metrics: { blockedCrawlers: 1, blockedRetrieval: 0, blockedList: ['R'], blockedRetrievalList: [] } });
+  assert.equal(r.alerts.find((x) => x.signal === 'crawler-access'), undefined, 'R stayed blocked — a role re-tag, not a new block');
+});
+
 test('audit3: a page going noindex fires critical even when the net score RISES', () => {
   const m = mon();
   // score improves 63->79 (markup added) but the page became non-indexable

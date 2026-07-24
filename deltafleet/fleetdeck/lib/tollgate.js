@@ -87,14 +87,14 @@ function applicableRules(manifest, agent, server) {
  */
 export function decide(manifest, agent, server, tool) {
   const fallback = manifest.default || 'deny';
-  // FAIL CLOSED on a tool name that isn't a clean string: a control character
-  // (newline/CR/etc.) lets a decorated name like "drop_table\nHIDDEN" slip past an
-  // anchored deny pattern while a broad allow:['*'] still matches it — a deny bypass.
-  // Real MCP tool names are simple identifiers, so any control char is denied outright.
-  // Covers C0 (00-1f), DEL + C1 (7f-9f), and the Unicode line/paragraph separators
-  // (2028/2029) — all of which can decorate a name to dodge an anchored deny regex.
-  if (typeof tool !== 'string' || /[\x00-\x1f\x7f-\x9f\u2028\u2029]/.test(tool)) {
-    return { decision: 'deny', reason: `${agent}/${server}: tool name is not a clean identifier (control characters)`, matched: 'deny' };
+  // FAIL CLOSED on a tool name carrying any INVISIBLE character. A control, format,
+  // zero-width, bidi, or separator char (newline, NBSP, ZWSP, RLO, BOM, U+2028, …) can
+  // decorate a name so it looks identical to a denied one yet dodges the anchored deny
+  // regex, while a broad allow:['*'] still matches it — a deny bypass. Rejecting the
+  // whole Unicode C (control/format) and Z (separator) categories closes the entire
+  // class at once; visible punctuation (parens, dots) stays allowed and matches literally.
+  if (typeof tool !== 'string' || tool.length === 0 || /[\p{C}\p{Z}]/u.test(tool)) {
+    return { decision: 'deny', reason: `${agent}/${server}: tool name is not a clean identifier (invisible/control characters)`, matched: 'deny' };
   }
   const rules = applicableRules(manifest, agent, server);
   const anyScope = (list) => rules.some((r) => (r[list] || []).some((p) => globMatch(p, tool)));

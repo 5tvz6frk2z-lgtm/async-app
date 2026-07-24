@@ -63,6 +63,15 @@ test('audit3: C1 controls and line/paragraph separators in a tool name are also 
   assert.equal(decide(m, 'A', 'S', 'get_thing').decision, 'allow', 'a clean name still resolves normally');
 });
 
+test('audit4: zero-width / bidi / NBSP decorations are denied; visible punctuation still matches', () => {
+  const m = { default: 'deny', agents: { A: { S: { allow: ['*'], deny: ['drop_table'] } } } };
+  for (const ch of ['\u200b', '\u200d', '\ufeff', '\u2060', '\u00ad', '\u202e', '\u00a0']) {
+    assert.equal(decide(m, 'A', 'S', 'drop_table' + ch).decision, 'deny', 'U+' + ch.charCodeAt(0).toString(16) + ' decorated name denied');
+  }
+  const m2 = { default: 'deny', agents: { a: { s: { allow: ['a(b)c'] } } } };
+  assert.equal(decide(m2, 'a', 's', 'a(b)c').decision, 'allow', 'parens matched literally, not denied');
+});
+
 test('audit3: reordering a union `type` array is NOT drift', () => {
   const a = [{ name: 't', description: 'd', inputSchema: { type: 'object', properties: { x: { type: ['string', 'null'] } } } }];
   const b = [{ name: 't', description: 'd', inputSchema: { type: 'object', properties: { x: { type: ['null', 'string'] } } } }];

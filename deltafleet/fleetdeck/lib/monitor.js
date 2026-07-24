@@ -161,7 +161,10 @@ export const AGENT_READY_RULES = [
   // requires the TOTAL to rise, so a flat total never fabricates a bogus "N more blocked".
   (p, c) => {
     if (Array.isArray(p.blockedList) && Array.isArray(c.blockedList)) {
-      const wasAll = strSet(p.blockedList);
+      // Union both lists (as the retrieval rule does) so a bot blocked-as-retrieval last
+      // check and merely reclassified non-retrieval this check (still blocked, no access
+      // change) isn't misread as a newly-blocked crawler.
+      const wasAll = strSet([...p.blockedList, ...(p.blockedRetrievalList || [])]);
       const retrievalNow = strSet(c.blockedRetrievalList || []);
       const newlyOther = c.blockedList.map(String).filter((n) => !wasAll.has(n) && !retrievalNow.has(n));
       return newlyOther.length
@@ -182,7 +185,9 @@ export const AGENT_READY_RULES = [
     ? { signal: 'noindex', severity: 'critical', from: 0, to: 1, message: 'Page is now marked noindex (X-Robots-Tag) — non-indexable and uncitable by every AI agent' }
     : null),
   // A page turning into a JS shell is impact rank #2 (agents don't run JS) — critical.
-  (p, c) => (p.likelyShell === 0 && c.likelyShell === 1
+  // Negated guard (c===1 && p!==1) so a check predating the likelyShell metric (p
+  // undefined) still fires, matching the noindex rule above.
+  (p, c) => (c.likelyShell === 1 && p.likelyShell !== 1
     ? { signal: 'content-density', severity: 'critical', from: 'content', to: 'shell', message: 'Page now reads as a JS shell — AI crawlers do not run JS and may see nothing' }
     : null),
   (p, c) => (p.jsonLdValid > 0 && c.jsonLdValid === 0
