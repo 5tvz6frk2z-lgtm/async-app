@@ -54,6 +54,7 @@ export class Spine {
     // very history-rewrite we refuse.
     const raw = fs.readFileSync(file, 'utf8');
     const lines = raw.split('\n');
+    const seenIds = new Set();
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
       if (!line.trim()) continue;
@@ -61,7 +62,11 @@ export class Spine {
       try { e = JSON.parse(line); } catch (err) { bad = true; why = err.message; }
       if (!bad && !isEvent(e)) { bad = true; why = 'not a JSON object'; }
       if (bad) {
-        if (lines.slice(i + 1).every((l) => !l.trim())) {
+        // A crash mid-append leaves a TORN final record — recognizable because the file does not
+        // end with a newline (the record, and its terminating '\n', were never fully written).
+        // Tolerate exactly that: truncate it. A corrupt record that DOES end with a newline was
+        // fully committed, so it's real corruption — throw, as documented (never rewrite history).
+        if (!raw.endsWith('\n') && lines.slice(i + 1).every((l) => !l.trim())) {
           const validBytes = lines.slice(0, i).reduce((n, l) => n + Buffer.byteLength(l, 'utf8') + 1, 0);
           try { fs.truncateSync(file, validBytes); } catch { /* read-only fs: in-memory drop still correct */ }
           console.warn(`spine: dropped torn final record in ${path.basename(file)} (crash mid-append?), truncated to ${validBytes} bytes`);
@@ -69,6 +74,12 @@ export class Spine {
         }
         throw new Error(`spine ${path.basename(file)} corrupt at line ${i + 1}: ${why}`);
       }
+      // Guarantee in-memory id UNIQUENESS. A merged/restored log (or two writers sharing a file)
+      // can carry duplicate seqs → duplicate ids; a later approval.verdict/ref would then be
+      // ambiguous, letting an UNreviewed payload ride an approval meant for a different one.
+      // Disambiguate collisions so refs bind to exactly the record that existed when made.
+      if (seenIds.has(e.id)) { let k = 2, uid; do { uid = `${e.id}#${k++}`; } while (seenIds.has(uid)); e.id = uid; }
+      seenIds.add(e.id);
       this.events.push(e);
       this.#index(e, this.events.length - 1);
       this.version++;

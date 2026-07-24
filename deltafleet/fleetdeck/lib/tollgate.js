@@ -134,6 +134,11 @@ export function canonical(value) {
 
 function sha(s) { return crypto.createHash('sha256').update(s).digest('hex').slice(0, 16); }
 
+// Immutable deep copy of a caller-owned value, so a later mutation of the caller's object can't
+// change what we recorded/approved. structuredClone preserves undefined (which canonical()
+// distinguishes); JSON is the fallback; the original is a last resort for the exotic non-cloneable.
+function snapshot(v) { try { return structuredClone(v); } catch { try { return JSON.parse(JSON.stringify(v)); } catch { return v; } } }
+
 // Canonicalize an inputSchema so two schemas fingerprint equal IFF they mean the same
 // thing to a tool consumer. The JSON Schema spec makes some arrays UNORDERED sets —
 // `required`, a union `type` (['string','null']), `enum`, the `anyOf`/`oneOf`/`allOf`
@@ -202,7 +207,11 @@ export function fingerprintTool(tool) {
   // event is logged — silently defeating the detector. Coerce non-strings via canonical()
   // (injective, so a string->object change still shows as drift), leaving the normal string
   // path byte-identical so existing pins don't churn.
-  const asText = (v) => (typeof v === 'string' ? v : v == null ? '' : canonical(v));
+  // Route BOTH strings and non-strings through canonical() so the encodings are DISJOINT:
+  // canonical('{"a":1}') === '"{\\"a\\":1}"' (quoted) while canonical({a:1}) === '{"a":1}'
+  // (braces), so a string can never hash-collide with a non-string value's serialization —
+  // closing the injectivity hole where a string→object title/description swap showed no drift.
+  const asText = (v) => canonical(v == null ? '' : v);
   const name = typeof tool.name === 'string' ? tool.name : asText(tool.name);
   const title = asText(tool.title);
   const description = asText(tool.description);
@@ -358,7 +367,11 @@ export class Tollgate {
    */
   guard(agent, server, tool, input) {
     const d = decide(this.manifest, agent, server, tool);
-    this.spine.append('tool.call', { agent, server, tool, input, decision: d.decision, reason: d.reason });
+    // SNAPSHOT the input. The caller owns the args object; recording it by reference would let
+    // an attacker MUTATE it AFTER a human approves the reviewed payload, so the single-use
+    // approval (bound via canonical(input)) would then match the swapped-in malicious payload —
+    // a HITL bypass. A deep copy freezes exactly what was reviewed.
+    this.spine.append('tool.call', { agent, server, tool, input: snapshot(input), decision: d.decision, reason: d.reason });
     return { ...d, allowed: d.decision === 'allow' };
   }
 

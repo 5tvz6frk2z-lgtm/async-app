@@ -158,7 +158,14 @@ export const AGENT_READY_RULES = [
       // hand-fed metric where blockedRetrievalList ⊄ blockedList can't look like a new block.
       const wasBlocked = strSet([...(p.blockedList || []), ...(p.blockedRetrievalList || [])]);
       const newly = c.blockedRetrievalList.map(String).filter((n) => !wasBlocked.has(n));
-      return newly.length
+      // prev may have blocked retrieval bots it did NOT name: when its count exceeds the
+      // retrieval bots its lists actually enumerate, that slack of UNNAMED retrieval bots could
+      // be exactly the ones cur now names — a rename, not a new block. Only alert on names
+      // beyond that slack (a genuine same-count SWAP, where prev DID name its bot, still fires).
+      const namedPrevRetrieval = (p.blockedRetrievalList || []).length; // retrieval bots prev explicitly NAMED
+      const prevCount = Number(p.blockedRetrieval);
+      const unnamedPrevRetrieval = Number.isFinite(prevCount) ? Math.max(0, prevCount - namedPrevRetrieval) : 0;
+      return newly.length > unnamedPrevRetrieval
         ? { signal: 'retrieval-access', severity: 'critical', from: p.blockedRetrievalList, to: c.blockedRetrievalList, message: `Answer-engine RETRIEVAL bot(s) newly blocked: ${newly.join(', ')} — kills AI-search citations` }
         : null;
     }
@@ -201,6 +208,11 @@ export const AGENT_READY_RULES = [
     // unknown side is ALL retrieval on cur (min cur non-retrieval) and NONE on prev (max prev
     // non-retrieval). Fire only if even that lower bound is positive — so a change that is purely
     // a retrieval block (owned by the rule above) never also cries a bogus crawler warning.
+    // ACCEPTED LIMITATION: on a one-check LEGACY→full-shape migration (prev recorded only
+    // blockedCrawlers, no retrieval split) whether a newly-NAMED non-retrieval bot is genuinely
+    // new is undecidable — prev may have blocked it unnamed. We deliberately favor NO false
+    // alarm over catching that single transient warning (the score-drop rule remains the net for
+    // a real regression); once both checks are full-shape the set-diff branch above is exact.
     const retNum = (m) => m.blockedRetrieval == null ? NaN : Number(m.blockedRetrieval);
     const cRet = Number.isFinite(retNum(c)) ? retNum(c) : c.blockedCrawlers;
     const pRet = Number.isFinite(retNum(p)) ? retNum(p) : 0;

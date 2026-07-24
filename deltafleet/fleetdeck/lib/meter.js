@@ -113,6 +113,10 @@ export class Meter {
     else if (b.scope === 'agent') spend = (r.byAgent[b.key] || empty()).costUsd;
     else if (b.scope === 'model') spend = (r.byModel[b.key] || empty()).costUsd;
 
+    // Compare the ROUNDED spend against the limit: `bucket.costUsd += cost` accumulates float
+    // drift, so a spend that exactly equals the limit can land at 9.999999… and miss `>= limit`,
+    // silently skipping the 'exceeded' alarm at the boundary. round2 snaps it to the real value.
+    spend = round2(spend);
     const warnAt = b.warnAt ?? 0.8;
     const pct = b.limitUsd ? spend / b.limitUsd : 0;
     const state = spend >= b.limitUsd ? 'exceeded' : pct >= warnAt ? 'warning' : 'ok';

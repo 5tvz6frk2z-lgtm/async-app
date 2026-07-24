@@ -41,7 +41,12 @@ function scrubError(e, url) {
   // 2) Redact the URL's PATH (where the Slack/webhook secret actually lives) wherever it
   //    appears — path is invariant under host/scheme/port normalization, so this scrubs the
   //    token even when the transport emits a form that matches neither the raw nor the href.
-  try { const u = new URL(url); if (u.pathname && u.pathname !== '/') msg = msg.split(u.pathname + u.search).join('/…').split(u.pathname).join('/…'); } catch { /* malformed URL — steps 1 & 3 cover it */ }
+  try {
+    const u = new URL(url);
+    if (u.pathname && u.pathname !== '/') msg = msg.split(u.pathname + u.search).join('/…').split(u.pathname).join('/…');
+    if (u.search) msg = msg.split(u.search).join('?…');
+    for (const val of u.searchParams.values()) if (val) msg = msg.split(val).join('…'); // a secret in the QUERY (?token=…), even detached from the URL
+  } catch { /* malformed URL — steps 1 & 3 cover it */ }
   // 3) Sweep any remaining well-formed http(s) URL down to its host.
   msg = msg.replace(/https?:\/\/[^\s"'<>]+/gi, (m) => redact(m));
   return msg;
@@ -58,7 +63,10 @@ export async function deliver(alerts, config, opts) {
   // The `= {}` param default only fires for undefined; an explicit null (config OR opts) must
   // not throw — deliver()'s contract is NEVER throws. Normalize both here.
   config = config || {};
-  const { fetchImpl = fetch, timeoutMs = 8000 } = opts || {};
+  // Destructuring opts can itself throw (a hostile getter); guard it so even a malicious opts
+  // object can't defeat the never-throws contract.
+  let fetchImpl = fetch, timeoutMs = 8000;
+  try { ({ fetchImpl = fetch, timeoutMs = 8000 } = opts || {}); } catch { /* hostile opts — use defaults */ }
   // build() is deferred INTO the per-channel try so a malformed alert (e.g. a null
   // element that throws in slackBody) is caught and reported, never propagated.
   const channels = [];

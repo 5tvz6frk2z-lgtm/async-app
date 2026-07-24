@@ -131,6 +131,13 @@ export class Recorder {
       }
       const failed = c.result ? c.result.ok === false : false;
       const denied = c.decision === 'deny';
+      // A review with no result was HELD (blocked, never executed) — it must never export an OK
+      // execute_tool span attributing a successful tool run to an action that never ran.
+      const held = !c.result && c.decision === 'review';
+      const status = denied ? { code: 'ERROR', message: 'blocked by Tollgate policy' }
+        : held ? { code: 'ERROR', message: 'held for human review (not executed)' }
+        : failed ? { code: 'ERROR', message: c.result?.error || 'tool call failed' }
+        : { code: 'OK' };
       return {
         name: `execute_tool ${c.tool}`,
         traceId: traceId(c),
@@ -139,9 +146,7 @@ export class Recorder {
         startTimeUnixNano: Number.isFinite(start) ? start * 1e6 : null,
         endTimeUnixNano: Number.isFinite(start) ? (start + durMs) * 1e6 : null,
         attributes,
-        status: failed || denied
-          ? { code: 'ERROR', message: denied ? 'blocked by Tollgate policy' : (c.result?.error || 'tool call failed') }
-          : { code: 'OK' },
+        status,
       };
     });
   }
@@ -163,7 +168,7 @@ function summarize(e) {
   switch (e.kind) {
     case 'tool.call': return `${e.tool}@${e.server} → ${e.decision}`;
     case 'tool.result': return `${e.tool}@${e.server} ${e.ok === false ? 'error' : 'ok'}`;
-    case 'mcp.drift': return `DRIFT ${e.server} [${e.severity}] ${(Array.isArray(e.changes) ? e.changes : []).map((c) => `${c.type}:${c.tool}`).join(', ')}`;
+    case 'mcp.drift': return `DRIFT ${e.server} [${e.severity}] ${(Array.isArray(e.changes) ? e.changes : []).filter((c) => c && typeof c === 'object').map((c) => `${c.type}:${c.tool}`).join(', ')}`;
     case 'mcp.pin': return `pinned ${e.server} (${e.count} tools)`;
     case 'mcp.snapshot': return `snapshot ${e.server}${e.drifted ? ' (drift!)' : ''}`;
     default: return e.text || e.kind;
