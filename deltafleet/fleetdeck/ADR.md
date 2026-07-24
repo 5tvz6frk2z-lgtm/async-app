@@ -32,11 +32,16 @@ strict `===`. **Why:** without it, values that stringify alike (`1` vs `"1"`,
 `true` vs `"true"`) collide and the index returns wrong results — the maintained
 view must equal a brute-force scan or it's a silent correctness hole.
 
-### 6 · Deny is a hard floor (Tollgate)
+### 6 · Deny AND review are hard floors (Tollgate)
 `decide()` unions deny patterns across ALL applicable scopes (agent, server,
-global); review/allow come only from the most-specific rule. **Why:** a narrow
-per-agent allow must never widen past a broad deny, so "nobody touches prod-db" is
-expressible. Deny-by-default remains the posture; unlisted tools are denied.
+global), then unions review the same way; only `allow` is scoped to the
+most-specific rule. Precedence deny > review > allow holds ACROSS scopes. **Why:**
+a narrow per-agent allow must never widen past a broad deny ("nobody touches
+prod-db") NOR silently bypass a broad "this needs human review" — an audit found
+that reading review from only the most-specific rule let a narrow allow downgrade a
+broad review to auto-allow, a permission leak. `allow` stays most-specific so a
+narrow rule can still be MORE restrictive by not listing a tool (it falls to default
+deny). Deny-by-default remains the posture; unlisted tools are denied.
 
 ### 7 · Fingerprint every model-visible field; annotations are advisory
 The rug-pull fingerprint covers name, title, description, inputSchema AND
