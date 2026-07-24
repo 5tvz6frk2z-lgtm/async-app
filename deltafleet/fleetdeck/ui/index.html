@@ -81,6 +81,15 @@
   .empty { color: var(--faint); font-style: italic; padding: 20px 4px; text-align: center; }
   .resolved { font-family: var(--mono); font-size: 12px; color: var(--dim); padding: 4px 8px; }
   .resolved .v-approved { color: var(--ok); } .resolved .v-rejected { color: var(--crit); }
+  /* monitors */
+  .mon { border: 1px solid var(--line); border-radius: 8px; padding: 13px 14px; margin-bottom: 10px; }
+  .mon .top { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .mon .tgt { font-family: var(--mono); font-weight: 600; } .mon .sum { color: var(--dim); margin-left: auto; font-family: var(--mono); font-size: 12px; }
+  .mon .kind { font-size: 10.5px; text-transform: uppercase; letter-spacing: .4px; color: var(--faint); border: 1px solid var(--line); border-radius: 4px; padding: 1px 6px; }
+  .spark { display: flex; align-items: flex-end; gap: 2px; height: 34px; margin: 6px 0; }
+  .spark i { width: 8px; background: var(--accent); border-radius: 1px; min-height: 2px; display: block; }
+  .malert { font-family: var(--mono); font-size: 12px; padding: 2px 0; }
+  .malert.critical { color: var(--crit); } .malert.warning { color: var(--warn); } .malert.info { color: var(--dim); }
   /* register */
   .ctrl { display: grid; grid-template-columns: 90px 1fr; gap: 12px; padding: 11px 12px; border: 1px solid var(--line); border-radius: 8px; margin-bottom: 8px; }
   .ctrl .st { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; align-self: start; padding: 3px 8px; border-radius: 20px; text-align: center; }
@@ -113,6 +122,7 @@
     <button data-tab="meter">Meter<span class="count" id="c-meter"></span></button>
     <button data-tab="inbox">Approvals<span class="count" id="c-inbox"></span></button>
     <button data-tab="register">AI Register<span class="count" id="c-register"></span></button>
+    <button data-tab="monitor">Monitors<span class="count" id="c-monitor"></span></button>
     <button data-tab="check">Agent-Ready</button>
   </nav>
 
@@ -137,6 +147,9 @@
       <div id="register"></div>
       <p id="reg-note" style="color:var(--faint);font-size:12px;margin-top:14px"></p>
     </div>
+  </section>
+  <section class="panel" id="p-monitor">
+    <div class="card"><h3>Recurring monitors — alert only on regression</h3><div id="monitors"></div></div>
   </section>
   <section class="panel" id="p-check">
     <div class="card">
@@ -292,9 +305,29 @@ $('check-go').addEventListener('click', async () => {
   } catch (err) { $('check-out').innerHTML = `<div class="empty">${esc(err.message)}</div>`; }
 });
 
+// ---- monitors ----
+async function refreshMonitors(counts) {
+  try {
+    const rows = await (await fetch('/api/monitor')).json();
+    const openAlerts = rows.reduce((n, r) => n + r.alerts.length, 0);
+    $('c-monitor').textContent = openAlerts || '';
+    if (!rows.length) { $('monitors').innerHTML = '<div class="empty">No monitors yet — run <code>fleetdeck monitor &lt;file&gt; check ...</code></div>'; return; }
+    const sevColor = { critical: 'var(--crit)', warning: 'var(--warn)', info: 'var(--dim)', none: 'var(--faint)' };
+    $('monitors').innerHTML = rows.map((r) => {
+      const vals = r.trend.map((p) => Number(p.value) || 0);
+      const max = Math.max(1, ...vals);
+      const spark = r.trend.length > 1
+        ? `<div class="spark">${vals.map((v) => `<i style="height:${Math.max(2, v / max * 34)}px"></i>`).join('')}</div>` : '';
+      const alerts = r.alerts.map((a) => `<div class="malert ${a.severity}">${{ critical: '🔴', warning: '🟡', info: '🔵' }[a.severity] || '•'} ${esc(a.message)} <span style="color:var(--faint)">${esc(a.ts.slice(0, 10))}</span></div>`).join('');
+      return `<div class="mon"><div class="top"><span class="kind">${esc(r.monitor)}</span><span class="tgt">${esc(r.target)}</span>` +
+        `<span class="sum" style="color:${sevColor[r.worst]}">${esc(r.latest.summary)}</span></div>${spark}${alerts || '<div class="malert info">✓ no regressions</div>'}</div>`;
+    }).join('');
+  } catch {}
+}
+
 // ---- poll ----
 async function refresh() {
-  try { const r = await fetch('/api/snapshot'); render(await r.json()); } catch {}
+  try { const r = await fetch('/api/snapshot'); const s = await r.json(); render(s); refreshMonitors(s.counts); } catch {}
 }
 refresh();
 setInterval(refresh, 3000);

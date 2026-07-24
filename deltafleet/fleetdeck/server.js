@@ -58,6 +58,23 @@ export function startServer({ file, port = 7420, config }) {
         }
         return json(res, deck.register.register());
       }
+      if (req.method === 'GET' && route === '/api/monitor') {
+        ensureFresh();
+        const out = [];
+        for (const mo of ['agent-ready', 'ai-register']) {
+          const targets = [...new Set(deck.monitor.history(mo).map((c) => c.target))];
+          for (const tgt of targets) {
+            out.push({
+              monitor: mo, target: tgt,
+              latest: deck.monitor.latest(mo, tgt),
+              worst: deck.monitor.worstSeverity(mo, tgt),
+              trend: deck.monitor.trend(mo, tgt, mo === 'agent-ready' ? 'score' : 'gap'),
+              alerts: deck.monitor.alerts(mo, tgt).slice(0, 8),
+            });
+          }
+        }
+        return json(res, out);
+      }
       if (req.method === 'GET' && route === '/api/check') {
         const target = url.searchParams.get('url');
         if (!target) return json(res, { error: 'url query param required' }, 400);
