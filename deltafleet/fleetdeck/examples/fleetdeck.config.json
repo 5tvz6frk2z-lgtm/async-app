@@ -3,7 +3,7 @@
   "manifest": {
     "default": "deny",
     "agents": {
-      "claude": { "cortex": { "allow": ["memory_search", "memory_stats"] } }
+      "claude": { "cortex": { "allow": ["memory_search", "memory_stats"], "review": ["memory_add", "memory_delete", "memory_update"] } }
     }
   },
   "pricing": {
