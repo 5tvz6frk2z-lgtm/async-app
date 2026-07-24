@@ -1,15 +1,11 @@
 {
-  "_comment": "Tollgate permission manifest. Deny by default; scope each agent to the tools it may call on each MCP server. deny > review > allow, and a deny at any scope is a hard floor. This example lets the `claude` agent read the Cortex second brain but nothing else.",
+  "_comment": "Tollgate permission manifest. Deny by default; scope each agent to the tools it may call on each MCP server. Precedence is deny > review > allow, and BOTH deny and review are hard floors unioned across every matching scope — so never list a tool under review (or deny) that you also want allowed, and never use a review/deny glob that overlaps an allowed tool (it would override the allow). This example lets the `claude` agent READ the Cortex second brain (memory_search, memory_stats flow straight through), holds any WRITE for a human in the Approvals Inbox (memory_add/delete/update — defense in depth: gated now even though this read-only Cortex build does not expose them, so a rug-pull that adds one is already caught), and denies everything else — every other tool, agent, and server.",
   "default": "deny",
   "agents": {
     "claude": {
       "cortex": {
-        "allow": ["memory_search", "memory_stats"]
-      }
-    },
-    "*": {
-      "*": {
-        "review": ["*"]
+        "allow": ["memory_search", "memory_stats"],
+        "review": ["memory_add", "memory_delete", "memory_update"]
       }
     }
   }
