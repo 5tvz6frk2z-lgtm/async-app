@@ -26,6 +26,15 @@ export function redact(url) {
   try { const u = new URL(url); return `${u.protocol}//${u.host}/…`; } catch { return 'webhook'; }
 }
 
+// A Slack/webhook URL IS the secret, and transport errors embed it verbatim ("request to
+// <url> failed…", "Failed to parse URL from <url>"). Scrub every occurrence of the raw URL
+// out of an error message before it reaches the returned result (which the CLI logs).
+function scrubError(e, url) {
+  let msg = (e && e.message) || String(e);
+  if (url) msg = msg.split(url).join(redact(url));
+  return msg;
+}
+
 /**
  * Deliver alerts to the configured channels. config: { webhook?: url, slack?: url,
  * title?: string }. Returns { delivered, results:[{channel, url, ok, status|error}] }.
@@ -34,6 +43,7 @@ export function redact(url) {
  */
 export async function deliver(alerts, config = {}, { fetchImpl = fetch, timeoutMs = 8000 } = {}) {
   if (!alerts || !alerts.length) return { delivered: 0, results: [] };
+  config = config || {}; // the `= {}` default only fires for undefined; an explicit null must not throw (never-throws contract)
   // build() is deferred INTO the per-channel try so a malformed alert (e.g. a null
   // element that throws in slackBody) is caught and reported, never propagated —
   // deliver() must never throw, as documented.
@@ -53,7 +63,7 @@ export async function deliver(alerts, config = {}, { fetchImpl = fetch, timeoutM
       } finally { clearTimeout(timer); }
       results.push({ channel: ch.channel, url: redact(ch.url), ok: !!(res && res.ok), status: res && res.status });
     } catch (e) {
-      results.push({ channel: ch.channel, url: redact(ch.url), ok: false, error: e.message });
+      results.push({ channel: ch.channel, url: redact(ch.url), ok: false, error: scrubError(e, ch.url) });
     }
   }
   return { delivered: results.filter((r) => r.ok).length, results };

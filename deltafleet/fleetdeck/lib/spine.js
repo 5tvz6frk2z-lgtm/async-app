@@ -169,6 +169,11 @@ export class Spine {
     for (const [field, value] of constraints) {
       const bucket = this._index.get(field);
       if (!bucket) throw new Error(`query where.${field}: not an indexed field (indexBy: ${this._indexFields.join(', ')})`);
+      // A null/undefined constraint value can't use the index — #index deliberately does not
+      // bucket absent values, so its bucket would be empty and wrongly return []. Leave it to
+      // the strict-=== re-filter below (null===null / undefined===undefined works there), while
+      // any non-null constraints still narrow via the index.
+      if (value === null || value === undefined) continue;
       const hits = bucket.get(String(value)) || [];
       seqs = seqs === null ? hits.slice() : intersectSorted(seqs, hits);
       if (seqs.length === 0) break;

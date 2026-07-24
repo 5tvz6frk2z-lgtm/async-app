@@ -48,6 +48,9 @@ export function validateManifest(m) {
       for (const key of Object.keys(rule)) {
         if (!['allow', 'review', 'deny'].includes(key)) errs.push(`${agent}/${server}: unknown rule key "${key}" (allow|review|deny)`);
         else if (!Array.isArray(rule[key])) errs.push(`${agent}/${server}.${key} must be an array of tool patterns`);
+        // Every pattern must be a STRING — a non-string element would crash globMatch (pattern.split)
+        // at decide()/preview time, so reject it at validation rather than fail open/crash later.
+        else if (rule[key].some((p) => typeof p !== 'string')) errs.push(`${agent}/${server}.${key} patterns must all be strings`);
       }
     }
   }
@@ -56,6 +59,7 @@ export function validateManifest(m) {
 
 // Glob with a single '*' wildcard (matches any run of chars). Anchored full-match.
 function globMatch(pattern, str) {
+  if (typeof pattern !== 'string') return false; // defense in depth: a non-string pattern matches nothing (never crash)
   if (pattern === '*') return true;
   const rx = new RegExp('^' + pattern.split('*').map(escapeRegex).join('.*') + '$');
   return rx.test(str);
@@ -87,18 +91,19 @@ function applicableRules(manifest, agent, server) {
  */
 export function decide(manifest, agent, server, tool) {
   const fallback = manifest.default || 'deny';
-  // FAIL CLOSED on a tool name carrying any INVISIBLE / non-rendering character. Such a char
-  // (newline, NBSP, ZWSP, RLO, BOM, U+2028, VS16 U+FE0F, Mongolian FVS, Hangul fillers
-  // U+115F/1160/3164/FFA0, Braille-blank U+2800, …) can decorate a name so it looks identical
-  // to a denied one yet dodges the anchored deny regex while a broad allow:['*'] still matches
-  // it — a deny bypass. Blocklisting one Unicode category at a time is whack-a-mole (invisible
-  // chars hide in C, Z, M, AND letter/symbol categories), so we reject the whole invisible
-  // universe at once: C (control/format), Z (separator), M (marks/variation selectors),
-  // Default_Ignorable_Code_Point (Hangul fillers & friends — Lo/So yet render as nothing),
-  // plus U+2800 (Braille blank, a So char that isn't Default_Ignorable). Visible punctuation
-  // (parens, dots) is none of these, so it stays allowed and matches literally.
-  if (typeof tool !== 'string' || tool.length === 0 || /[\p{C}\p{Z}\p{M}\p{Default_Ignorable_Code_Point}\u2800]/u.test(tool)) {
-    return { decision: 'deny', reason: `${agent}/${server}: tool name is not a clean identifier (invisible/control characters)`, matched: 'deny' };
+  // FAIL CLOSED unless the tool name is a clean identifier. An invisible / non-rendering
+  // character (newline, NBSP, ZWSP, BOM, VS16 U+FE0F, Hangul filler U+115F, Braille-blank
+  // U+2800, OBJECT-REPLACEMENT U+FFFC, ...) can decorate a name so it looks identical to a
+  // denied one yet dodges the anchored deny regex while a broad allow:[*] still matches it
+  // -- a deny bypass. BLOCKLISTING invisible chars one Unicode category at a time is
+  // whack-a-mole: they hide across C, Z, M, Default_Ignorable AND ordinary letter/symbol
+  // categories (Hangul fillers are Lo; U+2800/U+FFFC are So). So we ALLOWLIST instead -- an
+  // MCP tool name is an identifier and every real one is printable ASCII, so we require
+  // exactly that (0x21 to 0x7e: letters, digits, and visible punctuation incl. parens,
+  // dots, slashes, colons). A space, a control char, or ANY non-ASCII code point (where
+  // every invisible char lives) is rejected once and for all.
+  if (typeof tool !== 'string' || tool.length === 0 || /[^\x21-\x7e]/.test(tool)) {
+    return { decision: 'deny', reason: `${agent}/${server}: tool name is not a clean identifier (must be printable ASCII, no spaces)`, matched: 'deny' };
   }
   const rules = applicableRules(manifest, agent, server);
   const anyScope = (list) => rules.some((r) => (r[list] || []).some((p) => globMatch(p, tool)));
@@ -167,7 +172,11 @@ function normNode(v, mode) {
   for (const k of Object.keys(v)) {
     const val = v[k];
     if (mode === 'data') { out[k] = normNode(val, 'data'); continue; } // in data: never sort, preserve order
-    if ((k === 'required' || k === 'type') && Array.isArray(val)) out[k] = [...val].sort();
+    if (k === 'required' && Array.isArray(val)) out[k] = [...val].sort();
+    // `type` union is an unordered set; a SINGLE-element union (['string']) validates
+    // identically to the scalar ('string'), so collapse it — else a server re-serializing
+    // one form as the other spuriously drifts.
+    else if (k === 'type') out[k] = Array.isArray(val) ? (val.length === 1 ? val[0] : [...val].sort()) : val;
     else if ((k === 'dependentRequired' || k === 'dependencies') && val && typeof val === 'object' && !Array.isArray(val)) out[k] = normDepMap(val);
     else if (_DATA_SET_KEY.has(k) && Array.isArray(val)) out[k] = val.map((x) => normNode(x, 'data')).sort(_byCanonical);
     else if (_SCHEMA_SET_KEY.has(k) && Array.isArray(val)) out[k] = val.map((x) => normNode(x, 'schema')).sort(_byCanonical);
@@ -188,9 +197,15 @@ function normSchema(v) { return normNode(v, 'schema'); }
  * poisoning signature; a schema edit is the exfiltration signature).
  */
 export function fingerprintTool(tool) {
-  const name = tool.name || '';
-  const title = tool.title || '';
-  const description = tool.description || '';
+  // A compromised server may send a NON-STRING title/description (e.g. an object smuggling
+  // hidden instructions). sha() would throw on it and crash the whole drift check BEFORE any
+  // event is logged — silently defeating the detector. Coerce non-strings via canonical()
+  // (injective, so a string->object change still shows as drift), leaving the normal string
+  // path byte-identical so existing pins don't churn.
+  const asText = (v) => (typeof v === 'string' ? v : v == null ? '' : canonical(v));
+  const name = typeof tool.name === 'string' ? tool.name : asText(tool.name);
+  const title = asText(tool.title);
+  const description = asText(tool.description);
   const schema = normSchema(tool.inputSchema || tool.input_schema || {});
   const annotations = tool.annotations || {};
   return {

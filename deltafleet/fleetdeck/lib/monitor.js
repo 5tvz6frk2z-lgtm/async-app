@@ -13,7 +13,7 @@
 // Events:
 //   monitor.check  { monitor, target, summary, metrics }
 //   monitor.alert  { monitor, target, signal, severity, from, to, message }
-import { fetchSite, analyze } from './agentready.js';
+import { fetchSite, analyze, AI_AGENT_ROLES } from './agentready.js';
 
 const SEVERITY_RANK = { none: 0, info: 1, warning: 2, critical: 3 };
 
@@ -133,10 +133,15 @@ export const AGENT_READY_RULES = [
   // Set comparison (string-normalized) when both checks carry the list — catches a same-count
   // swap; numeric-coerced count fallback for legacy/injected metrics that predate the list.
   (p, c) => {
-    // Each side's retrieval-blocked count from the best signal it carries: the list length
-    // if present (authoritative), else the numeric count, else 0 (truly absent metric).
+    // Each side's retrieval-blocked count from the best signal it carries, in priority order:
+    // the retrieval list length (authoritative) > the explicit numeric count > the count of
+    // RETRIEVAL-role bots named in blockedList (so a legacy prev that recorded a retrieval bot
+    // only in blockedList is credited, symmetric with the identity branch's union baseline —
+    // else a no-change looked like a 0→N block) > 0 (truly absent metric).
     const retCount = (m) => Array.isArray(m.blockedRetrievalList) ? m.blockedRetrievalList.length
-      : m.blockedRetrieval == null ? 0 : Number(m.blockedRetrieval);
+      : m.blockedRetrieval != null ? Number(m.blockedRetrieval)
+      : Array.isArray(m.blockedList) ? m.blockedList.filter((n) => AI_AGENT_ROLES[n] === 'retrieval').length
+      : 0;
     // IDENTITY comparison — only when we can NAME the blocked bots on BOTH sides: cur carries
     // the retrieval list AND prev carries some identity (its blockedList and/or retrieval
     // list). Subtracting identities lets a role re-tag on an already-blocked bot, or a

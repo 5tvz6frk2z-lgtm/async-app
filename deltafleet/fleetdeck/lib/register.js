@@ -176,7 +176,18 @@ export class Register {
     const rows = this.evidence();
     if (!rows.length) return 'control,name\n';
     const cols = [...new Set(rows.flatMap((r) => Object.keys(r)))];
-    const esc = (v) => { const s = v == null ? '' : String(v); return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
-    return [cols.join(','), ...rows.map((r) => cols.map((k) => esc(r[k])).join(','))].join('\n');
+    const esc = (v) => {
+      let s = v == null ? '' : String(v);
+      // CSV formula-injection defense: tool/server names come from MCP servers and note/by
+      // from human input, so a cell that a spreadsheet would auto-evaluate as a formula
+      // (leading =, +, -, @, or a tab/CR) is neutralized with a leading apostrophe — Excel/
+      // Sheets then render it as text, not code. Then apply RFC-4180 quoting.
+      if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+      return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+    };
+    // esc the HEADER too: a payload key containing a comma/quote/newline (columns are the union
+    // of evidence-item keys, and a disclosure event spreads arbitrary keys) would otherwise
+    // split a header cell and misalign every row against the header.
+    return [cols.map(esc).join(','), ...rows.map((r) => cols.map((k) => esc(r[k])).join(','))].join('\n');
   }
 }

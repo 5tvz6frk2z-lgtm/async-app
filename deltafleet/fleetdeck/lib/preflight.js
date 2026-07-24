@@ -27,6 +27,12 @@ export function previewManifest(spine, candidate) {
   // Restriction rank: allow (0) < review (1) < deny (2). A drop in rank is a
   // LOOSENING (less oversight), a rise is a TIGHTENING — the risk-relevant direction.
   const rank = { allow: 0, review: 1, deny: 2 };
+  // A historical `was` outside {allow,review,deny} (a legacy 'blocked' token or a missing
+  // decision field from an older event shape) has no rank. Treating it as UNKNOWN=most-
+  // restrictive means any re-decision to a more permissive `now` is still counted as a
+  // loosening — so the preview FAILS SAFE (over-flags) instead of fail-OPEN (rank[was] used
+  // to be undefined → dir NaN → loosened never incremented → verdict wrongly reported safe).
+  const rankOf = (d) => rank[d] ?? rank.deny;
   const summary = { unchanged: 0, newlyDenied: 0, newlyAllowed: 0, newlyReview: 0, otherChange: 0, loosened: 0, tightened: 0 };
 
   for (const c of calls) {
@@ -37,7 +43,7 @@ export function previewManifest(spine, candidate) {
     else if (now === 'allow') summary.newlyAllowed++;
     else if (now === 'review') summary.newlyReview++;
     else summary.otherChange++;
-    const dir = rank[now] - rank[was];
+    const dir = rankOf(now) - rankOf(was);
     if (dir < 0) summary.loosened++; else if (dir > 0) summary.tightened++;
     changes.push({ ref: c.id, agent: c.agent, server: c.server, tool: c.tool, was, now, direction: dir < 0 ? 'looser' : dir > 0 ? 'tighter' : 'lateral', at: c.ts });
   }

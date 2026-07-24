@@ -16,7 +16,11 @@ const usageBearing = (e) => e.tokensIn != null || e.tokensOut != null || e.costU
 /** Cost of one event: its own costUsd if present, else tokens × pricing[model].
  *  pricing is USD per 1e6 tokens: { 'claude-fable-5': { in: 3, out: 15 } }. */
 export function costOf(e, pricing = {}) {
-  if (typeof e.costUsd === 'number') return e.costUsd;
+  // Number.isFinite, NOT typeof==='number': a costUsd of NaN/±Infinity is typeof 'number' but
+  // would poison the running total forever, and every budget comparison against NaN is false —
+  // silently disabling ALL overspend alarms. A non-finite cost falls through to the token/price
+  // path (or 0), so one malformed usage event can't defeat the whole cost meter.
+  if (Number.isFinite(e.costUsd)) return e.costUsd;
   const p = pricing[e.model];
   if (!p) return 0;
   return ((e.tokensIn || 0) / 1e6) * (p.in || 0) + ((e.tokensOut || 0) / 1e6) * (p.out || 0);
@@ -75,9 +79,17 @@ export class Meter {
   report({ day: onDay } = {}) {
     const r = this.rollup;
     const budgets = this.budgets.map((b) => this.#status(b, onDay));
+    const byAgent = mapRound(r.byAgent);
+    const total = round(r.total);
+    // Reconcile the grand total's cost to the sum of the rounded parts an operator actually
+    // adds up. Rounding each bucket independently can make the raw total round UP (0.0000008 →
+    // 0.000001) while every part rounds DOWN (0.0000004 → 0), so total ≠ Σparts. byAgent
+    // partitions every event (each carries an agent, 'unknown' fallback), so it's the canonical
+    // partition; summing its rounded costs keeps total === Σ(byAgent) exactly.
+    total.costUsd = round2(Object.values(byAgent).reduce((s, b) => s + b.costUsd, 0));
     return {
-      total: round(r.total),
-      byAgent: mapRound(r.byAgent),
+      total,
+      byAgent,
       byModel: mapRound(r.byModel),
       byDay: mapRound(r.byDay),
       latestDay: r.latestDay,

@@ -48,14 +48,25 @@ export class Recorder {
     // Pull the whole ordered log once, correlate, THEN filter — so a tool.call
     // still finds its result even when the caller filters to just tool.calls.
     const events = this.spine.query({ since, until });
-    const pending = new Map(); // key -> [callEntry,...] awaiting a result (FIFO)
+    // A tool.result can ONLY come from a call that actually executed. A denied call never
+    // executes, and a review call executes only once a human approval is consumed — so
+    // neither may sit in the correlation queue and steal a later allowed call's result
+    // (which would attribute real tokens/cost, and an OTel usage span, to a blocked action).
+    const pending = new Map();     // key -> [callEntry,...] eligible for a result (executed)
+    const heldReview = new Map();  // key -> [callEntry,...] review calls awaiting approval.consumed
+    const enq = (m, k, v) => { const q = m.get(k) || []; q.push(v); m.set(k, q); };
     const entries = [];
 
     for (const e of events) {
       const entry = this.#entry(e);
       if (isCall(e)) {
-        const q = pending.get(key(e)) || [];
-        q.push(entry); pending.set(key(e), q);
+        if (e.decision === 'deny') { /* never executes — never eligible for a result */ }
+        else if (e.decision === 'review') enq(heldReview, key(e), entry); // eligible only once consumed
+        else enq(pending, key(e), entry); // allow (or any executing decision): eligible now
+      } else if (e.kind === 'approval.consumed') {
+        // A human approved this held review; promote the oldest one for its key to eligible.
+        const promoted = (heldReview.get(key(e)) || []).shift();
+        if (promoted) enq(pending, key(e), promoted);
       } else if (isResult(e)) {
         const q = pending.get(key(e));
         const call = q && q.shift();
