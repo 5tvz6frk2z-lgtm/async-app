@@ -17,6 +17,7 @@ import { seed, SEED_CONFIG } from '../lib/seed.js';
 import { analyze, fetchSite } from '../lib/agentready.js';
 import { previewManifest, verdict } from '../lib/preflight.js';
 import { standardMonitor, agentReadyProbe, registerProbe } from '../lib/monitor.js';
+import { deliver } from '../lib/notify.js';
 import { startServer } from '../server.js';
 
 const DEFAULT_FILE = 'fleetdeck.jsonl';
@@ -170,6 +171,14 @@ async function main() {
         console.log(`${kind} · ${target}: ${result.summary}${firstCheck ? '  (baseline — first check)' : ''}`);
         for (const a of alerts) console.log(`  ${sevMark[a.severity] || '•'} [${a.severity}] ${a.message}`);
         if (!alerts.length && !firstCheck) console.log('  ✓ no regressions since last check');
+        // Deliver new alerts off the box if a notify channel is configured.
+        const notifyCfg = loadConfig(file).notify;
+        if (alerts.length && notifyCfg) {
+          const enriched = alerts.map((a) => ({ ...a, monitor: kind, target }));
+          const d = await deliver(enriched, { ...notifyCfg, title: `Fleet Deck: ${kind} regression on ${target}` });
+          deck.spine.append('notify.sent', { monitor: kind, target, count: alerts.length, delivered: d.delivered, channels: d.results });
+          console.log(`  → notified: ${d.delivered}/${d.results.length} channel(s)`);
+        }
         // cron-friendly: non-zero exit if anything critical regressed
         if (alerts.some((a) => a.severity === 'critical')) process.exit(1);
       } else if (action === 'status' || !action) {

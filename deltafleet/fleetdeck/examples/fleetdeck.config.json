@@ -1,0 +1,20 @@
+{
+  "_comment": "Deck config, read from fleetdeck.config.json next to the spine file. Configures the Tollgate manifest, cost pricing, budgets, and (new) where monitor regression alerts are delivered. Put your Slack incoming-webhook URL and/or a generic webhook here; a monitor check that finds a NEW regression POSTs to them.",
+  "manifest": {
+    "default": "deny",
+    "agents": {
+      "claude": { "cortex": { "allow": ["memory_search", "memory_stats"] } }
+    }
+  },
+  "pricing": {
+    "claude-fable-5": { "in": 5, "out": 25 },
+    "claude-haiku-4-5": { "in": 1, "out": 5 }
+  },
+  "budgets": [
+    { "id": "fleet-daily", "scope": "total", "window": "day", "limitUsd": 25, "warnAt": 0.8 }
+  ],
+  "notify": {
+    "slack": "https://hooks.slack.com/services/REPLACE/WITH/YOUR-WEBHOOK",
+    "webhook": "https://your-service.example/fleetdeck-alerts"
+  }
+}
