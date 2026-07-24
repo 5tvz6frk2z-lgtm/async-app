@@ -10,6 +10,7 @@ import { Recorder } from './recorder.js';
 import { Approvals } from './approvals.js';
 import { Register } from './register.js';
 import { Contextsmith } from './contextsmith.js';
+import { standardMonitor } from './monitor.js';
 
 // Illustrative list prices (USD per 1e6 tokens) — operators should override with
 // their real contract pricing. Meter falls back to these only when an event
@@ -34,6 +35,7 @@ export class Deck {
     this.inbox = new Approvals({ spine: this.spine });
     this.register = new Register({ spine: this.spine, pack });
     this.contextsmith = new Contextsmith({ spine: this.spine });
+    this.monitor = standardMonitor(this.spine);
     this._snap = null; // memoized snapshot, invalidated by spine.version
     this._snapAt = -1;
   }
@@ -56,6 +58,7 @@ export class Deck {
         pendingApprovals: pending.length,
         budgetAlarms: meter.alarms.length,
         complianceGaps: register.summary.gap + register.summary.attention,
+        monitorAlerts: this.spine.query({ kind: 'monitor.alert' }).length,
       },
       timeline: this.recorder.timeline({ reverse: true, limit }),
       alerts,

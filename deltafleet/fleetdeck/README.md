@@ -34,6 +34,7 @@ Node ≥22, standard library only. No npm dependencies. No telemetry leaves the 
 | **AI Register** | `lib/register.js` | Regulation-agnostic compliance evidence. Maps spine events to a swappable **law-pack**'s controls (baseline governance, EU AI Act). Exports the evidence as CSV. |
 | **Preflight** | `lib/preflight.js` | CI for your agent policy. Replays a candidate Tollgate manifest against real history and reports which calls would newly be denied / allowed / held — and dry-runs an MCP server update against its pin without recording. Flags a change UNSAFE if it would newly *allow* a previously-blocked call. |
 | **Agent-Ready** | `lib/agentready.js` | Scores how legible a web page is to AI agents / answer engines (JSON-LD, content density, robots.txt AI-crawler access across 13 known tokens, llms.txt, semantics) into a transparent 0–100 rubric with prioritized fixes. Pure `analyze()`; fetch is separate. |
+| **Monitor** | `lib/monitor.js` | The recurring layer that turns the two checkers into subscriptions. A scheduled `record()` snapshots a target's health onto the spine and, comparing to the previous check, emits regression alerts — only on a worsening *change*, so a steady target is silent (no alert fatigue). Ships two products: **Agent-Ready Monitor** (score drop, a newly-blocked AI crawler, structured data or llms.txt disappearing, a page turning into a JS shell) and **AI Register Monitor** (compliance posture slipping, a control moving to gap). |
 | **Cortex-as-MCP** | `lib/cortex-mcp.js` | Wraps the Cortex second brain (`../brain`) as a real **MCP server** (`memory_search` / `memory_stats`) over the stdio transport. Any MCP client can query the second brain as a tool and get a compact evidence block. Because it's a real MCP server, Tollgate can pin and guard it like any other. |
 | **Contextsmith** | `lib/contextsmith.js` | Versioned registry for the context that steers agents (CLAUDE.md, prompts, skill guidance). Content-addressed versions with dedup, activate/rollback, line diff — and every activation is a spine event, so a cost or behavior change can be correlated with the exact context version that was live. |
 
@@ -49,7 +50,15 @@ node bin/tollgate-proxy.js --server cortex --agent claude -- node bin/cortex-mcp
 ```
 
 Other CLI verbs: `timeline`, `alerts`, `meter`, `inbox`, `approve/reject`,
-`register [pack] [--csv]`, `preflight`, `context`, `check <url>`.
+`register [pack] [--csv]`, `preflight`, `context`, `monitor`, `check <url>`.
+
+Run a recurring check from cron (exits non-zero on a critical regression):
+
+```bash
+# daily: watch a site's agent-legibility and the fleet's compliance posture
+0 7 * * *  node bin/fleetdeck.js monitor fleetdeck.jsonl check agent-ready https://acme.com
+0 7 * * *  node bin/fleetdeck.js monitor fleetdeck.jsonl check ai-register eu-ai-act
+```
 
 ### Wire it into your MCP client
 

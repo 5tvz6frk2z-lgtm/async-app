@@ -16,6 +16,7 @@ import { Deck } from '../lib/deck.js';
 import { seed, SEED_CONFIG } from '../lib/seed.js';
 import { analyze, fetchSite } from '../lib/agentready.js';
 import { previewManifest, verdict } from '../lib/preflight.js';
+import { standardMonitor, agentReadyProbe, registerProbe } from '../lib/monitor.js';
 import { startServer } from '../server.js';
 
 const DEFAULT_FILE = 'fleetdeck.jsonl';
@@ -150,6 +151,43 @@ async function main() {
       } else { console.error('actions: list | put | activate | history | diff'); process.exit(2); }
       break;
     }
+    case 'monitor': {
+      const [file, action, kind, arg] = rest;
+      const deck = openDeck(file);
+      const monitor = standardMonitor(deck.spine);
+      const sevMark = { critical: '🔴', warning: '🟡', info: '🔵' };
+      if (action === 'check') {
+        let target, result;
+        if (kind === 'agent-ready') {
+          if (!arg) { console.error('usage: fleetdeck monitor <file> check agent-ready <url>'); process.exit(2); }
+          console.error(`checking ${arg} …`);
+          target = arg; result = await agentReadyProbe(arg);
+        } else if (kind === 'ai-register') {
+          if (arg) deck.register.setPack(arg);
+          target = 'fleet'; result = registerProbe(deck.register);
+        } else { console.error('check kinds: agent-ready <url> | ai-register [pack]'); process.exit(2); }
+        const { alerts, firstCheck } = monitor.record(kind, target, result);
+        console.log(`${kind} · ${target}: ${result.summary}${firstCheck ? '  (baseline — first check)' : ''}`);
+        for (const a of alerts) console.log(`  ${sevMark[a.severity] || '•'} [${a.severity}] ${a.message}`);
+        if (!alerts.length && !firstCheck) console.log('  ✓ no regressions since last check');
+        // cron-friendly: non-zero exit if anything critical regressed
+        if (alerts.some((a) => a.severity === 'critical')) process.exit(1);
+      } else if (action === 'status' || !action) {
+        const mons = kind ? [kind] : ['agent-ready', 'ai-register'];
+        for (const mo of mons) {
+          const checks = monitor.history(mo);
+          const targets = [...new Set(checks.map((c) => c.target))];
+          for (const tgt of targets) {
+            const latest = monitor.latest(mo, tgt);
+            const worst = monitor.worstSeverity(mo, tgt);
+            console.log(`${mo} · ${tgt}: ${latest.summary}  [worst seen: ${worst}]`);
+            for (const a of monitor.alerts(mo, tgt).slice(0, 3)) console.log(`    ${sevMark[a.severity] || '•'} ${a.message} (${a.ts.slice(0, 10)})`);
+          }
+        }
+        if (!monitor.history('agent-ready').length && !monitor.history('ai-register').length) console.log('no checks recorded yet — run `monitor <file> check ...`');
+      } else { console.error('actions: check | status'); process.exit(2); }
+      break;
+    }
     case 'check': {
       const url = rest[0];
       if (!url) { console.error('usage: fleetdeck check <url>'); process.exit(2); }
@@ -183,6 +221,8 @@ usage:
   fleetdeck register [file] [pack] [--csv]   AI Register — compliance evidence
   fleetdeck preflight <file> <manifest.json> replay a policy change vs real history
   fleetdeck context <file> <list|put|activate|history|diff> ...  versioned context registry
+  fleetdeck monitor <file> check <agent-ready <url> | ai-register [pack]>  recurring check + regression alerts
+  fleetdeck monitor <file> status [monitor]   latest checks, trend, open alerts
   fleetdeck check <url>           Agent-Ready score for a live URL
 
 default spine file: ${DEFAULT_FILE}`);
