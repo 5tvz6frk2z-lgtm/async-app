@@ -113,6 +113,7 @@ export function agentReadyMetrics(rep) {
     jsonLdValid: rep.signals?.jsonLd?.valid ?? 0,
     likelyShell: rep.signals?.contentDensity?.likelyShell ? 1 : 0,
     llmsTxt: rep.llms?.valid ? 1 : 0,
+    noindex: rep.headers?.blocks ? 1 : 0, // X-Robots-Tag noindex — non-indexable for ALL agents
   };
 }
 
@@ -135,7 +136,10 @@ export const AGENT_READY_RULES = [
       // off p.blockedList (fallback p.blockedRetrievalList) means a mere role-tag flip on
       // an already-blocked bot (a registry reclassification, not an access change) stays
       // silent — access didn't slip, so no alert.
-      const wasBlocked = strSet(Array.isArray(p.blockedList) ? p.blockedList : p.blockedRetrievalList);
+      // Baseline = every bot blocked last check, by EITHER list (union), so an
+      // inconsistent hand-fed metric where blockedRetrievalList ⊄ blockedList can't
+      // make an unchanged check look like a new block.
+      const wasBlocked = strSet([...(p.blockedList || []), ...(p.blockedRetrievalList || [])]);
       const newly = c.blockedRetrievalList.map(String).filter((n) => !wasBlocked.has(n));
       return newly.length
         ? { signal: 'retrieval-access', severity: 'critical', from: p.blockedRetrievalList, to: c.blockedRetrievalList, message: `Answer-engine RETRIEVAL bot(s) newly blocked: ${newly.join(', ')} — kills AI-search citations` }
@@ -171,6 +175,12 @@ export const AGENT_READY_RULES = [
       ? { signal: 'crawler-access', severity: 'warning', from: p.blockedCrawlers, to: c.blockedCrawlers, message: `${newOther} more AI crawler(s) now blocked in robots.txt (${p.blockedCrawlers}→${c.blockedCrawlers})` }
       : null;
   },
+  // The page went non-indexable (X-Robots-Tag: noindex) — kills indexing/citations for
+  // ALL agents, strictly worse than blocking one crawler, and NOT reliably reflected in
+  // the net score (same-cycle markup gains can mask it), so it needs its own rule.
+  (p, c) => (c.noindex === 1 && p.noindex !== 1
+    ? { signal: 'noindex', severity: 'critical', from: 0, to: 1, message: 'Page is now marked noindex (X-Robots-Tag) — non-indexable and uncitable by every AI agent' }
+    : null),
   // A page turning into a JS shell is impact rank #2 (agents don't run JS) — critical.
   (p, c) => (p.likelyShell === 0 && c.likelyShell === 1
     ? { signal: 'content-density', severity: 'critical', from: 'content', to: 'shell', message: 'Page now reads as a JS shell — AI crawlers do not run JS and may see nothing' }

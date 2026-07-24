@@ -150,6 +150,29 @@ test('audit: a same-count SWAP of training crawlers fires the crawler-access war
   assert.match(a.message, /Amazonbot/);
 });
 
+test('audit3: a page going noindex fires critical even when the net score RISES', () => {
+  const m = mon();
+  // score improves 63->79 (markup added) but the page became non-indexable
+  m.record('agent-ready', 'u', { metrics: { score: 63, noindex: 0, blockedList: [], blockedRetrievalList: [] } });
+  const r = m.record('agent-ready', 'u', { metrics: { score: 79, noindex: 1, blockedList: [], blockedRetrievalList: [] } });
+  const a = r.alerts.find((x) => x.signal === 'noindex');
+  assert.equal(a.severity, 'critical');
+  assert.match(a.message, /noindex/);
+  // a steady noindex page does not re-alert
+  const r2 = m.record('agent-ready', 'u', { metrics: { score: 79, noindex: 1, blockedList: [], blockedRetrievalList: [] } });
+  assert.equal(r2.alerts.find((x) => x.signal === 'noindex'), undefined);
+});
+
+test('audit3: retrieval rule does not fire on an UNCHANGED check (baseline unions both lists)', () => {
+  const m = mon();
+  // inconsistent hand-fed metrics: a retrieval bot present in blockedRetrievalList but
+  // not blockedList; prev === cur, so nothing changed
+  const met = { score: 50, blockedList: [], blockedRetrievalList: ['OAI-SearchBot'] };
+  m.record('agent-ready', 'u', { metrics: met });
+  const r = m.record('agent-ready', 'u', { metrics: { ...met } });
+  assert.equal(r.alerts.length, 0, 'an identical check must be silent');
+});
+
 test('audit2: a bot already blocked, merely re-tagged as retrieval, does NOT alert', () => {
   const m = mon();
   // OAI-SearchBot blocked in BOTH checks; only its role tag flips to retrieval (a

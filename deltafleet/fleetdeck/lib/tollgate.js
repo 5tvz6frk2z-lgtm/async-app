@@ -91,7 +91,9 @@ export function decide(manifest, agent, server, tool) {
   // (newline/CR/etc.) lets a decorated name like "drop_table\nHIDDEN" slip past an
   // anchored deny pattern while a broad allow:['*'] still matches it — a deny bypass.
   // Real MCP tool names are simple identifiers, so any control char is denied outright.
-  if (typeof tool !== 'string' || /[\x00-\x1f\x7f]/.test(tool)) {
+  // Covers C0 (00-1f), DEL + C1 (7f-9f), and the Unicode line/paragraph separators
+  // (2028/2029) — all of which can decorate a name to dodge an anchored deny regex.
+  if (typeof tool !== 'string' || /[\x00-\x1f\x7f-\x9f\u2028\u2029]/.test(tool)) {
     return { decision: 'deny', reason: `${agent}/${server}: tool name is not a clean identifier (control characters)`, matched: 'deny' };
   }
   const rules = applicableRules(manifest, agent, server);
@@ -133,7 +135,10 @@ function normSchema(v) {
     const out = {};
     for (const k of Object.keys(v)) {
       const nv = normSchema(v[k]);
-      out[k] = (k === 'required' || k === 'enum') && Array.isArray(nv) ? [...nv].sort() : nv;
+      // required/enum are sets; a union `type` array (e.g. ['string','null']) is also
+      // order-insensitive per the JSON Schema spec. Sort those three; keep every other
+      // array order-sensitive (a positional tuple/prefixItems reorder IS a real change).
+      out[k] = (k === 'required' || k === 'enum' || k === 'type') && Array.isArray(nv) ? [...nv].sort() : nv;
     }
     return out;
   }
@@ -157,7 +162,10 @@ export function fingerprintTool(tool) {
     titleHash: sha(title),
     descHash: sha(description),
     schemaHash: sha(canonical(schema)),
-    annotationsHash: sha(canonical(annotations)),
+    // Cover BOTH the nested annotations object AND any top-level advisory hints a server
+    // may place beside it (fingerprintTool reads tool.readOnlyHint as a fallback), so a
+    // flipped top-level hint can't change behavior invisibly to the pin.
+    annotationsHash: sha(canonical(annotations) + '|' + canonical({ readOnlyHint: tool.readOnlyHint, destructiveHint: tool.destructiveHint, idempotentHint: tool.idempotentHint, openWorldHint: tool.openWorldHint })),
     // advisory only — recorded so the operator can see it, never trusted for a grant
     readOnlyHint: tool.annotations?.readOnlyHint ?? tool.readOnlyHint ?? null,
     full: sha([name, title, description, canonical(schema), canonical(annotations)].join(String.fromCharCode(31))),
