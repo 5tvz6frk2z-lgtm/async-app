@@ -183,6 +183,34 @@ test('audit5: retrieval-access count fallback reads the list length as baseline,
   assert.equal(retrieval({}, { blockedRetrieval: 'two' }), null, "garbage count 'two' is uncomparable");
 });
 
+test('audit6: retrieval-access enters the list branch when only CUR carries the list (prev in blockedList)', () => {
+  const retrieval = AGENT_READY_RULES[1];
+  // prev recorded the bot only in blockedList (predates the retrievalList field); cur carries
+  // the retrieval list. Same bot blocked before and after = no change; must stay silent.
+  assert.equal(retrieval({ blockedList: ['GPTBot'] }, { blockedList: ['GPTBot'], blockedRetrievalList: ['GPTBot'] }), null, 'no-change 1→1 must not fire');
+  // an improvement (2 blocked -> 1) must also stay silent, never read as a fresh block.
+  assert.equal(retrieval({ blockedList: ['GPTBot', 'PerplexityBot'] }, { blockedList: ['GPTBot'], blockedRetrievalList: ['GPTBot'] }), null, 'an improvement must stay silent');
+  // a genuinely new retrieval block (nothing blocked before) still fires critical.
+  const g = retrieval({ blockedList: [] }, { blockedList: ['OAI-SearchBot'], blockedRetrievalList: ['OAI-SearchBot'] });
+  assert.equal(g && g.severity, 'critical', 'a real new retrieval block still fires');
+});
+
+test('audit6: a page going noindex via <meta name="robots"> (not just X-Robots-Tag) fires critical', () => {
+  const m = mon();
+  const page = (h = '') => `<!doctype html><html><head>${h}<title>Widgets</title>` +
+    '<meta name="description" content="High quality widgets for everyone everywhere always.">' +
+    '<link rel="canonical" href="https://ex.com/"><script type="application/ld+json">{"@type":"Organization","name":"W"}</script>' +
+    `</head><body><main><article><h1>Widgets</h1><p>${'Readable widget content agents can parse. '.repeat(30)}</p></article></main></body></html>`;
+  const robotsTxt = 'User-agent: *\nAllow: /\n';
+  const indexable = analyze({ html: page(), robotsTxt });
+  const metaNoindex = analyze({ html: page('<meta name="robots" content="noindex">'), robotsTxt });
+  assert.equal(agentReadyMetrics(indexable).noindex, 0);
+  assert.equal(agentReadyMetrics(metaNoindex).noindex, 1, 'meta-robots noindex must set the noindex metric');
+  m.record('agent-ready', 'u', { metrics: agentReadyMetrics(indexable) });
+  const r = m.record('agent-ready', 'u', { metrics: agentReadyMetrics(metaNoindex) });
+  assert.ok(r.alerts.some((x) => x.signal === 'noindex' && x.severity === 'critical'), 'meta-robots noindex regression must alert critical');
+});
+
 test('audit3: a page going noindex fires critical even when the net score RISES', () => {
   const m = mon();
   // score improves 63->79 (markup added) but the page became non-indexable

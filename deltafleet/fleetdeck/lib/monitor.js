@@ -113,7 +113,9 @@ export function agentReadyMetrics(rep) {
     jsonLdValid: rep.signals?.jsonLd?.valid ?? 0,
     likelyShell: rep.signals?.contentDensity?.likelyShell ? 1 : 0,
     llmsTxt: rep.llms?.valid ? 1 : 0,
-    noindex: rep.headers?.blocks ? 1 : 0, // X-Robots-Tag noindex — non-indexable for ALL agents
+    // Non-indexable for ALL agents, by X-Robots-Tag header OR in-HTML meta-robots
+    // (fall back to the header flag if an older report predates the unified `noindexed`).
+    noindex: (rep.noindexed ?? rep.headers?.blocks) ? 1 : 0,
   };
 }
 
@@ -131,7 +133,12 @@ export const AGENT_READY_RULES = [
   // Set comparison (string-normalized) when both checks carry the list — catches a same-count
   // swap; numeric-coerced count fallback for legacy/injected metrics that predate the list.
   (p, c) => {
-    if (Array.isArray(p.blockedRetrievalList) && Array.isArray(c.blockedRetrievalList)) {
+    // Enter the identity-based branch whenever the CURRENT check carries the retrieval
+    // list — the baseline below already tolerates a prev that lacks it (via `|| []`), so
+    // a prev recorded only in blockedList (predating the retrievalList field) is still
+    // credited as already-blocked. Requiring BOTH sides to carry the list dropped that
+    // credit and misread an unchanged (or improved) posture as a fresh 0→1 block.
+    if (Array.isArray(c.blockedRetrievalList)) {
       // "newly blocked" = a retrieval bot NOT already blocked overall last check. Keying
       // off p.blockedList (fallback p.blockedRetrievalList) means a mere role-tag flip on
       // an already-blocked bot (a registry reclassification, not an access change) stays

@@ -87,13 +87,15 @@ function applicableRules(manifest, agent, server) {
  */
 export function decide(manifest, agent, server, tool) {
   const fallback = manifest.default || 'deny';
-  // FAIL CLOSED on a tool name carrying any INVISIBLE character. A control, format,
-  // zero-width, bidi, or separator char (newline, NBSP, ZWSP, RLO, BOM, U+2028, …) can
-  // decorate a name so it looks identical to a denied one yet dodges the anchored deny
-  // regex, while a broad allow:['*'] still matches it — a deny bypass. Rejecting the
-  // whole Unicode C (control/format) and Z (separator) categories closes the entire
-  // class at once; visible punctuation (parens, dots) stays allowed and matches literally.
-  if (typeof tool !== 'string' || tool.length === 0 || /[\p{C}\p{Z}]/u.test(tool)) {
+  // FAIL CLOSED on a tool name carrying any INVISIBLE or COMBINING character. A control,
+  // format, zero-width, bidi, separator, or combining/variation-selector char (newline,
+  // NBSP, ZWSP, RLO, BOM, U+2028, VS16 U+FE0F, U+E0100, Mongolian FVS, …) can decorate a
+  // name so it looks identical to a denied one yet dodges the anchored deny regex, while a
+  // broad allow:['*'] still matches it — a deny bypass. Rejecting the whole Unicode C
+  // (control/format), Z (separator) AND M (marks — combining/variation selectors are
+  // Mn, invisible yet category-M so C/Z alone misses them) closes the entire class at
+  // once; visible punctuation (parens, dots) stays allowed and matches literally.
+  if (typeof tool !== 'string' || tool.length === 0 || /[\p{C}\p{Z}\p{M}]/u.test(tool)) {
     return { decision: 'deny', reason: `${agent}/${server}: tool name is not a clean identifier (invisible/control characters)`, matched: 'deny' };
   }
   const rules = applicableRules(manifest, agent, server);
@@ -153,7 +155,10 @@ function normNode(v, mode) {
     const val = v[k];
     if (mode === 'data') { out[k] = normNode(val, 'data'); continue; } // in data: never sort, preserve order
     if ((k === 'required' || k === 'type') && Array.isArray(val)) out[k] = [...val].sort();
-    else if (k === 'enum' && Array.isArray(val)) out[k] = val.map((x) => normNode(x, 'data')).sort(_byCanonical);
+    else if (k === 'dependentRequired' && val && typeof val === 'object' && !Array.isArray(val)) {
+      // name -> array of required-property NAMES; each array is an unordered set (like `required`).
+      const m = {}; for (const name of Object.keys(val)) m[name] = Array.isArray(val[name]) ? [...val[name]].sort() : normNode(val[name], 'data'); out[k] = m;
+    } else if (k === 'enum' && Array.isArray(val)) out[k] = val.map((x) => normNode(x, 'data')).sort(_byCanonical);
     else if (_SCHEMA_SET_KEY.has(k) && Array.isArray(val)) out[k] = val.map((x) => normNode(x, 'schema')).sort(_byCanonical);
     else if (_SCHEMA_MAP_KEY.has(k) && val && typeof val === 'object' && !Array.isArray(val)) {
       const m = {}; for (const name of Object.keys(val)) m[name] = normNode(val[name], 'schema'); out[k] = m;

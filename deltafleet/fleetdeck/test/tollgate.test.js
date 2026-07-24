@@ -72,6 +72,31 @@ test('audit4: zero-width / bidi / NBSP decorations are denied; visible punctuati
   assert.equal(decide(m2, 'a', 's', 'a(b)c').decision, 'allow', 'parens matched literally, not denied');
 });
 
+test('audit6: invisible COMBINING marks / variation selectors (category M) are denied too', () => {
+  // Variation selectors (U+FE0F/U+FE00/U+E0100), Mongolian FVS (U+180B), and combining marks
+  // are category M \u2014 invisible/zero-glyph yet NOT in C or Z. Manifest ALLOWS everything, so
+  // the ONLY thing that can produce a deny is the unclean-identifier guard. (Using allow:['*']
+  // with no deny also makes the test non-vacuous: were the char dropped in the source, the
+  // name would equal the clean 'read_file' and be ALLOWED, failing this assertion.)
+  const m = { default: 'deny', agents: { A: { S: { allow: ['*'] } } } };
+  for (const [cp, ch] of [[0xfe0f, '\ufe0f'], [0xfe00, '\ufe00'], [0xe0100, '\u{E0100}'], [0x180b, '\u180b'], [0x301, '\u0301']]) {
+    const name = 'read_file' + ch;
+    assert.equal([...name].length, 'read_file'.length + 1, 'the U+' + cp.toString(16) + ' char is actually present in source');
+    assert.equal(ch.codePointAt(0), cp, 'char matches expected code point');
+    assert.equal(decide(m, 'A', 'S', name).decision, 'deny', 'U+' + cp.toString(16) + ' decorated name denied despite allow:[*]');
+  }
+  assert.equal(decide(m, 'A', 'S', 'read_file').decision, 'allow', 'the clean identifier is allowed');
+});
+
+test('audit6: reordering a dependentRequired set is NOT drift (unordered property-name set)', () => {
+  const a = [{ name: 't', description: 'd', inputSchema: { type: 'object', dependentRequired: { cc: ['a', 'b'] } } }];
+  const b = [{ name: 't', description: 'd', inputSchema: { type: 'object', dependentRequired: { cc: ['b', 'a'] } } }];
+  assert.equal(diffSnapshots(fingerprintServer(a), fingerprintServer(b)).drifted, false);
+  // but adding a genuinely new dependency still drifts
+  const c = [{ name: 't', description: 'd', inputSchema: { type: 'object', dependentRequired: { cc: ['a', 'b', 'x'] } } }];
+  assert.equal(diffSnapshots(fingerprintServer(a), fingerprintServer(c)).drifted, true);
+});
+
 test('audit5: reordering an array inside a `default`/`const` DATA region IS drift (not a schema keyword)', () => {
   // A field named `type` inside instance data (default/const) is plain data — its order
   // carries meaning, so reordering it is a real accepted-value change and must drift.

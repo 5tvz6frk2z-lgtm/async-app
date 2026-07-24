@@ -101,6 +101,14 @@ function analyzeHtml(html) {
   const descTag = metas.find((a) => (a.name || '').toLowerCase() === 'description');
   const description = descTag ? (descTag.content || '').trim() : '';
 
+  // Meta-robots. An in-HTML `<meta name="robots" content="noindex|none">` makes the page
+  // non-indexable for every agent — as authoritative as, and MORE common than, the
+  // X-Robots-Tag HTTP header. Catch it here so the noindex signal isn't blind to the
+  // predominant declaration form.
+  const robotsMeta = metas.find((a) => (a.name || '').toLowerCase() === 'robots');
+  const robotsMetaContent = robotsMeta ? (robotsMeta.content || '') : '';
+  const metaNoindex = /\b(noindex|none)\b/i.test(robotsMetaContent);
+
   // JSON-LD blocks: parse each, tolerate garbage, collect types + sameAs.
   const acc = { types: new Set(), sameAs: false };
   let jsonLdBlocks = 0, jsonLdValid = 0, jsonLdInvalid = 0;
@@ -150,6 +158,7 @@ function analyzeHtml(html) {
     social: { ogCount, twitterCount, total: ogCount + twitterCount },
     canonical: { present: canonical },
     contentDensity: { textLength, htmlLength, ratio: round1(ratio * 100) / 100, likelyShell },
+    metaRobots: { noindex: metaNoindex, content: robotsMetaContent },
   };
 }
 
@@ -295,12 +304,15 @@ export function analyze({ url = '', html = '', robotsTxt = '', llmsTxt = '', hea
   // for blocking answer-engine RETRIEVAL bots (blocking those is the citation-killer,
   // far worse than blocking a training crawler). An X-Robots noindex caps it hard.
   const retrievalTotal = Object.values(AI_AGENT_ROLES).filter((r) => r === 'retrieval').length;
+  // Non-indexable either way: an X-Robots-Tag header OR an in-HTML meta-robots noindex/none.
+  const noindexed = hdr.blocks || h.metaRobots.noindex;
+  const noindexVia = hdr.blocks ? 'X-Robots-Tag' : h.metaRobots.noindex ? 'meta robots' : '';
   let accessFrac = robots.allowedCount / robots.knownCount;
   if (robots.blockedRetrieval > 0) accessFrac = Math.max(0, accessFrac - 0.4 * (robots.blockedRetrieval / retrievalTotal));
   let access = WEIGHTS.AI_CRAWLER_ACCESS * accessFrac;
-  if (hdr.blocks) access = Math.min(access, WEIGHTS.AI_CRAWLER_ACCESS * 0.25);
+  if (noindexed) access = Math.min(access, WEIGHTS.AI_CRAWLER_ACCESS * 0.25);
   add('AI_CRAWLER_ACCESS', WEIGHTS.AI_CRAWLER_ACCESS, access,
-    hdr.blocks ? `${robots.summary}; X-Robots-Tag blocks indexing` : robots.summary);
+    noindexed ? `${robots.summary}; ${noindexVia} blocks indexing` : robots.summary);
 
   // JSON-LD — base credit for any valid block, then per high-value type + sameAs.
   const typesPresent = Object.values(h.jsonLd.has).filter(Boolean).length;
@@ -361,7 +373,9 @@ export function analyze({ url = '', html = '', robotsTxt = '', llmsTxt = '', hea
     robots,
     llms,
     headers: hdr,
-    recommendations: recommend(breakdown, { h, robots, llms, hdr }),
+    noindexed, // non-indexable for ALL agents, by header OR meta-robots
+    noindexVia,
+    recommendations: recommend(breakdown, { h, robots, llms, hdr, noindexed, noindexVia }),
   };
 }
 
@@ -372,6 +386,7 @@ function recommend(breakdown, ctx) {
     AI_CRAWLER_ACCESS: () => {
       const blocked = Object.entries(ctx.robots.agents).filter(([, v]) => v.blocked).map(([k]) => k);
       if (ctx.hdr.blocks) return `Remove the blocking X-Robots-Tag ("${ctx.hdr.xRobotsTag}") so agents may index this page.`;
+      if (ctx.h.metaRobots?.noindex) return `Remove the <meta name="robots" content="${ctx.h.metaRobots.content}"> tag so agents may index this page.`;
       return `Unblock AI crawlers in robots.txt (currently blocked: ${blocked.join(', ')}).`;
     },
     JSON_LD: () => ctx.h.jsonLd.invalid > 0
