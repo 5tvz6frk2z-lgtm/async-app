@@ -1,0 +1,1046 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The AI Content Engine — Dual-Channel Playbook v2</title>
+<style>
+  :root{
+    --navy:#1c2a3a; --navy2:#24374e; --gold:#b98a2e; --gold-soft:#e8d9b8;
+    --ink:#242a31; --muted:#5a6572; --paper:#faf7ef; --line:#ddd6c8; --zebra:#f4f1e9;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  body{
+    font-family:"Liberation Serif", Georgia, serif;
+    font-size:10.5pt; line-height:1.5; color:var(--ink);
+  }
+  h1,h2,h3,h4{ font-family:"Liberation Sans", Arial, sans-serif; color:var(--navy); }
+
+  /* ---------- Cover ---------- */
+  .cover{ page-break-after:always; }
+  .cover-panel{
+    background:var(--navy); color:#fff; padding:60pt 40pt 50pt 40pt;
+    margin-top:40pt;
+  }
+  .cover-kicker{
+    font-family:"Liberation Sans", Arial, sans-serif; font-size:9pt;
+    letter-spacing:3px; text-transform:uppercase; color:var(--gold-soft); margin-bottom:18pt;
+  }
+  .cover-title{
+    font-family:"Liberation Sans", Arial, sans-serif; font-weight:bold;
+    font-size:33pt; line-height:1.12; color:#fff; margin-bottom:14pt;
+  }
+  .cover-rule{ width:70pt; height:3.5pt; background:var(--gold); margin:20pt 0; }
+  .cover-sub{ font-size:12.5pt; line-height:1.55; color:#dbe2ea; max-width:400pt; }
+  .cover-meta{
+    margin-top:40pt; font-family:"Liberation Sans", Arial, sans-serif;
+    font-size:9.5pt; color:#aab6c2;
+  }
+  .cover-meta b{ color:#fff; font-weight:bold; }
+  .cover-strip{
+    margin-top:26pt; padding-top:0; display:flex; gap:14pt;
+    font-family:"Liberation Sans", Arial, sans-serif;
+  }
+  .cover-stat{ border-left:2.5pt solid var(--gold); padding-left:10pt; flex:1; }
+  .cover-stat .n{ font-size:16pt; font-weight:bold; color:var(--navy); }
+  .cover-stat .l{ font-size:8pt; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-top:2pt;}
+
+  /* ---------- Contents ---------- */
+  .contents{ page-break-after:always; padding-top:20pt; }
+  .contents h2{ font-size:20pt; margin-bottom:18pt; border:none; padding-top:0;}
+  .toc{ list-style:none; }
+  .toc li{
+    font-family:"Liberation Sans", Arial, sans-serif; font-size:11.5pt;
+    padding:6pt 0; border-bottom:0.75pt solid var(--line);
+  }
+  .toc .num{ display:inline-block; width:26pt; color:var(--gold); font-weight:bold; }
+  .toc .sub{ font-size:9pt; color:var(--muted); margin-left:26pt; display:block; padding-top:2pt; font-family:"Liberation Serif", Georgia, serif;}
+  .howto{ margin-top:22pt; background:var(--paper); border:0.75pt solid var(--line); border-left:3pt solid var(--gold); padding:12pt 14pt; }
+  .howto h4{ font-size:9.5pt; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:6pt; color:var(--navy); }
+  .howto p{ font-size:9.5pt; margin:3pt 0; }
+
+  /* ---------- Sections ---------- */
+  section.main{ page-break-before:always; }
+  h2.sec{
+    font-size:19pt; padding-bottom:8pt; margin-bottom:4pt;
+    border-bottom:2.5pt solid var(--navy);
+  }
+  h2.sec .no{ color:var(--gold); margin-right:8pt; }
+  .sec-lede{ font-size:10.5pt; color:var(--muted); font-style:italic; margin:8pt 0 14pt 0; }
+  h3{ font-size:12.5pt; margin:16pt 0 6pt 0; }
+  h3 .no{ color:var(--gold); margin-right:6pt; font-size:11pt;}
+  h4{ font-size:10.5pt; margin:12pt 0 4pt 0; }
+  p{ margin:6pt 0; }
+  ul,ol{ margin:6pt 0 6pt 18pt; }
+  li{ margin:3pt 0; }
+  b.k{ color:var(--navy); }
+
+  /* ---------- Tables ---------- */
+  table{ width:100%; border-collapse:collapse; margin:10pt 0; font-size:9.5pt; }
+  th{
+    font-family:"Liberation Sans", Arial, sans-serif; font-size:8.5pt;
+    text-transform:uppercase; letter-spacing:0.8px;
+    background:var(--navy); color:#fff; text-align:left; padding:6pt 8pt;
+  }
+  td{ padding:5.5pt 8pt; border-bottom:0.75pt solid var(--line); vertical-align:top; }
+  tr:nth-child(even) td{ background:var(--zebra); }
+  td.c1{ font-family:"Liberation Sans", Arial, sans-serif; font-weight:bold; font-size:9pt; color:var(--navy); white-space:nowrap;}
+  table.wrap td.c1{ white-space:normal; }
+
+  /* ---------- Callouts & quotes ---------- */
+  .callout{
+    background:var(--paper); border:0.75pt solid var(--line); border-left:3.5pt solid var(--gold);
+    padding:11pt 13pt; margin:12pt 0; page-break-inside:avoid;
+  }
+  .callout h4{ margin:0 0 5pt 0; font-size:9.5pt; text-transform:uppercase; letter-spacing:1.5px; }
+  .callout p{ font-size:9.8pt; margin:4pt 0;}
+  .callout ol, .callout ul{ font-size:9.8pt; }
+  .quote{
+    background:#faf6ea; border-left:3.5pt solid var(--gold);
+    padding:11pt 14pt; margin:10pt 0; font-style:italic; font-size:10pt; line-height:1.6;
+  }
+  .quote .cue{ font-style:normal; font-family:"Liberation Mono", monospace; font-size:8pt; color:#8a6d1f; }
+  .verdict{ margin:10pt 0; page-break-inside:avoid; }
+  .verdict h4{ font-size:11pt; }
+  .verdict .tag{
+    font-family:"Liberation Sans", Arial, sans-serif; font-size:7.5pt; font-weight:bold;
+    text-transform:uppercase; letter-spacing:1px; padding:1.5pt 6pt; border-radius:2pt;
+    position:relative; top:-1pt; margin-left:6pt;
+  }
+  .tag.drop{ background:#f3dcdc; color:#8c2f2f; }
+  .tag.keep{ background:#dcead9; color:#2f5c2f; }
+  .tag.fix{ background:#f0e6cc; color:#7a5c14; }
+
+  /* ---------- Idea lists ---------- */
+  .ideas{ column-count:2; column-gap:22pt; margin:8pt 0 4pt 0; }
+  .ideas ol{ margin:0 0 0 22pt; }
+  .ideas li{ font-size:9.6pt; margin:3.5pt 0; break-inside:avoid; padding-left:2pt; }
+  .ideas li::marker{ color:var(--gold); font-family:"Liberation Sans", Arial, sans-serif; font-size:8.5pt; font-weight:bold;}
+  .bucket{
+    font-family:"Liberation Sans", Arial, sans-serif; font-weight:bold; font-size:10pt;
+    color:var(--navy); border-bottom:1.5pt solid var(--gold);
+    padding-bottom:3pt; margin:14pt 0 7pt 0; break-inside:avoid; break-after:avoid;
+  }
+  .bucket .sub{ font-weight:normal; font-size:8.5pt; color:var(--muted); }
+  .note{ color:var(--muted); font-style:italic; font-size:9pt;}
+
+  /* ---------- Code / prompt blocks ---------- */
+  pre{
+    font-family:"Liberation Mono", monospace; font-size:7.9pt; line-height:1.45;
+    background:#f6f4ee; border:0.75pt solid var(--line); border-top:2.5pt solid var(--navy);
+    padding:10pt 12pt; margin:9pt 0; white-space:pre-wrap;
+  }
+  .pre-label{
+    font-family:"Liberation Sans", Arial, sans-serif; font-size:8pt; font-weight:bold;
+    text-transform:uppercase; letter-spacing:1.5px; color:var(--gold);
+    margin:12pt 0 0 0; break-after:avoid;
+  }
+
+  /* ---------- Devices (retention toolkit) ---------- */
+  .device{ margin:8pt 0; page-break-inside:avoid; }
+  .device .dn{
+    font-family:"Liberation Sans", Arial, sans-serif; font-weight:bold; font-size:9.8pt;
+    color:var(--navy);
+  }
+  .device .dx{ font-size:9.6pt; }
+  .device .ex{ font-style:italic; color:#6b5a23; }
+
+  /* ---------- Sources ---------- */
+  .sources li{ font-size:9pt; margin:4pt 0; }
+  .sources .u{ font-family:"Liberation Mono", monospace; font-size:7.8pt; color:var(--muted); }
+
+  .keep-together{ page-break-inside:avoid; }
+</style>
+</head>
+<body>
+
+<!-- ================= COVER ================= -->
+<div class="cover">
+  <div class="cover-panel">
+    <div class="cover-kicker">Strategy &amp; Execution Playbook · Version 2.1 — Launch Edition</div>
+    <div class="cover-title">The AI Content Engine</div>
+    <div class="cover-rule"></div>
+    <div class="cover-sub">
+      A data-driven plan for building AI-powered faceless video channels in
+      <b>personal finance</b> and <b>ancient mysteries</b> — niche economics, 100
+      ready-to-produce video ideas, the full production pipeline and posting system,
+      a channel style guide, retention-engineered script templates, and every prompt
+      needed to run the machine.
+    </div>
+    <div class="cover-meta">
+      Prepared <b>July 26, 2026</b> &nbsp;·&nbsp; Platforms: <b>YouTube · TikTok · Instagram</b> &nbsp;·&nbsp; Model: <b>long-form engine, short-form funnel</b><br>
+      <span style="font-size:8.5pt;">Version 2.1 — adds the first-30-days cold-start protocol: launch sequencing, channel naming, the reactive calendar, and the anti-quit rules.</span>
+    </div>
+  </div>
+  <div class="cover-strip">
+    <div class="cover-stat"><div class="n">100</div><div class="l">Video ideas, packaged as titles</div></div>
+    <div class="cover-stat"><div class="n">2</div><div class="l">Channels: Finance + Mysteries</div></div>
+    <div class="cover-stat"><div class="n">5</div><div class="l">Copy-paste production prompts</div></div>
+    <div class="cover-stat"><div class="n">8–10</div><div class="l">Assets per long-form video</div></div>
+  </div>
+</div>
+
+<!-- ================= CONTENTS ================= -->
+<div class="contents">
+  <h2>Contents</h2>
+  <ul class="toc">
+    <li><span class="num">1</span> Strategy: Where the Money Is
+      <span class="sub">Platform economics · niche verdicts · reserve niches · the policy constraint · the differentiation moat</span></li>
+    <li><span class="num">2</span> 50 Finance Video Ideas
+      <span class="sub">Housing · macro · wealth mechanics · predatory systems · money history — plus the first five to produce</span></li>
+    <li><span class="num">3</span> 50 Ancient Mystery Video Ideas
+      <span class="sub">Lost civilizations · artifacts · megaliths · vanishings · strange history — plus the first five to produce</span></li>
+    <li><span class="num">4</span> The Execution Plan
+      <span class="sub">Setup · production pipeline · tools &amp; budget · posting schedule · repurposing · monetization · weekly rhythm · 90-day scorecard</span></li>
+    <li><span class="num">5</span> Content Style Guide
+      <span class="sub">Visual identity per channel · locked AI-art prompts · thumbnail system · title formulas · description template · sound identity · short-form presentation</span></li>
+    <li><span class="num">6</span> The Script System
+      <span class="sub">The skeleton · retention toolkit · per-channel voice bibles and prompts v2 · worked examples (open, re-hook, close) · rewrite protocol · short-form extraction · pre-publish checklist</span></li>
+    <li><span class="num">7</span> Guardrails: Staying Monetized (and Legal)
+      <span class="sub">Inauthentic-content policy · disclosure · FTC · YMYL · defamation discipline · licensing</span></li>
+    <li><span class="num">8</span> Getting Started: The First 30 Days
+      <span class="sub">Launch sequence · channel naming · the cold-start reality · the reactive calendar · weekly metrics · ship at 80%</span></li>
+    <li><span class="num">9</span> Sources</li>
+  </ul>
+  <div class="howto">
+    <h4>How to use this document</h4>
+    <p><b>Day 1:</b> follow the Section 8 launch sequence — reserve both brands, but launch finance first, mysteries at week 3.</p>
+    <p><b>Week 1:</b> run Section 4.1 (setup), lock the Section 5 style guide, and bank 10 scripts using the Section 6 prompts.</p>
+    <p><b>Every script:</b> channel prompt (6.3 / 6.4) → punch-up prompt (6.5) → human pass → checklist (6.7). Never skip the middle two.</p>
+    <p><b>Every week:</b> operate on the 4.7 rhythm, publish on the 4.4 schedule, chop every long-form with the 4.5 map and the 6.6 extraction prompt.</p>
+    <p><b>Day 90:</b> apply the 4.8 scorecard — kill weak formats, double down on the winning channel.</p>
+  </div>
+</div>
+
+<!-- ================= SECTION 1 ================= -->
+<section class="main">
+  <h2 class="sec"><span class="no">1</span>Strategy: Where the Money Is</h2>
+  <p class="sec-lede">The niche and platform decisions below follow from 2025–2026 monetization data, not taste. Two facts drive everything: payouts differ ~30x by platform and niche, and YouTube's July 2025 policy update decides what stays monetizable.</p>
+
+  <h3><span class="no">1.1</span>Platform economics</h3>
+  <table>
+    <tr><th style="width:55%">Where</th><th>Typical payout per 1,000 views</th></tr>
+    <tr><td class="c1">YouTube long-form — personal finance / investing</td><td>~$10–25 RPM (CPMs $15–50)</td></tr>
+    <tr><td class="c1">YouTube long-form — real estate</td><td>~$15–30 RPM</td></tr>
+    <tr><td class="c1">YouTube long-form — tech / AI / software</td><td>~$20–40 RPM</td></tr>
+    <tr><td class="c1">YouTube long-form — general entertainment</td><td>~$2–5 RPM</td></tr>
+    <tr><td class="c1">TikTok Creator Rewards</td><td>~$0.40–1.00</td></tr>
+    <tr><td class="c1">Instagram</td><td>No meaningful per-view program; sponsors / affiliate only</td></tr>
+  </table>
+  <p><b class="k">Consequences:</b> YouTube long-form is the only real ad-revenue engine — TikTok and Instagram are distribution and funnel, not income. US/UK viewers pay 3–5x other regions, so topics should skew American.</p>
+
+  <h3><span class="no">1.2</span>Niche verdicts</h3>
+  <div class="verdict">
+    <h4>Sports news <span class="tag drop">Dropped</span></h4>
+    <p>Weakest on every axis: leagues (NFL, Premier League) run aggressive Content ID that claims broadcast footage nearly instantly; footage-free sports talk lives on personality, which AI can't fake well; CPMs are mid-tier; and news has zero long-tail — a video about last night's game earns for 48 hours, then dies.</p>
+  </div>
+  <div class="verdict">
+    <h4>Finance / real estate <span class="tag keep">Channel #1</span></h4>
+    <p>Highest RPMs on the platform, and ads are the <i>smaller</i> prize: fintech affiliate deals (brokerages, cards, real estate platforms) pay $50–100+ per conversion. The fix: don't make it <i>news</i> — news decays, explainers compound. Run ~70% evergreen explainers / 30% news-reactive. Caution: finance is YMYL content, so every number needs a human fact-check.</p>
+  </div>
+  <div class="verdict">
+    <h4>Conspiracy / ancient history <span class="tag fix">Reframed → Channel #2</span></h4>
+    <p>Conspiracy-framed channels carry only ~16% of the ad volume of mainstream channels — advertisers exclude them. The same material framed as <i>ancient mysteries / history documentary</i> (evidence-first, open questions rather than cover-ups) monetizes fine, holds excellent watch time, and is fully evergreen and faceless-native. Keep the topic; kill the word "conspiracy" and all "they're hiding it" framing.</p>
+  </div>
+
+  <h3><span class="no">1.3</span>Reserve niches (expansion after day 90)</h3>
+  <ul>
+    <li><b class="k">Business collapse / scam documentaries</b> — $8–18 RPM, evergreen forever, faceless-native; the best effort-to-income ratio in the faceless space. (The finance channel's "Money History" bucket seeds this.)</li>
+    <li><b class="k">Macro-economics &amp; geopolitics explainers</b> — high CPM, script-driven, AI-friendly.</li>
+    <li><b class="k">AI / tech tools &amp; news</b> — $20–40 RPM plus recurring SaaS affiliate commissions.</li>
+    <li><b class="k">Micro-health / curiosity science</b> — dramatically underserved with viral ceilings in the millions; stay clear of medical advice.</li>
+  </ul>
+
+  <h3><span class="no">1.4</span>The constraint that shapes everything</h3>
+  <p>In July 2025, YouTube renamed its repetitious-content rule the <b class="k">"inauthentic content" policy</b>, explicitly to deny monetization to mass-produced AI output — templated slideshows with synthetic narration are the named target. Channels that keep monetization use AI as the production tool while the output stays original and transformative: unique research, real scripting, a distinctive voice and visual identity, and a human pass on every video.</p>
+  <div class="callout">
+    <h4>The pyramid model</h4>
+    <p>Don't publish 30 separate daily productions. Produce <b>5–6 quality long-form videos per week across two channels</b> (the revenue engine), and atomize each into <b>3–5 Shorts / TikToks / Reels per day</b> plus graphics (the growth engine — where daily volume is fine and expected). Two or three focused channels beat ten template channels that all get caught in the same policy filter.</p>
+  </div>
+
+  <h3><span class="no">1.5</span>The differentiation moat</h3>
+  <p>Bad production doesn't kill faceless channels — <b class="k">being generic does</b>. There are hundreds of finance explainers and mystery channels; a viewer needs a reason to subscribe to <i>this one</i> rather than let the algorithm serve them whatever's next. The moat is a <b class="k">signature format viewers can name</b>, repeated in every video:</p>
+  <ul>
+    <li><b class="k">Finance — "The Ledger."</b> Every video ends on the same branded dashboard: the three numbers that matter for that topic (housing: inventory, price-to-income, rent-vs-buy), rendered in the channel's navy/gold chart style. The Ledger is the screenshot people share, the segment viewers wait for, and the reason to subscribe: the channel is a <i>system for reading the economy</i>, not a feed of takes. Act structure is forensic — follow the money from the viewer's pocket to whoever profits.</li>
+    <li><b class="k">Mysteries — "The Ladder."</b> Every video's final act runs the branded epistemic ladder — WE KNOW / RESEARCHERS THINK / SOME SPECULATE — with a recurring three-rung graphic and sound cue. The Ladder is the channel's promise: wonder without being lied to. In a niche full of credulity, honesty <i>is</i> the differentiation.</li>
+  </ul>
+  <p>Signature segments do triple duty: they serialize the channel (binge and subscribe behavior), they build brand recall, and they are standing evidence of originality under the inauthentic-content policy. They also make packaging consistent — The Ledger and The Ladder have fixed visual treatments (Section 5).</p>
+</section>
+
+<!-- ================= SECTION 2 ================= -->
+<section class="main">
+  <h2 class="sec"><span class="no">2</span>50 Finance Video Ideas</h2>
+  <p class="sec-lede">Written as actual YouTube titles — packaging is half the battle. Mix: ~80% evergreen, ~20% reactive formats. Long-form target: 10–14 minutes. At three per week this bank holds about four months of content.</p>
+
+  <div class="ideas">
+    <div class="bucket">Housing &amp; Real Estate</div>
+    <ol start="1">
+      <li>Why Nobody Can Afford a House Anymore (The Real Math)</li>
+      <li>Who Actually Owns America? The Corporate Landlord Takeover</li>
+      <li>Renting vs. Buying in 2026: The Math Nobody Shows You</li>
+      <li>How Airbnb Quietly Broke the Housing Market</li>
+      <li>The Death of the Starter Home</li>
+      <li>Why Japanese Houses Lose Value — and American Ones Don't</li>
+      <li>How Property Taxes Became a Second Mortgage</li>
+      <li>What Happens When an Entire Town Goes Underwater on Its Mortgage</li>
+      <li>The $100K Starter Home Still Exists — Here's Where and Why</li>
+      <li>Housing Market Update: What the Data Actually Says This Month <span class="note">(recurring monthly format)</span></li>
+    </ol>
+    <div class="bucket">Macro &amp; The Economy</div>
+    <ol start="11">
+      <li>What Actually Happens If the US Defaults on Its Debt</li>
+      <li>Why Everything Feels Expensive Even When Inflation Is "Low"</li>
+      <li>How the Fed Actually Works (Explained Like You're Five)</li>
+      <li>Is the Dollar Actually Dying? De-Dollarization, Honestly Explained</li>
+      <li>The $37 Trillion Question: Who Owns America's Debt?</li>
+      <li>Why Your Raise Never Feels Like a Raise</li>
+      <li>What a Recession Actually Is — and Why Economists Keep Missing Them</li>
+      <li>Which Jobs AI Eats First: The Paycheck Map of the Next Decade</li>
+      <li>Why Groceries Cost What They Cost (Follow One Egg Through the Economy)</li>
+      <li>The Japanification of America: What 30 Years of Stagnation Looks Like</li>
+    </ol>
+    <div class="bucket">Personal Finance &amp; Wealth Mechanics</div>
+    <ol start="21">
+      <li>The Compound Interest Video I Wish I'd Seen at 18</li>
+      <li>Why the Middle Class Stays Broke (The System, Explained)</li>
+      <li>401(k) vs. Roth IRA: The Decision Tree for Every Age</li>
+      <li>Buy, Borrow, Die: How the Rich Legally Skip Taxes</li>
+      <li>The True Cost of a New Car in 2026 (It's Not the Sticker)</li>
+      <li>Credit Scores Are Weirder Than You Think</li>
+      <li>Lifestyle Creep: The Silent Killer of Wealth</li>
+      <li>How to Read Your Paycheck: What Every Deduction Actually Funds</li>
+      <li>The FIRE Movement, Ten Years Later: Did It Work?</li>
+      <li>What $1 Million Is Actually Worth in Retirement Now</li>
+    </ol>
+    <div class="bucket">The Dark Side <span class="sub">— traps, scams &amp; predatory systems</span></div>
+    <ol start="31">
+      <li>Anatomy of a Ponzi Scheme: Why They Never Die</li>
+      <li>How Sports Betting Apps Are Engineered to Empty Your Wallet</li>
+      <li>The Payday Loan Machine: Profiting From the Broke</li>
+      <li>The Student Loan Machine: Who Actually Profits</li>
+      <li>Buy Now, Pay Later: The Debt Nobody Calls Debt</li>
+      <li>How Health Insurance Companies Actually Make Money</li>
+      <li>Timeshares: The Product You Can't Escape</li>
+      <li>The MLM Economy: Why Your Friend Keeps Messaging You</li>
+      <li>Junk Fees: Why the Fine Print Exists</li>
+      <li>Whole Life Insurance: The Most Oversold Product in Finance?</li>
+    </ol>
+    <div class="bucket">Money History &amp; Collapses <span class="sub">— bridges into business-documentary content</span></div>
+    <ol start="41">
+      <li>The 2008 Crash, Explained Like a Heist Movie</li>
+      <li>When Money Dies: Weimar, Zimbabwe, Argentina</li>
+      <li>From Tulips to Bitcoin: 400 Years of Market Manias</li>
+      <li>The Bank That Funded the Renaissance: How the Medici Got Rich</li>
+      <li>Why the US Left the Gold Standard — and What It Broke</li>
+      <li>The Great Depression in 15 Minutes</li>
+      <li>How Switzerland Became the World's Vault</li>
+      <li>Enron: The Smartest Fraud in the Room</li>
+      <li>The Fall of Blockbuster, Sears, and Toys "R" Us: Autopsy of Retail</li>
+      <li>The 1997 Asian Financial Crisis: The Domino That Nearly Toppled the World</li>
+    </ol>
+  </div>
+
+  <div class="callout">
+    <h4>Launch order — the first five to produce</h4>
+    <ol>
+      <li><b>#1 Why Nobody Can Afford a House</b> — the thesis video; broad browse appeal; debuts The Ledger.</li>
+      <li><b>#21 Compound Interest at 18</b> — search-evergreen; earns for years; easy production win.</li>
+      <li><b>#32 Sports Betting Apps</b> — shareable outrage; the strongest shorts quarry in the bank.</li>
+      <li><b>#24 Buy, Borrow, Die</b> — mechanism-reveal virality; premium affiliate adjacency.</li>
+      <li><b>#41 The 2008 Heist</b> — the binge anchor; proves the documentary style for the Money History bucket.</li>
+    </ol>
+    <p>Logic: three browse-driven, two search-driven; all evergreen; none dependent on the news cycle. Nothing time-sensitive goes live until the channel has 10+ videos of library.</p>
+  </div>
+</section>
+
+<!-- ================= SECTION 3 ================= -->
+<section class="main">
+  <h2 class="sec"><span class="no">3</span>50 Ancient Mystery Video Ideas</h2>
+  <p class="sec-lede">Framed as evidence-first documentary questions — never "what they're hiding." Items marked <i>(debunk)</i> are deliberate debunk-format videos: they build credibility and are the safest to monetize.</p>
+
+  <div class="ideas">
+    <div class="bucket">Lost Civilizations</div>
+    <ol start="1">
+      <li>Göbekli Tepe: The Temple That Rewrote Human History</li>
+      <li>The Sea Peoples: The Mystery That Ended the Bronze Age</li>
+      <li>The Indus Valley: A Civilization With No Kings, No Wars, No Palaces</li>
+      <li>Who Built Great Zimbabwe?</li>
+      <li>Cahokia: America's Forgotten Metropolis</li>
+      <li>Doggerland: The Drowned Land Beneath the North Sea</li>
+      <li>The Olmecs: Mesoamerica's Mysterious Mother Culture</li>
+      <li>The Garamantes: The Empire That Farmed the Sahara</li>
+      <li>Caral: The Oldest City in the Americas</li>
+      <li>The Nabataeans: The Builders of Petra Who Simply Vanished</li>
+    </ol>
+    <div class="bucket">Impossible Artifacts &amp; Lost Technology</div>
+    <ol start="11">
+      <li>The Antikythera Mechanism: A 2,000-Year-Old Computer</li>
+      <li>Roman Concrete: The Lost Recipe We Only Just Cracked</li>
+      <li>Damascus Steel: The Blade Formula That Died</li>
+      <li>Greek Fire: The Superweapon That Perished With Its Empire</li>
+      <li>The Phaistos Disc: The Message No One Can Read</li>
+      <li>The Voynich Manuscript: The Book That Defeats Every Codebreaker</li>
+      <li>The Nebra Sky Disc: The Oldest Map of the Stars</li>
+      <li>The Lycurgus Cup: Accidental Roman Nanotechnology</li>
+      <li>The Quipu: The Empire That Wrote in Knots</li>
+      <li>The Baghdad Battery: Ancient Electricity, or a Myth We Wanted? <span class="note">(debunk)</span></li>
+    </ol>
+    <div class="bucket">Megaliths &amp; Impossible Construction</div>
+    <ol start="21">
+      <li>How Were the Pyramids Actually Built? Everything We Know in 2026</li>
+      <li>Baalbek: The 1,000-Ton Stones Nobody Can Explain</li>
+      <li>Sacsayhuamán: Stones That Fit Like Puzzle Pieces</li>
+      <li>How the Easter Island Statues "Walked"</li>
+      <li>Stonehenge's Bluestones Traveled 150 Miles — How, and Why?</li>
+      <li>The Serapeum of Saqqara: 70-Ton Boxes in the Dark</li>
+      <li>Nan Madol: The Venice of the Pacific</li>
+      <li>Puma Punku: Bolivia's "Machined" Stones</li>
+      <li>Newgrange: Older Than the Pyramids, Aligned to One Sunrise</li>
+      <li>Yonaguni: Japan's Underwater "Monument" — Built or Natural? <span class="note">(debunk)</span></li>
+    </ol>
+    <div class="bucket">Vanishings &amp; Unanswered Questions</div>
+    <ol start="31">
+      <li>The Lost Colony of Roanoke</li>
+      <li>Where Is Cleopatra's Tomb?</li>
+      <li>The Lost Army of Cambyses: 50,000 Men Vanish in the Desert</li>
+      <li>What Really Happened to the Library of Alexandria</li>
+      <li>Where Is Genghis Khan Buried?</li>
+      <li>The Maya Collapse: Why the Cities Emptied</li>
+      <li>Atlantis: What Plato Actually Wrote</li>
+      <li>The Minoans and the Thera Eruption: The Real Atlantis?</li>
+      <li>The Cliff Cities the Ancestral Puebloans Abandoned</li>
+      <li>The Ark of the Covenant: Following the Actual Trail</li>
+    </ol>
+    <div class="bucket">Catastrophes, Codes &amp; Strange History</div>
+    <ol start="41">
+      <li>The Younger Dryas: Did a Comet Reset Civilization? <span class="note">(present both sides)</span></li>
+      <li>The Nazca Lines: Messages Meant for Whom?</li>
+      <li>The Sumerian King List: Kings Who "Reigned" 28,000 Years</li>
+      <li>The Copper Scroll: A Real Ancient Treasure Map</li>
+      <li>Ötzi the Iceman: A 5,300-Year-Old Murder Investigation</li>
+      <li>The Longyou Caves: China's Hand-Carved Enigma</li>
+      <li>The Dancing Plague of 1518</li>
+      <li>The Piri Reis Map: Did Someone Map Antarctica Too Early? <span class="note">(debunk)</span></li>
+      <li>Mohenjo-Daro's "Radioactive Skeletons": Myth vs. Reality <span class="note">(debunk)</span></li>
+      <li>The Dogon and Sirius B: Ancient Astronomy or Modern Contamination? <span class="note">(debunk)</span></li>
+    </ol>
+  </div>
+
+  <div class="callout">
+    <h4>Launch order — the first five to produce</h4>
+    <ol>
+      <li><b>#1 Göbekli Tepe</b> — the category-defining thesis video; debuts The Ladder.</li>
+      <li><b>#33 The Lost Army of Cambyses</b> — pure hook, cheap to produce (desert art carries it).</li>
+      <li><b>#11 The Antikythera Mechanism</b> — strong search volume plus STEM-audience crossover.</li>
+      <li><b>#31 Roanoke</b> — the US-audience anchor (RPM premium).</li>
+      <li><b>#21 The Pyramids in 2026</b> — the biggest search prize; publish fifth, once the style is proven, because competition there is brutal.</li>
+    </ol>
+  </div>
+</section>
+
+<!-- ================= SECTION 4 ================= -->
+<section class="main">
+  <h2 class="sec"><span class="no">4</span>The Execution Plan</h2>
+  <p class="sec-lede">Long-form YouTube is the revenue engine; everything vertical is the growth engine derived from it. Built for a solo operator at ~25–30 hours/week and a lean tool budget.</p>
+
+  <h3><span class="no">4.1</span>Phase 0 — Setup (Week 1)</h3>
+  <ol>
+    <li>Create two YouTube channels (one per niche), plus matching TikTok, Instagram, and (for finance) Pinterest accounts. Same handle everywhere.</li>
+    <li>Lock brand identity per channel using the Section 5 style guide: one ElevenLabs voice, one visual style, one thumbnail template, one intro sting — and the two signature segments, The Ledger and The Ladder (Section 1.5). Consistency is what separates "a channel" from "AI slop" — for both the algorithm and policy reviewers.</li>
+    <li>Write 10 scripts before publishing anything (channel prompt → punch-up → human pass). A banked buffer is what makes daily posting survivable.</li>
+    <li>Set up a Notion (or Sheets) board: idea bank (Sections 2–3), script status, source lists, publish calendar, per-video stats.</li>
+  </ol>
+
+  <h3><span class="no">4.2</span>The production pipeline (per long-form video)</h3>
+  <table class="wrap">
+    <tr><th style="width:13%">Step</th><th style="width:42%">What you do</th><th style="width:30%">Tool</th><th>Time</th></tr>
+    <tr><td class="c1">1. Research</td><td>Pull 5–8 sources, extract facts, <b>manually verify every number</b></td><td>Claude / Perplexity</td><td>45–60 min</td></tr>
+    <tr><td class="c1">2. Script</td><td>Draft with the channel prompt (6.3 / 6.4), run the punch-up prompt (6.5), human pass; 1,600–2,200 words, hook in first 20 seconds</td><td>Claude</td><td>45–60 min</td></tr>
+    <tr><td class="c1">3. Voiceover</td><td>One consistent voice per channel</td><td>ElevenLabs (~$22/mo)</td><td>10 min</td></tr>
+    <tr><td class="c1">4. Visuals</td><td>Finance: charts (Flourish / Datawrapper), stock b-roll, motion templates. Mystery: Midjourney stills in the locked style (5.2) + Ken Burns motion, 5–8s cinematic AI b-roll, Google Earth Studio maps</td><td>Midjourney ~$30; Veo 3.1 or Runway ~$20–35; Storyblocks</td><td>60–90 min</td></tr>
+    <tr><td class="c1">5. Assembly</td><td>Edit to the motion rules (5.1 / 5.2), auto-captions, licensed music per the sound identity (5.6)</td><td>CapCut Pro (~$10) + Epidemic Sound (~$18)</td><td>60–90 min</td></tr>
+    <tr><td class="c1">6. Packaging</td><td>Three thumbnail variants (5.3) into YouTube Test &amp; Compare; title per the formulas (5.4); description from the template (5.5)</td><td>Canva + Ideogram + vidIQ</td><td>30 min</td></tr>
+    <tr><td class="c1">7. Repurpose</td><td>Run the extraction prompt (6.6), cut 3–5 verticals, re-hook each manually (Section 4.5)</td><td>Opus Clip (~$15–29)</td><td>30 min</td></tr>
+  </table>
+  <p><b class="k">Total: ~4–6 hours per long-form video</b> at first, dropping toward 3 as templates harden.</p>
+
+  <h3><span class="no">4.3</span>Tool stack &amp; monthly budget</h3>
+  <table>
+    <tr><th style="width:34%">Job</th><th style="width:44%">Tool</th><th>Est. cost / month</th></tr>
+    <tr><td class="c1">Research &amp; scripting</td><td>Claude + Perplexity</td><td>$20–40</td></tr>
+    <tr><td class="c1">Voiceover</td><td>ElevenLabs Creator</td><td>$22</td></tr>
+    <tr><td class="c1">AI stills</td><td>Midjourney</td><td>$30</td></tr>
+    <tr><td class="c1">AI video b-roll</td><td>Veo 3.1 (Google AI Pro) or Runway</td><td>$20–35</td></tr>
+    <tr><td class="c1">Stock footage</td><td>Storyblocks (or Pexels, free)</td><td>$0–30</td></tr>
+    <tr><td class="c1">Editing</td><td>CapCut Pro</td><td>$10</td></tr>
+    <tr><td class="c1">Music</td><td>Epidemic Sound (or YouTube Audio Library, free)</td><td>$0–18</td></tr>
+    <tr><td class="c1">Clip cutting</td><td>Opus Clip</td><td>$15–29</td></tr>
+    <tr><td class="c1">Thumbnails</td><td>Canva Pro + Ideogram</td><td>$13–20</td></tr>
+    <tr><td class="c1">SEO / metadata</td><td>vidIQ</td><td>$10–49</td></tr>
+    <tr><td class="c1">Scheduling</td><td>Metricool (free tier) or Buffer</td><td>$0–18</td></tr>
+  </table>
+  <p><b class="k">Full stack: roughly $140–300/month.</b> Start lean around $100 using the free tiers (Pexels, YouTube Audio Library, Datawrapper, Metricool) and add paid tools as revenue appears.</p>
+
+  <h3><span class="no">4.4</span>Publishing schedule</h3>
+  <h4>Long-form (the revenue engine)</h4>
+  <ul>
+    <li><b class="k">Finance:</b> Tuesday, Thursday, Saturday — published 2–4pm ET.</li>
+    <li><b class="k">Mysteries:</b> Monday, Wednesday, Friday. (Solo? Start at 2/week — Wednesday + Sunday — and add the third when the pipeline is smooth.)</li>
+    <li>On YouTube, consistency beats clock-time: the algorithm serves impressions over days, not minutes. Never miss a slot.</li>
+  </ul>
+  <h4>Short-form (the growth engine) — 2 posts/day per brand</h4>
+  <ul>
+    <li><b class="k">TikTok:</b> 6–8pm (strongest 2026 window; Sunday/Monday best, avoid Fri/Sat). Make at least one daily TikTok <b>over 60 seconds</b> so it is Creator Rewards-eligible.</li>
+    <li><b class="k">Instagram Reels:</b> 7–9pm weekdays.</li>
+    <li><b class="k">YouTube Shorts:</b> 12–3pm.</li>
+    <li>Upload natively to each platform — no watermarks (TikTok watermarks suppress Reels reach). Stagger; don't cross-post simultaneously.</li>
+  </ul>
+
+  <h3><span class="no">4.5</span>The repurposing map — every long-form becomes 8–10 assets</h3>
+  <ol>
+    <li><b class="k">3–5 vertical clips</b> (extraction prompt in 6.6 plans them; Opus Clip cuts them; you rewrite each hook — the first line of a clip is 80% of its performance).</li>
+    <li><b class="k">One 60-second+ TikTok cut</b> (Rewards-eligible) plus shorter teasers ending on a cliffhanger that points to the long-form.</li>
+    <li><b class="k">YouTube Shorts</b> versions with a pinned comment linking the full video.</li>
+    <li><b class="k">One Instagram carousel:</b> finance = The Ledger as a swipe-through infographic; mystery = the story in six images (the Midjourney art already exists).</li>
+    <li><b class="k">A YouTube Community post</b> (poll: "which mystery next?" — free engagement signal).</li>
+    <li><b class="k">Pinterest pins</b> of finance infographics (real search traffic, zero extra work).</li>
+  </ol>
+  <div class="callout">
+    <h4>Why this satisfies both goals</h4>
+    <p>"Multiple pieces per day, every day" is generated from 5–6 long-form productions per week — not 30. Daily volume where it's expected (short-form), original transformative work where it's policed (long-form).</p>
+  </div>
+
+  <h3><span class="no">4.6</span>Monetization roadmap</h3>
+  <table class="wrap">
+    <tr><th style="width:22%">Stage</th><th style="width:33%">Trigger</th><th>Action</th></tr>
+    <tr><td class="c1">Day 1</td><td>—</td><td>Affiliate links in every finance description (brokerages, cards, budgeting apps via Impact / CJ / ShareASale — finance CPAs run $50–100+), always with the FTC disclosure line (5.5). Mystery channel: Amazon book links (modest, but free).</td></tr>
+    <tr><td class="c1">Month 3–6</td><td>1,000 subs + 4,000 watch-hours (or 10M Shorts views in 90 days)</td><td>Apply to the YouTube Partner Program — this is where real revenue starts.</td></tr>
+    <tr><td class="c1">TikTok milestone</td><td>10k followers + 100k monthly views</td><td>TikTok Creator Rewards (treat as pocket change: $0.40–1.00 per 1,000).</td></tr>
+    <tr><td class="c1">10–20k YT subs</td><td>—</td><td>Pitch sponsors directly (finance sponsors pay premium); join marketplaces like Passionfroot.</td></tr>
+    <tr><td class="c1">25k+ subs</td><td>—</td><td>Digital products (finance: Notion budget / investing trackers); Patreon deep-dives (the mystery audience converts well).</td></tr>
+  </table>
+  <p><b class="k">Honest expectations:</b> months 1–3 ≈ $0. If the channels work, first four-figure months typically land around months 6–9. Finance will out-earn mysteries roughly 2–3x per view; mysteries will likely grow faster. That's the portfolio logic.</p>
+
+  <h3><span class="no">4.7</span>Weekly operating rhythm (solo, ~25–30 hrs)</h3>
+  <table>
+    <tr><th style="width:18%">Day</th><th>Focus</th></tr>
+    <tr><td class="c1">Monday</td><td>Research + write 3 scripts (batch day: draft → punch-up → human pass)</td></tr>
+    <tr><td class="c1">Tuesday</td><td>Voiceover + visuals for 2 videos</td></tr>
+    <tr><td class="c1">Wednesday</td><td>Edit + package 2 videos; schedule</td></tr>
+    <tr><td class="c1">Thursday</td><td>Produce remaining videos; cut all shorts for the week</td></tr>
+    <tr><td class="c1">Friday</td><td>Schedule everything with a 48-hour buffer (nothing renders and publishes same-day); analytics review — CTR, retention, top performers</td></tr>
+    <tr><td class="c1">Weekend</td><td>Light: community posts, comment replies (reply in hour one after publish — it feeds the algorithm), idea-bank refill</td></tr>
+  </table>
+
+  <h3><span class="no">4.8</span>90-day scorecard</h3>
+  <ul>
+    <li><b class="k">Targets:</b> thumbnail CTR 4%+ · average view duration 40%+ · Shorts 30-second retention 70%+.</li>
+    <li><b class="k">Kill rule:</b> any format under 2% CTR and 25% AVD after 8 attempts gets retired.</li>
+    <li><b class="k">Scale rule:</b> any video doing 5x+ the channel median becomes a series immediately — this, not the initial plan, is how the channel finds its shape.</li>
+    <li><b class="k">Day-90 decision:</b> double down on whichever channel is clearly winning. The idea banks hold ~4 months of long-form content per channel, so you'll know before you run dry.</li>
+    <li><b class="k">Quarterly:</b> re-read the Section 5 style guide against the top 10% of videos and update it — the style guide follows the data, not the other way around.</li>
+  </ul>
+</section>
+
+<!-- ================= SECTION 5 ================= -->
+<section class="main" id="sec-style">
+  <h2 class="sec"><span class="no">5</span>Content Style Guide</h2>
+  <p class="sec-lede">Lock this before video #1. A consistent look, sound, and packaging system is what makes two-person-months of AI output read as a brand — to viewers, to the algorithm, and to policy reviewers. Every rule here exists to be executed fast and repeated forever.</p>
+
+  <h3><span class="no">5.1</span>Finance — visual identity</h3>
+  <ul>
+    <li><b class="k">Palette:</b> deep navy base, gold accent, off-white text. Every chart, lower-third, and end-card uses it. (One palette = instant recognition in the feed.)</li>
+    <li><b class="k">Typography on screen:</b> one bold grotesque sans (Archivo, Inter, or similar) for lower-thirds and stat callouts; numbers rendered oversized — the number IS the visual.</li>
+    <li><b class="k">Charts:</b> dark-background charts, the one series that matters highlighted in gold, everything else gray. One reveal per chart (the line continuing past "today," the bar that dwarfs the rest). Build in Datawrapper/Flourish with a saved channel theme.</li>
+    <li><b class="k">B-roll:</b> stock graded slightly desaturated and cool. Avoid clichés (handshakes, skylines, coin jars); prefer close-ups of objects with stakes — keys, receipts, meters, contracts.</li>
+    <li><b class="k">Motion rules:</b> cut every 3–5 seconds; a chart may hold up to 8 seconds while the VO works; stills get a 103–106% push. Nothing sits still longer than the sentence about it.</li>
+    <li><b class="k">The Ledger end-card:</b> fixed three-number dashboard layout, same grid every video.</li>
+  </ul>
+  <div class="pre-label">Locked AI-still style string — finance (history bucket)</div>
+  <pre>editorial illustration, {SUBJECT}, navy and gold duotone, clean geometric
+composition, financial print aesthetic, subtle film grain, no text --ar 16:9</pre>
+
+  <h3><span class="no">5.2</span>Mysteries — visual identity</h3>
+  <ul>
+    <li><b class="k">Palette:</b> night slate and stone grays lit by ochre/torchlight gold. One grade, applied to everything.</li>
+    <li><b class="k">Art direction:</b> painterly realism, NOT photorealism — it's more beautiful, it sidesteps synthetic-media disclosure gray zones, and it hides AI artifacts. Signature move: dramatic scale contrast — tiny human figures against monumental stone.</li>
+    <li><b class="k">Maps:</b> Google Earth Studio orbital pushes with a consistent label style; every video geolocates its site in Act 1.</li>
+    <li><b class="k">Motion rules:</b> slow Ken Burns 103–108%; art holds 6–10 seconds; one deliberate "hold on silence" moment per act (the pattern interrupt that brands the channel).</li>
+    <li><b class="k">Typography on screen:</b> a display serif (Cormorant, Playfair) for titles; small-caps place/date stamps as a series motif: "GÖBEKLI TEPE — c. 9500 BCE".</li>
+    <li><b class="k">The Ladder graphic:</b> fixed three-rung motif (WE KNOW / RESEARCHERS THINK / SOME SPECULATE) with its own sound cue.</li>
+  </ul>
+  <div class="pre-label">Locked AI-still style string — mysteries</div>
+  <pre>cinematic documentary illustration, {SUBJECT}, painterly realism, golden-hour
+light, volumetric dust, muted ochre and slate palette, dramatic scale contrast,
+35mm framing, no text --ar 16:9</pre>
+  <p class="note">Keep the style string identical across every image in a video — and across videos. Consistency is the brand; the {SUBJECT} slot is the only thing that changes.</p>
+
+  <h3><span class="no">5.3</span>Thumbnail system</h3>
+  <p><b class="k">Rules for both channels:</b></p>
+  <ul>
+    <li>One focal subject. If a thumbnail needs explaining, it fails.</li>
+    <li>Text: 2–4 words maximum, and the words must NOT repeat the title — thumbnail and title are two different pieces of information (title = the what; thumbnail = the why-care).</li>
+    <li>Readable at 120 pixels wide. Zoom out and squint before exporting.</li>
+    <li>Three variants per video into YouTube's Test &amp; Compare; note the winning pattern monthly and feed it back into the template.</li>
+  </ul>
+  <ul>
+    <li><b class="k">Finance template:</b> navy field; one bold object or chart motif center-right; white grotesque text top-left with a gold underline bar. Example — title "Why Nobody Can Afford a House Anymore"; thumbnail text "6X YOUR SALARY" over a house-shaped chart line.</li>
+    <li><b class="k">Mystery template:</b> dark scene, single warm light source, scale contrast; gold serif text at bottom; a small corner "epoch stamp" (e.g., "9500 BCE") as the series marker. Example — title "Göbekli Tepe: The Temple That Rewrote Human History"; thumbnail text "BURIED ON PURPOSE".</li>
+  </ul>
+
+  <h3><span class="no">5.4</span>Title formulas</h3>
+  <ul>
+    <li><b class="k">The colon pivot</b> (mystery default): {Proper noun}: The {Category} That {Twist} — "Göbekli Tepe: The Temple That Rewrote Human History".</li>
+    <li><b class="k">Negative space</b> (curiosity default): "Why Nobody…", "The {X} No One Can {Verb}".</li>
+    <li><b class="k">The number anchor:</b> a concrete number where honest — "$37 Trillion", "70-Ton", "5,300-Year-Old".</li>
+    <li><b class="k">The honest question:</b> only when genuinely open — matches the debunk formats.</li>
+  </ul>
+  <p><b class="k">Rules:</b> under 60 characters; front-load the searchable noun; never promise what the video doesn't cash (retention collapse is the algorithmic death penalty); the title states the what, the thumbnail supplies the why-care.</p>
+
+  <h3><span class="no">5.5</span>Description &amp; metadata template</h3>
+  <pre>{One sentence restating the promise - primary keyword in the first 10 words.}
+
+{2-3 sentences on what the video covers and the payoff. Natural language.}
+
+CHAPTERS
+00:00 {Cold open}
+00:45 {Act 1 name}
+03:00 {Act 2 name}
+06:00 {Act 3 name}
+09:00 {The Ledger / The Ladder}
+11:00 {Close}
+
+SOURCES
+{3-8 primary sources with URLs - credibility, SEO, and your fact-check
+trail, in public}
+
+DISCLOSURE
+Some links above are affiliate links; qualifying purchases earn the channel
+a commission at no extra cost to you.
+{Finance only:} This video is education and entertainment, not financial
+advice.
+{If applicable:} AI-generated imagery is used to illustrate historical
+scenes.</pre>
+  <p class="note">Chapters improve session watch data and surface in search. The public sources list is rare among faceless channels — it's a trust signal viewers and sponsors both notice.</p>
+
+  <h3><span class="no">5.6</span>Sound identity</h3>
+  <ul>
+    <li>One intro sting under 2 seconds, identical every video — the audio logo.</li>
+    <li><b class="k">Finance bed:</b> minimal electronic pulse, 90–110 BPM, no melodic hook competing with the VO.</li>
+    <li><b class="k">Mystery bed:</b> low drones, sparse percussion, one recurring motif.</li>
+    <li>Reuse the same 2–3 licensed tracks per channel so the channel <i>sounds like itself</i>; duck music 12–15 dB under the voice.</li>
+    <li>The branded silence: music cuts to nothing on the final thesis line — and on each channel's signature moment (The Ledger reveal; The Ladder's first rung).</li>
+  </ul>
+
+  <h3><span class="no">5.7</span>Short-form presentation spec</h3>
+  <ul>
+    <li>9:16, 1080×1920. Keep text and faces inside the middle ~70% — the top ~15% and bottom ~20% are platform UI zones.</li>
+    <li>Captions always on: 3–5 words per line, keyword emphasized in the channel accent color.</li>
+    <li>The hook text overlay mirrors the spoken hook for the first 2 seconds.</li>
+    <li>For loop endings, trim the final beat so the last frame flows into the first.</li>
+    <li>Channel grade and fonts carry over from 5.1/5.2 — a clip should be identifiable as yours with the sound off.</li>
+  </ul>
+</section>
+
+<!-- ================= SECTION 6 ================= -->
+<section class="main" id="sec-scripts">
+  <h2 class="sec"><span class="no">6</span>The Script System</h2>
+  <p class="sec-lede">The structure stays fixed while every script's words are original — which is exactly what keeps you on the right side of YouTube's inauthentic-content policy. Retention is won or lost at three moments: second 5, second 30, and the mid-video dip around minute 5. Everything in this section is aimed at those three moments.</p>
+
+  <h3><span class="no">6.1</span>The shared long-form skeleton (10–14 min, ~1,600–2,200 words at 155 wpm)</h3>
+  <table class="wrap">
+    <tr><th style="width:16%">Time</th><th style="width:24%">Beat</th><th>Job</th></tr>
+    <tr><td class="c1">0:00–0:20</td><td><b>Cold open</b></td><td>The hook. No greeting, no logo, no "welcome back." Start inside the story.</td></tr>
+    <tr><td class="c1">0:20–0:45</td><td><b>The promise</b></td><td>What the viewer will understand by the end, and why it matters to <i>them</i>. Plant two open loops here.</td></tr>
+    <tr><td class="c1">0:45–3:00</td><td><b>Act 1 — Setup</b></td><td>The world before the problem / mystery. Simple, visual, concrete.</td></tr>
+    <tr><td class="c1">3:00–6:00</td><td><b>Act 2 — Mechanism / evidence</b></td><td>The meat. Escalate: each fact bigger than the last.</td></tr>
+    <tr><td class="c1">~5:30</td><td><b>Re-hook</b></td><td>One line that re-opens the story — it closes the first open loop and raises the stakes. Placed exactly where retention graphs dip.</td></tr>
+    <tr><td class="c1">6:00–9:00</td><td><b>Act 3 — The twist</b></td><td>The thing the title promised but didn't spell out.</td></tr>
+    <tr><td class="c1">9:00–11:00</td><td><b>The Ledger / The Ladder</b></td><td>The channel's signature segment: resolution, branded.</td></tr>
+    <tr><td class="c1">11:00–12:00</td><td><b>Close</b></td><td>Thesis in one sentence (closes the second loop) → tease the next video → ONE call-to-action. Never stack CTAs.</td></tr>
+  </table>
+  <p><b class="k">Writing rules (both channels):</b> write for the ear — average sentence under 18 words; one idea per sentence; concrete numbers over adjectives ("a 70-ton box" beats "a massive box"); a visual change cue at least every 40 seconds; the word "you" early and often.</p>
+
+  <h3 id="retention"><span class="no">6.2</span>The retention toolkit — seven devices</h3>
+  <p>These are the moves that separate a script that <i>reads</i> well from one that <i>holds</i>. The prompt templates below instruct the AI to use them; the rewrite pass (6.5) checks that it actually did.</p>
+  <div class="device"><span class="dn">1. Open Loop.</span> <span class="dx">Tease specific unresolved information early; close loops in the order planted. <span class="ex">"Three numbers decide whether you'll ever own a home. The third is the one nobody talks about."</span></span></div>
+  <div class="device"><span class="dn">2. Snapback.</span> <span class="dx">After any dense stretch, yank the viewer back to the stakes. <span class="ex">"Remember that two-and-a-half-years figure? Watch what happens to it."</span></span></div>
+  <div class="device"><span class="dn">3. Concrete Anchor.</span> <span class="dx">Every number above a million becomes a physical image, marked for fact-check. <span class="ex">"That's every home in the state of Ohio — bought twice over. [VERIFY]"</span></span></div>
+  <div class="device"><span class="dn">4. Pattern Interrupt.</span> <span class="dx">Every 60–90 seconds, change the sensory texture: music drop, a beat of silence, hard cut to black, a sudden direct question. Scripted via [MUSIC] / [SFX] cues — not left to the edit.</span></div>
+  <div class="device"><span class="dn">5. Rule of Three.</span> <span class="dx">Escalate evidence in threes; the third item breaks the pattern the first two set. <span class="ex">"No homes. No water. And no farms — because farming hadn't been invented yet."</span></span></div>
+  <div class="device"><span class="dn">6. The So-What Test.</span> <span class="dx">Every sentence either advances the story or raises the stakes. If it does neither, it dies in the rewrite.</span></div>
+  <div class="device"><span class="dn">7. Transition stingers.</span> <span class="dx">One-line pivots between acts, rotated, never repeated within a script: <span class="ex">"That's the what. Here's the why." · "Which leaves one question." · "Now watch what happens." · "Here's where it gets expensive." (finance) · "And that's when the story stops making sense." (mystery)</span></span></div>
+
+  <h3><span class="no">6.3</span>Finance channel</h3>
+  <p><b class="k">Voice bible:</b> Calm, dry, occasionally wry. The viewer's smart friend who reads the fine print. Never hype, never doom-bait. Explains systems and incentives — attacks <i>mechanisms</i>, not people. Every jargon term gets a one-line translation the moment it appears.</p>
+  <p><b class="k">Signature verbal tics (brand + originality evidence):</b> the cold open always lands on the channel stinger — <i>"Not opinions. Math."</i> Act 3 always opens with <i>"Follow the money."</i> The Ledger always introduces itself: <i>"Here's the ledger."</i></p>
+  <h4>Hook formulas (rotate)</h4>
+  <ol>
+    <li><b class="k">The Impossible Number</b> — "In 1971, a house cost two and a half years of salary. Today: over six." <span class="note">(anchor in a before/after stat)</span></li>
+    <li><b class="k">The Counterintuitive Claim</b> — "A raise can make you poorer. Here's the math."</li>
+    <li><b class="k">The Personal Audit</b> — "Look at your last paycheck. About a third of it went somewhere you've never thought about."</li>
+    <li><b class="k">The Villain Mechanism</b> — "There's a product designed to fail 90% of the people who buy it. It's legal, and it's probably in your wallet."</li>
+  </ol>
+  <div class="pre-label">Copy-paste prompt template v2 — finance</div>
+  <pre>You are the scriptwriter for {CHANNEL NAME}, a faceless finance explainer channel.
+
+VOICE
+- Calm, dry, occasionally wry. The viewer's smart friend who reads the fine print.
+- Second person ("you"). Plain English. Any jargon gets a one-line translation immediately.
+- Sentences average under 18 words. Written for the ear, not the page.
+- Attack mechanisms and incentives, never individuals or groups.
+
+SIGNATURE
+- The cold open's final line is always: "Not opinions. Math."
+- Act 3 opens with: "Follow the money."
+- The takeaway segment opens with: "Here's the ledger." and delivers exactly
+  three concrete numbers the viewer can track.
+
+BANNED PHRASES: "in today's video", "let's dive in", "delve", "landscape",
+"game-changer", "it's important to note", "at the end of the day",
+any promise of returns, anything phrased as financial advice.
+
+STRUCTURE (target {1,800} words, roughly 12 min at 155 wpm)
+1. COLD OPEN (0:00-0:20) - use hook type: {HOOK FORMULA}. No greeting.
+2. THE PROMISE (0:20-0:45) - what the viewer will understand by the end and
+   why it matters to their wallet. Plant TWO open loops: close the first at
+   the re-hook, the second in the close.
+3. HOW IT'S SUPPOSED TO WORK (0:45-3:00) - the system as designed.
+4. WHAT ACTUALLY HAPPENS (3:00-6:00) - the mechanism, step by step,
+   with concrete numbers.
+5. RE-HOOK at ~5:30 - one line that closes loop one and escalates the stakes.
+6. FOLLOW THE MONEY (6:00-9:00) - who profits, who pays, and why the
+   incentives guarantee this outcome.
+7. THE LEDGER (9:00-11:00) - the takeaway as three concrete numbers the
+   viewer can track, framed as information, not advice.
+8. CLOSE (11:00-12:00) - thesis in one sentence (closes loop two), tease
+   {NEXT VIDEO}, single CTA.
+
+RETENTION DEVICES (use all)
+- A Snapback after every dense stretch ("Remember that number? Watch it.")
+- Every number above one million gets a physical comparison, marked [VERIFY].
+- A Pattern Interrupt every 60-90 seconds, scripted via [MUSIC]/[SFX] cues.
+- Escalate evidence in threes; the third item breaks the pattern.
+- One-line transition stingers between acts; never reuse one in the script.
+
+FORMAT
+- Inline markup: [CHART: description] [B-ROLL: description]
+  [TEXT ON SCREEN: exact words] [MUSIC: cue] [SFX: cue]. At least one visual
+  cue every 40 seconds.
+- Use ONLY the verified facts below. Never invent a statistic. If a number
+  is missing, write [NEED: description] and continue.
+
+AFTER THE SCRIPT, OUTPUT:
+- 3 alternative cold opens (different hook formulas)
+- 3 title options (under 60 characters)
+- 3 thumbnail texts (2-4 words, repeating NO title words)
+- a 2-sentence description lead
+
+INPUTS
+TOPIC: {...}
+CORE QUESTION: {...}
+THE TWIST (act 3 reveal): {...}
+VERIFIED FACTS + SOURCES: {paste 5-10 facts you checked yourself}
+NEXT VIDEO TO TEASE: {...}</pre>
+
+  <h4>Worked example — "Why Nobody Can Afford a House Anymore (The Real Math)"</h4>
+  <p>The three make-or-break beats, verbatim (numbers marked for the fact-check pass):</p>
+  <p><b class="k">Cold open + promise:</b></p>
+  <div class="quote">
+    In 1971, the median American house cost about two and a half years of the median household income. <span class="cue">[VERIFY] [CHART: price-to-income ratio, 1971 point highlighted]</span> Today it costs more than six. <span class="cue">[VERIFY] [CHART: line climbing to 2026]</span> Your grandparents weren't richer than you. They weren't harder-working than you. They were playing a different game. <span class="cue">[B-ROLL: 1970s suburb, archival]</span> In the next twelve minutes I'll show you exactly when the rules changed, who changed them, and the three numbers that decide whether you'll ever own a home — the third is the one nobody talks about. <span class="cue">[TEXT ON SCREEN: The Real Math]</span> Not opinions. Math.
+  </div>
+  <p><b class="k">Re-hook (~5:30):</b></p>
+  <div class="quote">
+    <span class="cue">[MUSIC: drop to silence]</span> But a shortage alone doesn't explain what happened after 2020. <span class="cue">[B-ROLL: aerial, street of identical single-family rentals]</span> Because the buyer who outbid you on that three-bed ranch wasn't a family. It was an LLC on its four-hundredth purchase that quarter <span class="cue">[VERIFY]</span> — and it never planned to move in.
+  </div>
+  <p><b class="k">The Ledger + close:</b></p>
+  <div class="quote">
+    Here's the ledger. <span class="cue">[CHART: The Ledger — three numbers on navy]</span> Months of inventory: under four means sellers hold the power. <span class="cue">[VERIFY]</span> Price-to-income: past five, the median family is priced out of the median home. <span class="cue">[VERIFY]</span> Rent-versus-buy: when renting is this much cheaper, the market is telling you something. The math broke slowly, then all at once — because houses stopped being places to live and became assets to hold. Watch the three numbers, not the headlines. Next week: the companies quietly becoming America's landlord — who actually owns the block you live on. Subscribe and it'll find you. <span class="cue">[END SCREEN: subscribe + next-video card]</span>
+  </div>
+  <p><b class="k">Remaining beats:</b> Act 1 — how the 30-year mortgage plus cheap land built the postwar middle class (the system as designed). Act 2 — the mechanism: zoning caps supply, construction never recovered after 2008, household formation outruns building <span class="note">[CHART: homes built vs. households formed]</span>. Act 3 — "Follow the money": investor purchases, the rate-lock trap (sellers with 3% mortgages won't list), and who collects on both sides of the squeeze.</p>
+
+  <h3><span class="no">6.4</span>Ancient mysteries channel</h3>
+  <p><b class="k">Voice bible:</b> A measured documentary narrator — Attenborough crossed with a detective. Wonder without credulity. Present tense for discovery scenes. The channel's signature move is the <b>epistemic ladder</b>, spoken plainly: <i>"Here's what we know. Here's what researchers think. Here's what some speculate — and here's what the evidence actually supports."</i> That ladder is your credibility asset AND your advertiser-safety insurance.</p>
+  <p><b class="k">Signature verbal tics:</b> The Ladder always introduces itself — <i>"So — the ladder."</i> Every video's final spoken line, after the next-video tease, is the channel outro: <i>"The past isn't done talking."</i></p>
+  <h4>Hook formulas (rotate)</h4>
+  <ol>
+    <li><b class="k">The Discovery Scene</b> — open inside the moment someone found it, present tense.</li>
+    <li><b class="k">The Rule-Breaker</b> — "Everything we know about the Bronze Age says this object shouldn't exist."</li>
+    <li><b class="k">The Scale Shock</b> — "This temple is older than Stonehenge — by seven thousand years."</li>
+    <li><b class="k">The Vanishing</b> — "Fifty thousand soldiers marched into the desert. Not one marched out."</li>
+  </ol>
+  <div class="pre-label">Copy-paste prompt template v2 — ancient mysteries</div>
+  <pre>You are the scriptwriter for {CHANNEL NAME}, a faceless ancient-history
+documentary channel.
+
+VOICE
+- Measured, cinematic, curious. A documentary narrator with a detective's
+  discipline. Wonder without credulity.
+- Present tense for discovery scenes and site descriptions. Past tense for
+  history.
+- Sentences average under 18 words. Vivid, concrete, sensory.
+
+SIGNATURE
+- The final act's ladder segment always opens: "So - the ladder."
+- The video's last spoken line, after the next-video tease, is always:
+  "The past isn't done talking."
+
+EPISTEMIC RULES (non-negotiable)
+- Three rungs, always labeled in plain speech: "we know" (physical evidence),
+  "researchers think" (mainstream interpretation), "some speculate" (fringe).
+- Fringe theories may be described fairly, then weighed against evidence.
+  Never endorse what the evidence doesn't support; never sneer either.
+- BANNED: "scientists are baffled", "they don't want you to know",
+  "mainstream archaeology is hiding", leading alien / lost-supercivilization
+  insinuations, fabricated quotes or dates.
+
+STRUCTURE (target {1,900} words, roughly 12-13 min at 150 wpm)
+1. COLD OPEN (0:00-0:25) - hook type: {HOOK FORMULA}. Start inside a scene.
+2. THE QUESTION (0:25-0:50) - the mystery in one sentence, and what answering
+   it would change. Plant TWO open loops: close the first at the re-hook,
+   the second on the ladder.
+3. THE PLACE &amp; TIME (0:50-3:00) - take the viewer there. Who, when, where.
+4. THE EVIDENCE TOUR (3:00-6:30) - the anomalies, each stranger than the
+   last, with dates and measurements.
+5. RE-HOOK at ~5:30 - the discovery that makes everything stranger; closes
+   loop one.
+6. THE THEORIES (6:30-9:30) - mainstream explanation first and strongest;
+   then alternatives, honestly labeled and weighed.
+7. THE LADDER (9:30-11:30) - "So - the ladder." WE KNOW / RESEARCHERS THINK /
+   SOME SPECULATE, then: what would settle the question (a dig, a
+   decipherment, a dating method). Closes loop two.
+8. CLOSE (11:30-12:30) - the lingering question, tease {NEXT VIDEO}, single
+   CTA, then the outro line.
+
+RETENTION DEVICES (use all)
+- A Snapback after every dense stretch.
+- Every large measurement gets a physical comparison, marked [VERIFY].
+- A Pattern Interrupt every 60-90 seconds via [MUSIC]/[SFX] cues - including
+  one "hold on silence" moment per act.
+- Escalate evidence in threes; the third item breaks the pattern.
+- One-line transition stingers between acts; never reuse one in the script.
+
+FORMAT
+- Inline markup: [ART: scene description in channel style] [MAP: location]
+  [B-ROLL: description] [TEXT ON SCREEN: exact words] [MUSIC: cue] [SFX: cue].
+  Visual cue at least every 40 seconds.
+- Use ONLY the verified facts below. Missing detail? Write [NEED: ...].
+
+AFTER THE SCRIPT, OUTPUT:
+- 3 alternative cold opens (different hook formulas)
+- 3 title options (under 60 characters)
+- 3 thumbnail texts (2-4 words, repeating NO title words)
+- a 2-sentence description lead
+
+INPUTS
+TOPIC: {...}
+THE MYSTERY IN ONE SENTENCE: {...}
+THE RE-HOOK REVEAL: {...}
+VERIFIED FACTS + SOURCES: {paste 5-10 facts you checked yourself}
+NEXT VIDEO TO TEASE: {...}</pre>
+
+  <h4 id="worked2">Worked example — "Göbekli Tepe: The Temple That Rewrote Human History"</h4>
+  <p>The three make-or-break beats, verbatim:</p>
+  <p><b class="k">Cold open + question:</b></p>
+  <div class="quote">
+    In 1994, a shepherd walking a dry hillside in southern Turkey notices a worked stone edge breaking through the soil. <span class="cue">[ART: golden-hour hillside, lone figure, slow push-in]</span> Archaeologists surveyed this hill decades earlier. They recorded it as nothing — a medieval cemetery, probably. <span class="cue">[TEXT ON SCREEN: Göbekli Tepe — "Potbelly Hill"]</span> They were wrong by more than eleven thousand years. <span class="cue">[VERIFY]</span> Beneath the shepherd's feet stands the oldest monumental temple ever found — raised before farming, before pottery, before the wheel — by people who, according to everything we thought we knew, shouldn't have been able to build it. <span class="cue">[MUSIC: swell, cut to silence]</span> This is the site that broke the timeline of civilization. The question is no longer <i>whether</i> it did. It's <i>how</i> — and why its builders did the one thing no one can explain.
+  </div>
+  <p><b class="k">Re-hook (~5:30):</b></p>
+  <div class="quote">
+    <span class="cue">[MUSIC: cut]</span> And then there's the strangest choice of all. Around ten thousand years ago, the builders hauled in soil and rubble — thousands of tons of it <span class="cue">[VERIFY]</span> — and buried their own temple. <span class="cue">[ART: pillars half-swallowed by earth, figures with baskets]</span> Not abandoned. Buried. Deliberately, carefully, completely. People protect what they build. So what makes a civilization entomb its greatest work?
+  </div>
+  <p><b class="k">The Ladder + close:</b></p>
+  <div class="quote">
+    So — the ladder. <span class="cue">[TEXT ON SCREEN: THE LADDER] [SFX: ladder cue]</span> We KNOW hunter-gatherers raised multi-ton pillars here 11,600 years ago. <span class="cue">[VERIFY]</span> Researchers THINK gatherings at this temple may have nudged humans toward farming itself — the temple before the town, religion before agriculture. Some SPECULATE about a lost civilization; the tool marks and the dating say otherwise. And here is the number that matters: roughly ninety-five percent of the site is still underground. <span class="cue">[VERIFY] [ART: wide shot — excavated circles tiny against the whole mound]</span> The place that rewrote history has barely begun to speak. Next: a corroded bronze machine pulled from a Greek shipwreck — a computer, two thousand years early. The Antikythera Mechanism. Subscribe so it finds you. The past isn't done talking. <span class="cue">[END SCREEN]</span>
+  </div>
+  <p><b class="k">Remaining beats:</b> The place — T-shaped pillars up to 5.5m, carved reliefs, c. 9500 BCE <span class="note">[VERIFY]</span>, hunter-gatherer builders. Evidence tour in threes — no homes, no water source, no farms (farming hadn't been invented). Theories — mainstream first (ritual gathering site that may have <i>sparked</i> agriculture); fringe described, then weighed against tool marks and dating.</p>
+
+  <h3><span class="no">6.5</span>The rewrite protocol — where quality actually comes from</h3>
+  <p>First-draft AI scripts are structurally fine and verbally flat. The gap closes in two passes plus one prompt:</p>
+  <p><b class="k">Pass A — structure (5 min):</b> Does the hook contain a number and tension inside the first two sentences? Are two loops planted, and closed in order? Does the re-hook land between 5:00 and 6:00? Is every beat within ±20 seconds of the skeleton? Is there exactly one CTA?</p>
+  <p><b class="k">Pass B — line edit (10 min):</b> Read it aloud — rewrite anything you stumble on. Cut 10% of the words. Replace weak verbs (is/are/has/gets) where a strong verb exists. Make the first sentence of every act its strongest. Resolve every [VERIFY] and [NEED].</p>
+  <div class="pre-label">Copy-paste punch-up prompt (run between draft and human pass)</div>
+  <pre>Below is a draft script for {CHANNEL NAME}. Improve it WITHOUT changing facts,
+structure, or any [MARKUP] tags.
+
+1. Rewrite the first 40 words to hit harder: concrete noun, number, tension.
+   No greetings, no setup.
+2. Strengthen the re-hook line at ~5:30 - it must reopen the story, not
+   summarize it.
+3. Cut total length 8-12% (kill filler, adverbs, hedges, throat-clearing).
+4. Replace weak verbs (is/are/has/gets) with strong ones where natural.
+5. Check the open loops: two planted in the promise, closed in order. If one
+   never closes, close it in the CLOSE.
+6. Every number over one million gets a physical comparison marked [VERIFY].
+7. Keep the channel voice: {ONE-LINE VOICE REMINDER}. Keep all signature
+   lines exactly as written.
+
+Return the full revised script only, all [MARKUP] intact.
+
+DRAFT:
+{paste draft}</pre>
+
+  <h3><span class="no">6.6</span>Short-form scripts (Shorts / TikTok / Reels)</h3>
+  <h4>The 30–45 second clip (always rewrite the hook)</h4>
+  <ul>
+    <li><b class="k">0–1.5s:</b> pattern interrupt — the single most shocking line, rewritten, never the long-form's opening. On-screen text mirrors it.</li>
+    <li><b class="k">2–10s:</b> minimum setup. One sentence of context, no more.</li>
+    <li><b class="k">10–35s:</b> ONE idea from the long-form. Never two.</li>
+    <li><b class="k">Last 2s:</b> either a loop (the end feeds the beginning) or a cliffhanger: "The full story's on the channel — and it gets worse."</li>
+  </ul>
+  <h4>The 60-second+ TikTok (Creator Rewards-eligible — one per day)</h4>
+  <p>Mini three-act: hook (0–3s) → three escalating facts (3–45s) → the twist withheld until ~50s → cliffhanger CTA. The payout requires a <i>qualified</i> view, so the structure's whole job is getting past second 5.</p>
+  <div class="pre-label" id="punchup">Copy-paste clip-extraction prompt (run on every finished long-form)</div>
+  <pre>Below is the final long-form script for "{VIDEO TITLE}". Extract FIVE vertical
+clips for TikTok / Reels / Shorts.
+
+For each clip return:
+- HOOK: the first spoken line, REWRITTEN for a cold scroll (max 12 words,
+  concrete noun or number, no context needed), plus matching 3-5 word
+  on-screen text.
+- SOURCE: the script lines the clip uses (quote the first and last words).
+- THE ONE IDEA: one sentence. A clip carries one idea only.
+- ENDING: a loop line or a cliffhanger pointing to the full video.
+
+Rules:
+- CLIP 1 must run 60+ seconds (TikTok Creator Rewards): mini three-act -
+  hook, three escalating facts, twist at ~50 seconds, cliffhanger.
+- Clips 2-5: 25-40 seconds.
+- No two clips may share the same idea.
+- Never reuse the long-form's cold open as a clip hook.
+
+SCRIPT:
+{paste final script}</pre>
+  <h4>Short-form hook lines, by channel</h4>
+  <ul>
+    <li><b class="k">Finance:</b> "The sports betting app on your phone knows you'll lose. That's the business model." · "Your landlord might be a spreadsheet."</li>
+    <li><b class="k">Mystery:</b> "This temple is 7,000 years older than Stonehenge. We found it in 1994." · "50,000 soldiers walked into this desert. Zero walked out."</li>
+  </ul>
+
+  <h3><span class="no">6.7</span>Pre-publish checklist (the human pass — every video, no exceptions)</h3>
+  <ol>
+    <li>Every [VERIFY] and [NEED] resolved against a primary source; source list saved in Notion and pasted into the description.</li>
+    <li>Read the script aloud once — rewrite anything you stumble on.</li>
+    <li>Banned-phrase scan (the AI will leak them; search the doc).</li>
+    <li>One CTA only; the re-hook lands 5:00–6:00; both open loops close; signature lines present (stinger, Ledger/Ladder, outro).</li>
+    <li>Visual cue at least every 40 seconds; one pattern interrupt per act.</li>
+    <li>AI-image QC: no garbled text, malformed hands, or accidental real-person likenesses in any frame.</li>
+    <li>Packaging: 3 thumbnail variants loaded into Test &amp; Compare; title under 60 characters; description from the 5.5 template with chapters and disclosure block.</li>
+    <li>Finance: "not financial advice" present. Mystery: synthetic-content disclosure toggled if any AI visuals could pass for real footage.</li>
+    <li>End screen in the final 20 seconds; pinned comment prepared (a question, or the sources link).</li>
+    <li>Watch the final render end-to-end before scheduling. Non-negotiable — this single habit is most of your inauthentic-content-policy defense.</li>
+  </ol>
+</section>
+
+<!-- ================= SECTION 7 ================= -->
+<section class="main">
+  <h2 class="sec"><span class="no">7</span>Guardrails: Staying Monetized (and Legal)</h2>
+  <p class="sec-lede">Everything above only pays if the channels stay in the YouTube Partner Program, advertiser-friendly, and out of legal trouble. These nine rules are the insurance policy.</p>
+  <ul>
+    <li><b class="k">Beat the inauthentic-content policy by design:</b> original scripts, a human edit pass on every video, one consistent branded voice and style, signature segments, sources cited on-screen. Never upload identical content across multiple channels; never ship a video no human watched end-to-end.</li>
+    <li><b class="k">Synthetic-media disclosure:</b> toggle YouTube's altered/synthetic-content flag whenever AI footage could be mistaken for real events or real people. Stylized painterly art doesn't need it; photorealistic "historical footage" does.</li>
+    <li><b class="k">FTC disclosure:</b> every description with affiliate links carries the disclosure line (5.5). Sponsored videos get the platform's paid-promotion flag AND a spoken/on-screen "#ad" — the FTC requires clear and conspicuous disclosure, not a buried link.</li>
+    <li><b class="k">Voice &amp; likeness:</b> use platform-licensed synthetic voices only — never clone a real person's voice; never depict living private individuals photorealistically; public figures only in documented, newsworthy contexts.</li>
+    <li><b class="k">Defamation discipline (the Dark Side bucket):</b> named companies and living people get only the documented public record — court filings, regulator actions, major-outlet reporting — with attribution ("according to the SEC complaint…"). When in doubt, indict the mechanism, not the person.</li>
+    <li><b class="k">Finance is YMYL:</b> fact-check every number against a primary source (FRED, BLS, Census), keep the "not financial advice" line in every description, never promise returns.</li>
+    <li><b class="k">Mystery framing:</b> evidence-first, questions not cover-ups. The debunk videos in Section 3 are deliberate — they're the advertiser-friendliness insurance.</li>
+    <li><b class="k">Licensing:</b> only stock and licensed footage and music. Nothing ripped, ever — one strike cascade can end a channel.</li>
+    <li><b class="k">Platform hygiene:</b> native uploads, no cross-platform watermarks, US-skewed topics for the 3–5x RPM premium.</li>
+  </ul>
+</section>
+
+<!-- ================= SECTION 8 ================= -->
+<section class="main" id="sec-start">
+  <h2 class="sec"><span class="no">8</span>Getting Started: The First 30 Days</h2>
+  <p class="sec-lede">The plan is complete. What kills new channels now isn't strategy — it's the cold start: overwhelm in week one, panic at week four's view counts, thrash at week six. This section is the anti-quit protocol.</p>
+
+  <h3><span class="no">8.1</span>Launch sequence — stagger, don't parallel-launch</h3>
+  <p>Reserve both brands' handles on day 1, but launch the <i>content</i> staggered: two simultaneous channel launches double the week-one workload exactly when every step is still unfamiliar. A two-week stagger costs nothing at day 90.</p>
+  <table>
+    <tr><th style="width:16%">Week</th><th>Milestones</th></tr>
+    <tr><td class="c1">Week 1</td><td>Finance only: setup (4.1), style lock (5), bank 6 scripts, publish video #1 (idea #1) plus its daily shorts.</td></tr>
+    <tr><td class="c1">Week 2</td><td>Finance to 2–3 long-forms/week; bank mystery scripts during the Monday batch.</td></tr>
+    <tr><td class="c1">Week 3</td><td>Launch mysteries with Göbekli Tepe and its shorts; both channels now run the 4.4 schedule.</td></tr>
+    <tr><td class="c1">Week 4</td><td>Full pyramid operating. First analytics read — impressions and CTR only; ignore view counts (see 8.3).</td></tr>
+  </table>
+
+  <h3><span class="no">8.2</span>Naming the channels</h3>
+  <ul>
+    <li>Short, sayable, spellable after hearing it once. No numbers, underscores, or hyphens.</li>
+    <li>Hints the niche without locking it — abstract beats literal ("HousingFacts2026" ages badly; a metaphor doesn't).</li>
+    <li>Patterns that work: <b class="k">finance</b> — objects of the trade (Ledger, Fine Print, Paper Trail, The Margin); <b class="k">mysteries</b> — evocations of deep time (Before the Wheel, The Buried Age, Older Than Empires).</li>
+    <li>Elegant move: name the channel after its signature segment, so the brand and the format reinforce each other.</li>
+    <li>The same handle must be free on YouTube, TikTok, Instagram, and Pinterest (grab the .com if it's cheap). Check before falling in love; expect three or four attempts.</li>
+    <li>Passes the spoken test — it has to sound natural in the outro sentence.</li>
+  </ul>
+
+  <h3><span class="no">8.3</span>The cold-start reality — read this at week 4, and again at week 8</h3>
+  <ul>
+    <li>New channels get trickle impressions while YouTube tests them. The first 10–15 videos earning under 100 views each is <b class="k">normal, not a verdict</b>.</li>
+    <li>Judgment day is video 15 / day 45 — not video 5. The 4.8 kill rules apply to <i>formats</i> after 8 attempts, never to a channel before day 90.</li>
+    <li>Never delete or re-upload early low-view videos. They're the library the algorithm mines later; deletion resets your data.</li>
+    <li>Never buy subscribers or engagement — dead subscribers permanently suppress the impressions your videos earn.</li>
+    <li>Expect one video to eventually do 10–50x the others. The outlier, not the average, is how channels break out. The job until then: keep the slots filled, hold the quality floor.</li>
+  </ul>
+
+  <h3><span class="no">8.4</span>The reactive calendar — the 30% is schedulable</h3>
+  <p>Finance "news" runs on a published schedule. Build each reactive video's evergreen shell in advance, drop the numbers in on release day, publish within 24 hours:</p>
+  <ul>
+    <li><b class="k">CPI release</b> (monthly, 8:30am ET) → "Why everything feels expensive" update angles.</li>
+    <li><b class="k">Jobs report</b> (first Friday, monthly) → labor-market and AI-and-jobs angles.</li>
+    <li><b class="k">FOMC decision</b> (eight per year) → Fed explainer re-cuts.</li>
+    <li><b class="k">Case-Shiller / existing-home sales</b> (monthly) → the Housing Market Update format (idea #10).</li>
+  </ul>
+  <p><b class="k">Mysteries equivalent:</b> Google Alerts on "archaeological discovery," "ancient DNA," and each covered site. A fresh dig announcement is that channel's data drop — and a reason to sequel an existing video.</p>
+
+  <h3><span class="no">8.5</span>The weekly metrics row (every Friday, one row)</h3>
+  <ul>
+    <li><b class="k">Per video:</b> impressions, CTR, average view duration %, views, top traffic source.</li>
+    <li><b class="k">Per channel:</b> subscribers, watch hours (YPP progress), shorts views.</li>
+    <li><b class="k">One decision per week, maximum,</b> drawn from the data ("number-led thumbnails beat object-only 2:1 — update the template"). Change more than one thing at a time and nothing is attributable.</li>
+  </ul>
+
+  <h3><span class="no">8.6</span>Ship at 80%</h3>
+  <p>Video #1 will be slightly embarrassing. Publish it anyway. The system improves through reps against the checklist, not through polishing one artifact — quality rises with every video; it is never reached by delaying one. The hard floor stays the 6.7 checklist, every video, no exceptions.</p>
+
+  <div class="callout">
+    <h4>If you remember only five things</h4>
+    <ol>
+      <li>Long-form is the business. Shorts are the advertising.</li>
+      <li>The human pass (6.7) is never skipped — it is the monetization moat.</li>
+      <li>Evergreen compounds; news decays. Hold the 70/30 line.</li>
+      <li>Signature segments in every video: The Ledger, The Ladder.</li>
+      <li>Judge at video 15, not video 5. Kill formats, not channels, before day 90.</li>
+    </ol>
+  </div>
+</section>
+
+<!-- ================= SECTION 9 ================= -->
+<section class="main">
+  <h2 class="sec"><span class="no">9</span>Sources</h2>
+  <p class="sec-lede">Key data behind the strategy (retrieved July 2026). Craft guidance in Sections 5–6 is editorial best practice; the market and policy claims below are sourced.</p>
+  <ul class="sources">
+    <li>vidIQ — Highest-Paying YouTube Niches: CPM &amp; RPM by Category <span class="u">vidiq.com/blog/post/most-profitable-youtube-niches</span></li>
+    <li>OutlierKit — Most Profitable YouTube Niches (RPM data) <span class="u">outlierkit.com/blog/most-profitable-youtube-niches</span></li>
+    <li>Virlo — Highest RPM Niches on YouTube <span class="u">virlo.ai/blog/highest-rpm-niches-on-youtube</span></li>
+    <li>Social Media Today — YouTube Clarifies Monetization Rules Around Inauthentic Content <span class="u">socialmediatoday.com/news/youtube-clarifies-monetization-update-inauthentic-repeated-content/752892</span></li>
+    <li>Fliki — YouTube Monetization Policy Update, July 2025 <span class="u">fliki.ai/blog/youtube-monetization-policy-2025</span></li>
+    <li>Miraflow — TikTok RPM and Monetization in 2026 <span class="u">miraflow.ai/blog/tiktok-rpm-monetization-2026-how-much-tiktok-pays</span></li>
+    <li>Hopp — TikTok Pay-Per-View Rates 2026 <span class="u">hopp.co/post/how-much-does-tiktok-pay-per-view-in-2026</span></li>
+    <li>FluxNote — Avoiding Copyright on Sports Highlights <span class="u">fluxnote.io/guides/avoid-copyright-sports-highlights-youtube</span></li>
+    <li>Wide Left — How Catapult Sports Is Killing Football YouTube <span class="u">wideleft.football/p/how-catapult-sports-is-killing-football</span></li>
+    <li>ACM WWW '22 — Conspiracy Brokers: Monetization of YouTube Conspiracy Theories <span class="u">dl.acm.org/doi/fullHtml/10.1145/3485447.3512142</span></li>
+    <li>OutlierKit — Faceless YouTube Channel Niches (CPM data) <span class="u">outlierkit.com/resources/faceless-youtube-channels</span></li>
+    <li>NexLev — Highest-Paying Faceless Niches, July 2026 <span class="u">nexlev.io/highest-paying-faceless-niches-july</span></li>
+    <li>Metricool — Best Time to Post on Social Media 2026 <span class="u">metricool.com/best-time-to-post-social-networks</span></li>
+    <li>Moonb — Best Times to Post Video (Every Platform) <span class="u">moonb.io/blog/best-times-to-post-video</span></li>
+    <li>PostFast — Best Time to Post on Social Media (All Platforms) <span class="u">postfa.st/blog/best-time-to-post-on-social-media</span></li>
+    <li>Clippie — Top AI Tools for Faceless YouTube Channels 2026 <span class="u">clippie.ai/blog/ai-tools-faceless-youtube-channels-2026</span></li>
+    <li>OakGen — Best AI Video Tools for Faceless YouTube <span class="u">oakgen.ai/learn/best-ai-video-tools-faceless-youtube-2026</span></li>
+    <li>DigitalCruch — AI Video Generators for Faceless Channels <span class="u">digitalcruch.com/ai-video-tools-for-youtube</span></li>
+    <li>HeyGen — Best AI Video Tools for YouTube Creators 2026 <span class="u">heygen.com/blog/best-ai-video-tools-youtube-creators-2026</span></li>
+  </ul>
+</section>
+
+</body>
+</html>
